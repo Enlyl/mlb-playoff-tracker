@@ -1,0 +1,2481 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MLB Playoff Tracker 2026</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%E2%9A%BE</text></svg>">
+<meta name="theme-color" content="#ffffff">
+<link rel="manifest" id="pwa-manifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MLB Tracker">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23e60023'/%3E%3Ctext x='50' y='68' font-size='56' text-anchor='middle'%3E%E2%9A%BE%3C/text%3E%3C/svg%3E">
+<script>(function(){var t=null;try{t=localStorage.getItem('theme')}catch(e){}if(t!=='dark'&&t!=='light')t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';document.documentElement.setAttribute('data-theme',t);})();</script>
+<style>
+  /* ===== Gestalt (Pinterest) — tokens ===== */
+  :root{
+    --gestalt-red-pushpin-450:#e60023;
+    --color-text-default:#111111; --color-text-subtle:#767676;
+    --color-background-default:#ffffff; --color-background-secondary-base:#efefef;
+    --color-background-hover:#e2e2e2; --color-border-container:#cdcdcd;
+    --color-text-success:#008753; --color-text-error:#cc0000;
+    --font-body:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --radius-default:8px; --radius-large:16px; --radius-pill:9999px;
+    --shadow-floating:0 0 8px rgba(0,0,0,.10);
+    --motion:200ms ease;
+
+    /* алиасы под существующую разметку и JS */
+    --bg:var(--color-background-default); --panel:var(--color-background-secondary-base);
+    --panel2:var(--color-border-container); --line:var(--color-border-container);
+    --text:var(--color-text-default); --muted:var(--color-text-subtle);
+    --accent:#cc0000; --accent-fill:#e60023; --accent-fill-hover:#ad081b;
+    --win:#008753; --live:#e60023; --err:var(--color-text-error);
+    --hover:var(--color-background-hover);
+    --info-bg:#e8f1ff; --placeholder:#767676;
+    --inv-bg:#111111; --inv-fg:#ffffff; --top-c:#0074e8; --bot-c:#8e44ef;
+    --scoring-bg:#e0f5ea;
+    --tag-gray-bg:#e2e2e2;
+    --tag-green-bg:#d8f5e6; --tag-green-fg:#005a37;
+    --tag-green2-bg:#b5ecd0; --tag-green2-fg:#004a2d;
+    --tag-blue-bg:#dbe9ff; --tag-blue-fg:#0b4aa6;
+    --tag-purple-bg:#eee0ff; --tag-purple-fg:#5a2ea6;
+    --tag-red-bg:#ffe0e4; --tag-red-fg:#a3001a;
+    --tag-yellow-bg:#fff3c4; --tag-yellow-fg:#6b4e00; --tag-yellow-hover:#ffe994;
+    --gutter:max(16px, calc((100% - 720px) / 2 + 16px));
+    color-scheme:light;
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --color-text-default:#ffffff; --color-text-subtle:#b5b5b5;
+    --color-background-default:#111111; --color-background-secondary-base:#2b2b2b;
+    --color-background-hover:#3c3c3c; --color-border-container:#4a4a4a;
+    --color-text-success:#3fc38d; --color-text-error:#ff6b7a;
+    --accent:#ff6b7a; --win:#3fc38d; --live:#e60023;
+    --info-bg:#16283f; --placeholder:#b5b5b5;
+    --inv-bg:#ffffff; --inv-fg:#111111; --top-c:#4da3ff; --bot-c:#b58cff;
+    --scoring-bg:#123326;
+    --tag-gray-bg:#3c3c3c;
+    --tag-green-bg:#0f3d2a; --tag-green-fg:#8ee6bc;
+    --tag-green2-bg:#14503a; --tag-green2-fg:#a9f0cf;
+    --tag-blue-bg:#16305c; --tag-blue-fg:#a9c8ff;
+    --tag-purple-bg:#3b2a66; --tag-purple-fg:#d0b8ff;
+    --tag-red-bg:#5c0f1a; --tag-red-fg:#ffb3bd;
+    --tag-yellow-bg:#4a3c00; --tag-yellow-fg:#ffe58a; --tag-yellow-hover:#5e4c00;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body);
+    font-size:16px;line-height:24px;-webkit-font-smoothing:antialiased}
+  :focus-visible{outline:2px solid var(--text);outline-offset:2px}
+  button,input{font-family:inherit}
+
+  /* Шапка */
+  header{position:relative;padding:64px var(--gutter) 8px;text-align:left;background:var(--bg)}
+  header h1{margin:0;font-size:28px;line-height:34px;font-weight:700}
+  header p{margin:4px 0 0;color:var(--muted);font-size:14px;line-height:21px}
+  .theme-toggle{position:absolute;top:16px;right:var(--gutter);background:var(--panel);border:none;color:var(--text);
+    min-height:40px;padding:0 16px;border-radius:9999px;font-size:14px;font-weight:600;cursor:pointer;
+    transition:background-color var(--motion)}
+  .theme-toggle:hover{background:var(--hover)}
+
+  #my-team-bar{max-width:720px;margin:0 auto;padding:16px 16px 0}
+  .myteam-empty{color:var(--muted);font-size:14px;line-height:21px;text-align:center;padding:12px 16px;
+    border:2px dashed var(--line);border-radius:16px}
+  .myteam-bar{background:var(--info-bg);border-radius:16px;padding:16px 24px}
+  .myteam-name{font-weight:700;font-size:20px;line-height:26px;display:flex;justify-content:space-between;align-items:center}
+  .mini-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;
+    padding:8px;margin:-8px;border-radius:9999px;transition:background-color var(--motion)}
+  .mini-btn:hover{background:var(--hover);color:var(--text)}
+  .stage-track{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .stage{font-size:12px;line-height:18px;font-weight:600;color:var(--muted);padding:4px 12px;background:var(--tag-gray-bg);border-radius:9999px}
+  .stage.now{color:#fff;background:var(--accent-fill)}
+  .stage.done{color:var(--tag-green-fg);background:var(--tag-green-bg)}
+  .arrow{color:var(--muted);font-size:13px}
+  .myteam-bar .meta{margin-top:12px;font-size:14px}
+
+  /* Вкладки — пилюли */
+  .tabs{display:flex;gap:8px;padding:12px var(--gutter);background:var(--bg);overflow-x:auto;white-space:nowrap;
+    position:sticky;top:0;z-index:10;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{background:var(--panel);color:var(--text);border-radius:9999px;padding:0 16px;height:40px;line-height:40px;
+    cursor:pointer;font-size:14px;font-weight:600;flex:0 0 auto;transition:background-color var(--motion),color var(--motion)}
+  .tab:hover{background:var(--hover)}
+  .tab.active{background:var(--inv-bg);color:var(--inv-fg)}
+
+  main{max-width:720px;margin:0 auto;padding:8px 16px 80px}
+  .view{display:none}
+  .view.active{display:block}
+
+  /* Карточки */
+  .card{background:var(--panel);border:none;border-radius:16px;padding:16px 24px;margin-bottom:12px}
+  .card.clickable{cursor:pointer;transition:background-color var(--motion),transform var(--motion)}
+  .card.clickable:hover{background:var(--hover)}
+  .card.clickable:active{transform:scale(.99)}
+  .card .round{color:var(--muted);font-size:12px;line-height:18px;font-weight:700;margin-bottom:8px}
+
+  .matchup{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:4px 0}
+  .team{flex:1;font-size:16px;font-weight:400;display:flex;align-items:center}
+  .team.win{color:var(--win);font-weight:700}
+  .score{font-size:24px;line-height:29px;font-weight:600;min-width:32px;text-align:center;font-variant-numeric:tabular-nums}
+
+  .meta{color:var(--muted);font-size:14px;line-height:21px;margin-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .status{display:inline-block;padding:2px 12px;border-radius:9999px;font-size:12px;line-height:18px;font-weight:600}
+  .status.final{background:var(--tag-green-bg);color:var(--tag-green-fg)}
+  .status.live{background:var(--accent-fill);color:#fff}
+  .status.pre{background:var(--tag-gray-bg);color:var(--text)}
+
+  .bracket-round h3,.standings-group h3{font-size:24px;line-height:29px;color:var(--text);font-weight:700;margin:32px 0 12px}
+  .series-card{background:var(--panel);border-radius:16px;padding:16px 24px;margin-bottom:12px;font-size:16px}
+  .series-card .sname{color:var(--muted);font-size:12px;line-height:18px;font-weight:700;margin-bottom:8px}
+
+  .loading,.empty{color:var(--muted);text-align:center;padding:40px 16px;font-size:14px;line-height:22px}
+
+  /* Кнопки: secondary (серая пилюля) / primary (красная) */
+  .reload,.back-btn,.toggle-btn{background:var(--panel);border:none;color:var(--text);min-height:40px;padding:8px 16px;
+    border-radius:9999px;font-size:14px;font-weight:600;cursor:pointer;transition:background-color var(--motion),color var(--motion)}
+  .reload:hover,.back-btn:hover,.toggle-btn:hover{background:var(--hover)}
+  .reload{display:block;margin:16px auto 0;background:var(--accent-fill);color:#fff}
+  .reload:hover{background:var(--accent-fill-hover)}
+  .toggle-btn{margin-top:8px}
+  .back-btn.on{background:var(--accent-fill);color:#fff}
+  .back-btn.on:hover{background:var(--accent-fill-hover)}
+  .toggle-btn.on{background:var(--accent-fill);color:#fff}
+  footer{text-align:center;color:var(--muted);font-size:12px;line-height:18px;padding:32px 16px 40px}
+
+  .star{cursor:pointer;color:var(--line);margin-right:8px;font-size:18px;display:inline-block;padding:4px;line-height:1;
+    transition:color var(--motion),transform var(--motion)}
+  .star:hover{transform:scale(1.15);color:var(--muted)}
+  .star.active{color:var(--accent-fill)}
+
+  /* Экран игры */
+  #detail-overlay{position:fixed;inset:0;background:var(--bg);z-index:50;overflow-y:auto;display:none}
+  #detail-overlay.active{display:block}
+  .detail-header{padding:12px 16px;position:sticky;top:0;background:var(--bg);z-index:5;
+    display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .detail-body{max-width:1000px;margin:0 auto;padding:8px 24px 64px}
+  .hdr-tools{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+
+  .score-big{display:flex;justify-content:space-around;align-items:center;padding:24px 0 8px}
+  .score-big .side{text-align:center;flex:1}
+  .score-big .side .name{font-size:14px;color:var(--muted);font-weight:600;margin-bottom:4px}
+  .score-big .side .num{font-size:36px;line-height:43px;font-weight:700;font-variant-numeric:tabular-nums}
+  .inning-info{text-align:center;color:var(--accent);font-weight:700;font-size:14px;margin-bottom:16px}
+
+  .diamond-wrap{display:flex;justify-content:center;margin:24px 0}
+  .diamond{position:relative;width:120px;height:120px;transform:rotate(45deg)}
+  .base{position:absolute;width:28px;height:28px;border:2px solid var(--line);background:var(--bg);border-radius:8px;
+    transition:background-color var(--motion),border-color var(--motion)}
+  .base.on{background:var(--accent-fill);border-color:var(--accent-fill)}
+  .base.first{right:-14px;top:46px}
+  .base.second{top:-14px;left:46px}
+  .base.third{left:-14px;top:46px}
+
+  .counts{display:flex;justify-content:center;gap:24px;margin:16px 0;font-size:14px;color:var(--muted)}
+  .counts b{color:var(--text);font-size:16px;font-weight:700}
+  .lastplay{background:var(--panel);border-radius:16px;padding:16px 24px;margin:16px 0;font-size:16px;line-height:24px}
+
+  .linescore-table,.standings-table{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;font-variant-numeric:tabular-nums;
+    background:var(--panel);border-radius:16px}
+  .linescore-table{margin-top:24px}
+  .standings-table{margin-bottom:8px}
+  .linescore-table th,.linescore-table td,.standings-table th,.standings-table td{padding:10px 8px;text-align:center;border-bottom:1px solid var(--line)}
+  .linescore-table th,.standings-table th{color:var(--muted);font-weight:600;font-size:12px}
+  .linescore-table td:first-child,.linescore-table th:first-child,
+  .standings-table td:first-child,.standings-table th:first-child{text-align:left;font-weight:600;padding-left:16px}
+  .linescore-table th:first-child,.standings-table th:first-child{border-top-left-radius:16px}
+  .linescore-table th:last-child,.standings-table th:last-child{border-top-right-radius:16px}
+  .linescore-table tr:last-child td,.standings-table tr:last-child td{border-bottom:none}
+  .linescore-table tr:last-child td:first-child,.standings-table tr:last-child td:first-child{border-bottom-left-radius:16px}
+  .linescore-table tr:last-child td:last-child,.standings-table tr:last-child td:last-child{border-bottom-right-radius:16px}
+  .standings-table tr:hover td{background:var(--hover)}
+  .standings-table tr.clinched td:first-child{color:var(--win)}
+
+  .section-title{font-size:14px;line-height:21px;color:var(--text);font-weight:700;margin:32px 0 8px}
+  .wp-chart{width:100%;height:100px;display:block;background:var(--panel);border-radius:16px}
+
+  .playbyplay-list{margin-top:12px;background:var(--panel);border-radius:16px;overflow:hidden}
+  .play-row{padding:14px 24px 14px 16px;border-bottom:1px solid var(--line);font-size:16px;line-height:24px;border-left:4px solid transparent}
+  .play-row:last-child{border-bottom:none}
+  .play-row.top{border-left-color:var(--top-c)}
+  .play-row.bot{border-left-color:var(--bot-c)}
+  .play-row.scoring{background:var(--scoring-bg)}
+  .ptags{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .pill,.chip{font-size:12px;line-height:18px;font-weight:600;padding:2px 12px;border-radius:9999px}
+  .pill.top{background:var(--tag-blue-bg);color:var(--tag-blue-fg)}
+  .pill.bot{background:var(--tag-purple-bg);color:var(--tag-purple-fg)}
+  .ptime{font-size:12px;color:var(--muted);font-weight:600}
+  .chip{background:var(--tag-gray-bg);color:var(--text)}
+  .chip.run{background:var(--tag-green2-bg);color:var(--tag-green2-fg)}
+  .chip.hr{background:var(--tag-red-bg);color:var(--tag-red-fg)}
+  .chip.k{background:var(--tag-yellow-bg);color:var(--tag-yellow-fg)}
+
+  .tr-src.done{color:var(--text)}
+
+  /* Правила */
+  .rules details{background:var(--panel);border-radius:16px;margin-bottom:8px}
+  .rules summary{cursor:pointer;padding:16px 24px;font-weight:700;font-size:16px;list-style:none;border-radius:16px;
+    display:flex;align-items:center;transition:background-color var(--motion)}
+  .rules summary:hover{background:var(--hover)}
+  .rules summary::-webkit-details-marker{display:none}
+  .rules summary::before{content:'▸';color:var(--accent);margin-right:12px}
+  .rules details[open] summary::before{content:'▾'}
+  .rules .body{padding:0 24px 20px;font-size:15px;line-height:24px}
+  .rules .body p{margin:0 0 12px}
+  .rules .body ul{margin:0;padding-left:20px}
+  .rules .body li{margin-bottom:8px}
+  .rules .body b{font-weight:700}
+
+  .gl-search{width:100%;height:48px;padding:0 24px;border:2px solid transparent;border-radius:9999px;background:var(--panel);
+    color:var(--text);font-size:16px;margin:0 0 16px;outline:none;transition:border-color var(--motion)}
+  .gl-search:focus{border-color:var(--text)}
+  .gl-search::placeholder{color:var(--placeholder)}
+  .gl-list{background:var(--panel);border-radius:16px;overflow:hidden}
+  .term{padding:14px 24px;border-bottom:1px solid var(--line);font-size:15px;line-height:23px}
+  .term:last-child{border-bottom:none}
+  .term .en{color:var(--accent);font-weight:700}
+  .term .ru{font-weight:700}
+  .term .ds{color:var(--muted);display:block;margin-top:2px}
+
+  .newbie{display:none;margin-top:12px;background:var(--info-bg);border-radius:16px;padding:12px 16px;font-size:14px;line-height:21px;color:var(--text)}
+  body.nb-on .newbie{display:block}
+
+  /* Зона страйка */
+  .sz-wrap{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;background:var(--panel);border-radius:16px;padding:24px}
+  .sz-svg{width:280px;max-width:100%;flex:0 0 auto;display:block}
+  .sz-side{flex:1;min-width:240px}
+  .sz-title{font-size:16px;font-weight:700;margin-bottom:4px}
+  .sz-sub{font-size:14px;color:var(--muted);margin-bottom:12px;line-height:21px}
+  .sz-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px;line-height:21px}
+  .sz-row:last-of-type{border-bottom:none}
+  .sz-n{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:700;color:#fff;flex:0 0 26px}
+  .sz-call{color:var(--muted);font-size:13px}
+  .sz-count{margin-left:auto;font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap}
+  .sz-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted)}
+  .sz-legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+
+  /* Фильтры */
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+  .fchip{background:var(--panel);border:none;color:var(--text);min-height:36px;padding:0 16px;border-radius:9999px;
+    font-size:14px;font-weight:600;cursor:pointer;transition:background-color var(--motion)}
+  .fchip:hover{background:var(--hover)}
+  .fchip.active{background:var(--inv-bg);color:var(--inv-fg)}
+  .playbyplay-list[data-f="score"] .play-row:not([data-cats~="score"]),
+  .playbyplay-list[data-f="hit"] .play-row:not([data-cats~="hit"]),
+  .playbyplay-list[data-f="k"] .play-row:not([data-cats~="k"]),
+  .playbyplay-list[data-f="hr"] .play-row:not([data-cats~="hr"]){display:none}
+
+  .hints{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .hint{background:var(--tag-yellow-bg);color:var(--tag-yellow-fg);border:none;border-radius:9999px;padding:4px 14px;
+    font-size:13px;font-weight:600;cursor:pointer;transition:background-color var(--motion)}
+  .hint:hover{background:var(--tag-yellow-hover)}
+  .hint.open{background:var(--inv-bg);color:var(--inv-fg)}
+  .hint-box{margin-top:12px;background:var(--tag-yellow-bg);border-radius:16px;padding:12px 16px;font-size:14px;line-height:21px;color:var(--text)}
+  .hint-box b{color:var(--tag-yellow-fg)}
+
+  .tdot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;flex-shrink:0}
+  .cal-btn{cursor:pointer;font-size:16px;padding:4px 6px;border-radius:9999px;transition:background-color var(--motion)}
+  .cal-btn:hover{background:var(--hover)}
+
+  .series-badge{background:var(--tag-gray-bg);padding:2px 12px;border-radius:9999px;font-size:12px;line-height:18px;color:var(--text);font-weight:600}
+
+  .wins-needed{margin-top:12px;font-size:14px}
+  .wins-needed b{color:var(--accent);font-size:16px}
+  .eliminated{margin-top:12px;font-size:14px;font-weight:700;color:var(--err)}
+
+  .pitchers-wrap{display:flex;gap:8px;flex-wrap:wrap}
+  .pitcher-card{flex:1;min-width:150px;background:var(--panel);border-radius:16px;padding:16px}
+  .pname{font-weight:700;font-size:14px;margin-bottom:4px}
+  .pstat{color:var(--muted);font-size:12px;line-height:18px}
+
+  .flash-banner{position:fixed;top:22%;left:50%;font-size:24px;line-height:29px;font-weight:700;
+    background:var(--accent-fill);color:#fff;padding:16px 32px;border-radius:9999px;z-index:100;
+    box-shadow:var(--shadow-floating);white-space:nowrap;animation:flashpop 2.2s ease forwards}
+  @keyframes flashpop{
+    0%{opacity:0;transform:translate(-50%,-60%) scale(.9)}
+    15%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+    80%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+    100%{opacity:0;transform:translate(-50%,-50%) scale(1.03)}
+  }
+
+  @media (max-width:420px){
+    header h1{font-size:24px;line-height:29px}
+    .score-big .side .num{font-size:32px}
+    .card{padding:16px}
+    .detail-header{flex-wrap:wrap}
+  }
+
+  /* ================= Красивости и анимации ================= */
+  @keyframes cardIn{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
+  @keyframes viewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @keyframes headIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+  @keyframes floaty{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-5px) rotate(10deg)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes drift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-40px,26px) scale(1.15)}}
+  @keyframes barGrow{from{width:0}}
+  @keyframes pulseDot{0%{box-shadow:0 0 0 0 rgba(255,255,255,.75)}100%{box-shadow:0 0 0 8px rgba(255,255,255,0)}}
+  @keyframes liveRing{0%,100%{opacity:.2}50%{opacity:1}}
+  @keyframes shimmer{to{background-position:-200% 0}}
+  @keyframes overlayIn{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+  @keyframes rowIn{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
+  @keyframes popIn{0%{opacity:0;transform:scale(0)}65%{transform:scale(1.3)}100%{opacity:1;transform:scale(1)}}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  @keyframes ringOut{0%{opacity:.75;transform:scale(1)}100%{opacity:0;transform:scale(1.35,1.9)}}
+  @keyframes bannerPop{
+    0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}
+    16%{opacity:1;transform:translate(-50%,-50%) scale(1.14)}
+    26%{transform:translate(-50%,-50%) scale(.97)}
+    34%{transform:translate(-50%,-50%) scale(1)}
+    80%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+    100%{opacity:0;transform:translate(-50%,-70%) scale(1.04)}
+  }
+  @keyframes starPop{0%{transform:scale(1)}40%{transform:scale(1.7) rotate(-18deg)}100%{transform:scale(1) rotate(0)}}
+  @keyframes baseGlow{0%{box-shadow:0 0 0 0 rgba(230,0,35,.55)}100%{box-shadow:0 0 0 16px rgba(230,0,35,0)}}
+  @keyframes basePop{0%{transform:scale(.3)}60%{transform:scale(1.3)}100%{transform:scale(1)}}
+  @keyframes flashRow{0%{background:rgba(63,195,141,.6)}100%{background:var(--scoring-bg)}}
+  @keyframes nowPulse{0%{box-shadow:0 0 0 0 rgba(230,0,35,.55)}100%{box-shadow:0 0 0 9px rgba(230,0,35,0)}}
+  @keyframes fadeDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
+  /* Шапка: мягкие цветные пятна, дрейфующий свет и вращающийся шов мяча */
+  header{overflow:hidden;
+    background:radial-gradient(380px 190px at 0% 100%,rgba(255,150,100,.20),transparent 70%),var(--bg);
+    animation:headIn 600ms cubic-bezier(.2,.8,.2,1) backwards}
+  header>*{position:relative;z-index:1}
+  header::before{content:'';position:absolute;z-index:0;width:440px;height:440px;right:-140px;top:-240px;border-radius:50%;
+    background:radial-gradient(circle,rgba(230,0,35,.18),transparent 65%);animation:drift 12s ease-in-out infinite;pointer-events:none}
+  header::after{content:'';position:absolute;z-index:0;width:150px;height:150px;bottom:-44px;right:calc(var(--gutter) + 150px);opacity:.14;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='none' stroke='%23e60023' stroke-width='2'/%3E%3Cpath d='M22 14C42 32 42 68 22 86' fill='none' stroke='%23e60023' stroke-width='2' stroke-dasharray='3 4'/%3E%3Cpath d='M78 14C58 32 58 68 78 86' fill='none' stroke='%23e60023' stroke-width='2' stroke-dasharray='3 4'/%3E%3C/svg%3E") center/contain no-repeat;
+    animation:spin 40s linear infinite;pointer-events:none}
+  header h1 .ball{display:inline-block;animation:floaty 3.4s ease-in-out infinite;transform-origin:50% 60%}
+  header h1::after{content:'';display:block;height:4px;width:56px;border-radius:9999px;margin-top:10px;
+    background:linear-gradient(90deg,var(--accent-fill),#ff8a5b);animation:barGrow 700ms .3s cubic-bezier(.2,.8,.2,1) backwards}
+  .tabs{animation:headIn 500ms 120ms cubic-bezier(.2,.8,.2,1) backwards}
+
+  /* Появление экранов и каскад карточек */
+  .view.active{animation:viewIn 320ms cubic-bezier(.2,.8,.2,1)}
+  .view.active>*,#my-team-bar>*{animation:cardIn 520ms cubic-bezier(.2,.8,.2,1) backwards}
+  .view.active>*:nth-child(1){animation-delay:55ms}
+  .view.active>*:nth-child(2){animation-delay:110ms}
+  .view.active>*:nth-child(3){animation-delay:165ms}
+  .view.active>*:nth-child(4){animation-delay:220ms}
+  .view.active>*:nth-child(5){animation-delay:275ms}
+  .view.active>*:nth-child(6){animation-delay:330ms}
+  .view.active>*:nth-child(7){animation-delay:385ms}
+  .view.active>*:nth-child(8){animation-delay:440ms}
+  .view.active>*:nth-child(9){animation-delay:495ms}
+  .view.active>*:nth-child(10){animation-delay:550ms}
+  .view.active>*:nth-child(11){animation-delay:605ms}
+  .view.active>*:nth-child(12){animation-delay:660ms}
+  .view.active>*:nth-child(13){animation-delay:715ms}
+  .view.active>*:nth-child(14){animation-delay:770ms}
+
+  /* Скелетоны вместо «Загрузка…» */
+  .loading{font-size:0;color:transparent;display:grid;gap:12px;padding:8px 0}
+  .loading::before,.loading::after{content:'';height:96px;border-radius:16px;
+    background:linear-gradient(100deg,var(--panel) 30%,var(--hover) 50%,var(--panel) 70%);background-size:200% 100%;
+    animation:shimmer 1.4s linear infinite}
+  .loading::after{height:72px;animation-delay:.25s}
+
+  /* Карточки: подъём, тень, «прожектор» за курсором, живой контур */
+  .card.clickable{position:relative;overflow:hidden;
+    transition:background-color var(--motion),transform 260ms cubic-bezier(.2,.8,.2,1),box-shadow 260ms ease}
+  .card.clickable:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.10)}
+  .card.clickable:active{transform:translateY(-1px) scale(.992)}
+  .card.clickable>*{position:relative;z-index:1}
+  .card.clickable::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 300ms;
+    background:radial-gradient(240px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.75),transparent 65%)}
+  :root[data-theme="dark"] .card.clickable::before{background:radial-gradient(240px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.09),transparent 65%)}
+  :root[data-theme="dark"] .card.clickable:hover{box-shadow:0 10px 26px rgba(0,0,0,.5)}
+  .card.clickable:hover::before{opacity:1}
+  .card.clickable:has(.status.live)::after{content:'';position:absolute;inset:0;border-radius:16px;pointer-events:none;
+    box-shadow:inset 0 0 0 2px rgba(230,0,35,.55);animation:liveRing 2s ease-in-out infinite}
+
+  /* Live-метка с пульсирующей точкой, «текущий этап» пульсирует */
+  .status.live{display:inline-flex;align-items:center;gap:6px}
+  .status.live::before{content:'';width:7px;height:7px;border-radius:50%;background:#fff;animation:pulseDot 1.4s ease-out infinite}
+  .stage.now{animation:nowPulse 2s ease-out infinite}
+  .star.active{animation:starPop 560ms cubic-bezier(.34,1.56,.64,1)}
+
+  /* Кнопки: «пружинящее» нажатие */
+  .reload,.back-btn,.toggle-btn,.fchip,.tab,.hint,.theme-toggle{
+    transition:background-color var(--motion),color var(--motion),transform 180ms cubic-bezier(.34,1.56,.64,1)}
+  .reload:active,.back-btn:active,.toggle-btn:active,.fchip:active,.tab:active,.hint:active,.theme-toggle:active{transform:scale(.94)}
+  .tab:hover,.fchip:hover,.back-btn:hover,.toggle-btn:hover{transform:translateY(-1px)}
+  .tab:active,.fchip:active,.back-btn:active,.toggle-btn:active{transform:scale(.94)}
+  .theme-toggle:hover{transform:rotate(-2deg)}
+
+  /* Аккордеон и подсказки */
+  .rules summary::before{content:'▸';display:inline-block;transition:transform var(--motion)}
+  .rules details[open] summary::before{content:'▸';transform:rotate(90deg)}
+  .rules details[open] .body{animation:fadeDown 320ms ease}
+  .hint-box,body.nb-on .newbie{animation:fadeDown 260ms ease}
+
+  /* Экран игры */
+  #detail-overlay.active{animation:overlayIn 360ms cubic-bezier(.2,.8,.2,1)}
+  .base.on{animation:baseGlow 2s ease-out infinite}
+  .sz-svg .dot{transform-box:fill-box;transform-origin:center}
+  .wp-chart path{stroke-width:3!important;stroke-linecap:round;stroke-linejoin:round}
+
+  /* Только при первом открытии игры (не повторяется при автообновлении) */
+  #detail-body.enter .score-big .side{animation:cardIn 600ms cubic-bezier(.2,.8,.2,1) backwards}
+  #detail-body.enter .score-big .side:last-child{animation-delay:120ms}
+  #detail-body.enter .inning-info,#detail-body.enter .counts{animation:fadeDown 500ms ease .2s backwards}
+  #detail-body.enter .diamond-wrap{animation:cardIn 600ms cubic-bezier(.2,.8,.2,1) .15s backwards}
+  #detail-body.enter .base.on{animation:basePop 520ms cubic-bezier(.34,1.56,.64,1) .5s backwards,baseGlow 2s ease-out 1s infinite}
+  #detail-body.enter .lastplay{animation:cardIn 600ms cubic-bezier(.2,.8,.2,1) .25s backwards}
+  #detail-body.enter .pitcher-card,#detail-body.enter .sz-wrap{animation:cardIn 560ms cubic-bezier(.2,.8,.2,1) .3s backwards}
+  #detail-body.enter .pitcher-card:nth-child(2){animation-delay:.4s}
+  #detail-body.enter .wp-chart path{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.5s cubic-bezier(.4,0,.2,1) .4s forwards}
+  #detail-body.enter .sz-svg .dot{animation:popIn 420ms cubic-bezier(.34,1.56,.64,1) backwards;animation-delay:calc(var(--i,0) * 70ms + 400ms)}
+  #detail-body.enter .sz-row,#detail-body.enter .play-row,#detail-body.enter .linescore-table tr{animation:rowIn 420ms cubic-bezier(.2,.8,.2,1) backwards}
+  #detail-body.enter .sz-row:nth-child(1){animation-delay:510ms}
+  #detail-body.enter .sz-row:nth-child(2){animation-delay:570ms}
+  #detail-body.enter .sz-row:nth-child(3){animation-delay:630ms}
+  #detail-body.enter .sz-row:nth-child(4){animation-delay:690ms}
+  #detail-body.enter .sz-row:nth-child(5){animation-delay:750ms}
+  #detail-body.enter .sz-row:nth-child(6){animation-delay:810ms}
+  #detail-body.enter .sz-row:nth-child(7){animation-delay:870ms}
+  #detail-body.enter .sz-row:nth-child(8){animation-delay:930ms}
+  #detail-body.enter .linescore-table tr:nth-child(1){animation-delay:390ms}
+  #detail-body.enter .linescore-table tr:nth-child(2){animation-delay:480ms}
+  #detail-body.enter .linescore-table tr:nth-child(3){animation-delay:570ms}
+  #detail-body.enter .play-row:nth-child(1){animation-delay:395ms}
+  #detail-body.enter .play-row:nth-child(2){animation-delay:440ms}
+  #detail-body.enter .play-row:nth-child(3){animation-delay:485ms}
+  #detail-body.enter .play-row:nth-child(4){animation-delay:530ms}
+  #detail-body.enter .play-row:nth-child(5){animation-delay:575ms}
+  #detail-body.enter .play-row:nth-child(6){animation-delay:620ms}
+  #detail-body.enter .play-row:nth-child(7){animation-delay:665ms}
+  #detail-body.enter .play-row:nth-child(8){animation-delay:710ms}
+  #detail-body.enter .play-row:nth-child(9){animation-delay:755ms}
+  #detail-body.enter .play-row:nth-child(10){animation-delay:800ms}
+  #detail-body.enter .play-row.scoring:nth-child(1){animation:rowIn 420ms cubic-bezier(.2,.8,.2,1) backwards,flashRow 1.6s ease-out backwards;animation-delay:395ms,645ms}
+  #detail-body.enter .play-row.scoring:nth-child(2){animation:rowIn 420ms cubic-bezier(.2,.8,.2,1) backwards,flashRow 1.6s ease-out backwards;animation-delay:440ms,690ms}
+  #detail-body.enter .play-row.scoring:nth-child(3){animation:rowIn 420ms cubic-bezier(.2,.8,.2,1) backwards,flashRow 1.6s ease-out backwards;animation-delay:485ms,735ms}
+  #detail-body.enter .play-row.scoring:nth-child(4){animation:rowIn 420ms cubic-bezier(.2,.8,.2,1) backwards,flashRow 1.6s ease-out backwards;animation-delay:530ms,780ms}
+  #detail-body.enter .play-row.scoring:nth-child(5){animation:rowIn 420ms cubic-bezier(.2,.8,.2,1) backwards,flashRow 1.6s ease-out backwards;animation-delay:575ms,825ms}
+  #detail-body.enter .play-row.scoring:nth-child(6){animation:rowIn 420ms cubic-bezier(.2,.8,.2,1) backwards,flashRow 1.6s ease-out backwards;animation-delay:620ms,870ms}
+  #detail-body.enter .play-row.scoring:nth-child(7){animation:rowIn 420ms cubic-bezier(.2,.8,.2,1) backwards,flashRow 1.6s ease-out backwards;animation-delay:665ms,915ms}
+  #detail-body.enter .play-row.scoring:nth-child(8){animation:rowIn 420ms cubic-bezier(.2,.8,.2,1) backwards,flashRow 1.6s ease-out backwards;animation-delay:710ms,960ms}
+  #detail-body.enter .play-row.scoring:nth-child(9){animation:rowIn 420ms cubic-bezier(.2,.8,.2,1) backwards,flashRow 1.6s ease-out backwards;animation-delay:755ms,1005ms}
+  #detail-body.enter .play-row.scoring:nth-child(10){animation:rowIn 420ms cubic-bezier(.2,.8,.2,1) backwards,flashRow 1.6s ease-out backwards;animation-delay:800ms,1050ms}
+
+  /* Баннер события: пружина + расходящиеся кольца */
+  .flash-banner{background:linear-gradient(135deg,#e60023,#ff5a3c);animation:bannerPop 2.2s cubic-bezier(.2,.8,.2,1) forwards}
+  .flash-banner::before,.flash-banner::after{content:'';position:absolute;inset:-3px;border:3px solid var(--accent-fill);
+    border-radius:9999px;pointer-events:none;animation:ringOut 1s ease-out .3s both}
+  .flash-banner::after{animation-delay:.6s}
+
+  /* Плавная смена темы */
+  html.theme-anim,html.theme-anim *{transition:background-color 350ms ease,color 350ms ease,border-color 350ms ease!important}
+
+  @media (max-width:520px){header::after{display:none}}
+
+  /* ================= Новый функционал ================= */
+  .header-tools{position:absolute;top:16px;right:var(--gutter);display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 32px)}
+  .header-tools .theme-toggle{position:static}
+  .header-tools button.on{background:var(--accent-fill);color:#fff}
+
+  /* Счётчик до начала игры */
+  .countdown{font-weight:600;color:var(--accent)}
+
+  /* Бокс-скор */
+  .box-table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;background:var(--panel);border-radius:16px;margin-bottom:12px;overflow:hidden}
+  .box-table th,.box-table td{padding:8px 6px;text-align:center;border-bottom:1px solid var(--line)}
+  .box-table th{color:var(--muted);font-weight:600;font-size:11px}
+  .box-table td:first-child,.box-table th:first-child{text-align:left;padding-left:16px}
+  .box-table tr:last-child td{border-bottom:none}
+  .box-table tr:hover td{background:var(--hover)}
+  .pname-link{cursor:pointer;font-weight:600;transition:color var(--motion)}
+  .pname-link:hover{color:var(--accent)}
+  .box-team-h{font-size:14px;font-weight:700;margin:16px 0 8px}
+  .box-team-h:first-of-type{margin-top:0}
+
+  /* Карточка игрока */
+  #player-overlay{position:fixed;inset:0;background:rgba(17,17,17,.5);z-index:60;display:none;align-items:center;justify-content:center;padding:16px}
+  #player-overlay.active{display:flex;animation:overlayIn 260ms cubic-bezier(.2,.8,.2,1)}
+  .player-card{background:var(--bg);border-radius:16px;max-width:420px;width:100%;max-height:85vh;overflow-y:auto;padding:24px;box-shadow:var(--shadow-floating);position:relative;animation:cardIn 320ms cubic-bezier(.2,.8,.2,1)}
+  .player-close{position:absolute;top:12px;right:12px;background:var(--panel);border:none;border-radius:9999px;width:32px;height:32px;cursor:pointer;font-size:16px;transition:background-color var(--motion)}
+  .player-close:hover{background:var(--hover)}
+  .player-head{display:flex;gap:16px;align-items:center;margin-bottom:16px}
+  .player-num{font-size:32px;font-weight:700;color:var(--accent);min-width:56px;text-align:center}
+  .player-name{font-size:20px;font-weight:700}
+  .player-sub{color:var(--muted);font-size:13px;line-height:19px;margin-top:2px}
+  .player-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+  .pstat-box{background:var(--panel);border-radius:12px;padding:12px 8px;text-align:center}
+  .pstat-v{font-size:18px;font-weight:700}
+  .pstat-k{font-size:11px;color:var(--muted);margin-top:2px}
+
+  /* Спрей-чарт */
+  .spray-wrap{background:var(--panel);border-radius:16px;padding:16px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;justify-content:center}
+  .spray-svg{width:220px;max-width:100%;flex:0 0 auto}
+
+  /* Интерактивная сетка плей-офф */
+  .bracket-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+  .league-cols{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(150px,1fr);gap:10px;overflow-x:auto;padding-bottom:8px;margin-bottom:24px}
+  .league-cols::-webkit-scrollbar{height:6px}
+  .bcol{display:flex;flex-direction:column;gap:10px;justify-content:space-around}
+  .bcol-h{font-size:11px;font-weight:700;color:var(--muted);text-align:center;margin-bottom:4px}
+  .bmatch{background:var(--panel);border-radius:12px;padding:8px 10px;font-size:12px}
+  .bteam{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:3px 4px;border-radius:8px;transition:background-color var(--motion)}
+  .bteam.pick{outline:2px solid var(--accent-fill)}
+  .bteam.winner{font-weight:700;color:var(--win)}
+  .bteam.clickable{cursor:pointer}
+  .bteam.clickable:hover{background:var(--hover)}
+  .bodds{font-size:10px;color:var(--muted);margin-top:4px;text-align:center}
+  .league-lbl{font-size:12px;font-weight:700;color:var(--accent);margin:0 0 8px}
+
+  /* Pick'em */
+  .pickem-score{background:var(--panel);border-radius:16px;padding:16px 24px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+  .pickem-score .num{font-size:28px;font-weight:700;color:var(--accent-fill)}
+  .pick-card{background:var(--panel);border-radius:16px;padding:14px 20px;margin-bottom:8px}
+  .pick-card .sname{color:var(--muted);font-size:12px;font-weight:700;margin-bottom:8px}
+  .pick-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0}
+  .pick-choice{background:var(--tag-gray-bg);border:none;border-radius:9999px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text);transition:background-color var(--motion),transform 180ms}
+  .pick-choice:hover{background:var(--hover)}
+  .pick-choice.sel{background:var(--inv-bg);color:var(--inv-fg)}
+  .pick-result{font-size:16px}
+
+  @media (max-width:420px){
+    .header-tools{position:static;justify-content:flex-start;margin-top:12px}
+    header{padding-top:24px}
+  }
+  /* Кнопка "наверх" внутри экрана игры */
+  .top-btn{position:fixed;right:20px;bottom:20px;z-index:40;width:44px;height:44px;border-radius:9999px;
+    background:var(--accent-fill);color:#fff;border:none;font-size:18px;line-height:1;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-floating);
+    opacity:0;transform:translateY(12px) scale(.9);pointer-events:none;
+    transition:opacity 220ms ease,transform 220ms cubic-bezier(.34,1.56,.64,1),background-color var(--motion)}
+  .top-btn.show{opacity:1;transform:none;pointer-events:auto}
+  .top-btn:hover{background:var(--accent-fill-hover)}
+  .top-btn:active{transform:scale(.92)}
+  @media (max-width:420px){.top-btn{right:14px;bottom:14px;width:40px;height:40px;font-size:16px}}
+  /* Интерактивные разборы диаграмм в "Правилах" */
+  .rules-demo{background:var(--panel2,var(--panel));background:var(--panel);border-radius:16px;padding:16px;margin:12px 0 4px;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
+  .rules-demo .demo-svg{width:230px;max-width:100%;flex:0 0 auto;touch-action:manipulation}
+  .rules-demo .demo-side{flex:1;min-width:200px}
+  .demo-hint{font-size:13px;color:var(--muted);line-height:20px;margin-top:8px}
+  .demo-feedback{font-weight:800;font-size:13px;pointer-events:none;paint-order:stroke;stroke:var(--bg);stroke-width:3px}
+  .demo-legend-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .demo-legend-row .fchip{min-height:30px;font-size:12px;padding:0 12px}
+  .demo-legend-row .fchip.dim{opacity:.35}
+  .demo-try{cursor:crosshair}
+  .demo-badge{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+  /* Идущий матч — крупнее и всегда первым в списке */
+  .card.live-featured{padding:22px 26px;border:2px solid var(--accent-fill);
+    background:linear-gradient(135deg,var(--panel),var(--tag-red-bg) 160%)}
+  .card.live-featured .round{font-size:13px}
+  .card.live-featured .team{font-size:19px}
+  .card.live-featured .score{font-size:34px;line-height:1}
+  .card.live-featured .status.live{font-size:13px;padding:4px 14px}
+  @media (max-width:420px){
+    .card.live-featured{padding:18px 20px}
+    .card.live-featured .team{font-size:17px}
+    .card.live-featured .score{font-size:28px}
+  }
+  /* Тематическое оформление пустых боковых полей на широких экранах */
+  .side-deco{position:fixed;top:0;bottom:0;width:calc(50vw - 400px);max-width:220px;min-width:120px;
+    pointer-events:none;z-index:-1;overflow:hidden;opacity:.55;display:none}
+  .side-deco.left{left:0}
+  .side-deco.right{right:0}
+  :root[data-theme="dark"] .side-deco{opacity:.4}
+  @media (min-width:1180px){.side-deco{display:block}}
+
+  /* Мячи парят с обеих сторон, без фоновой подложки */
+  .side-deco .deco-ball{position:absolute;font-size:30px;opacity:.55;animation:floaty 5s ease-in-out infinite}
+  .side-deco .deco-ball.b2{font-size:20px;opacity:.4;animation-duration:6.5s;animation-delay:1.1s}
+  .side-deco.left .deco-ball.b1{left:35%;top:26%}
+  .side-deco.left .deco-ball.b2{left:55%;top:60%}
+  .side-deco.right .deco-ball.b1{right:35%;top:26%}
+  .side-deco.right .deco-ball.b2{right:55%;top:60%}
+
+  /* Сворачиваемые разделы на экране игры */
+  .section-collapse{background:var(--panel);border-radius:16px;margin:24px 0 8px;overflow:hidden}
+  .section-collapse summary{cursor:pointer;padding:14px 20px;font-size:14px;font-weight:700;color:var(--text);
+    list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;
+    transition:background-color var(--motion)}
+  .section-collapse summary::-webkit-details-marker{display:none}
+  .section-collapse summary::after{content:'▾';color:var(--muted);font-size:12px;flex:0 0 auto;transition:transform var(--motion)}
+  .section-collapse[open] summary::after{transform:rotate(180deg)}
+  .section-collapse summary:hover{background:var(--hover)}
+  .section-collapse .collapse-body{padding:0 20px 20px}
+  .section-collapse .collapse-body>.box-team-h:first-child{margin-top:0}
+  .section-collapse[open] .collapse-body{animation:fadeDown 260ms ease}
+  .share-toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(14px);z-index:70;
+    background:var(--panel);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow-floating);
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;max-width:calc(100% - 32px);width:380px;
+    opacity:0;pointer-events:none;transition:opacity 220ms ease,transform 220ms cubic-bezier(.2,.8,.2,1)}
+  .share-toast.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+  .share-toast .st-msg{font-size:13px;font-weight:600;color:var(--text);flex:1 1 100%}
+  .share-toast input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:9999px;
+    padding:7px 14px;font-size:12px;color:var(--text)}
+  .share-toast .st-copy{background:var(--accent-fill);color:#fff;border:none;border-radius:9999px;
+    min-height:32px;padding:0 14px;font-size:12px;font-weight:700;cursor:pointer;flex:0 0 auto;
+    transition:background-color var(--motion)}
+  .share-toast .st-copy:hover{background:var(--accent-fill-hover)}
+  .share-toast .st-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 4px;flex:0 0 auto}
+  @media (prefers-reduced-motion:reduce){.side-deco .deco-ball{animation:none}}
+  @media (prefers-reduced-motion:reduce){.top-btn{transition:opacity 120ms}}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="side-deco left" aria-hidden="true"><span class="deco-ball b1">⚾</span><span class="deco-ball b2">⚾</span></div>
+<div class="side-deco right" aria-hidden="true"><span class="deco-ball b1">⚾</span><span class="deco-ball b2">⚾</span></div>
+
+<div id="detail-overlay">
+  <div class="detail-header">
+    <button class="back-btn" id="back-btn" onclick="closeDetail()"></button>
+    <div class="hdr-tools">
+      <button class="back-btn" id="share-btn" onclick="shareGame()">🔗 <span data-i18n="share"></span></button>
+      <button class="back-btn" id="nb-btn" onclick="toggleNb()">🎓 Режим новичка</button>
+      <button class="back-btn" id="tr-btn" onclick="toggleTr()">🌐 Перевод на русский</button>
+    </div>
+  </div>
+  <div class="detail-body" id="detail-body"></div>
+  <button class="top-btn" id="top-btn" type="button" title="Наверх" aria-label="Наверх" onclick="scrollDetailTop()">↑</button>
+</div>
+
+<div id="player-overlay" onclick="if(event.target===this) closePlayerCard()">
+  <div class="player-card"><button class="player-close" onclick="closePlayerCard()">✕</button><div id="player-body"></div></div>
+</div>
+
+<header>
+  <div class="header-tools">
+    <button class="theme-toggle" id="lang-btn" type="button" onclick="toggleLang()"></button>
+    <button class="theme-toggle" id="notify-btn" type="button" onclick="toggleNotify()"></button>
+    <button class="theme-toggle" id="theme-btn" type="button"></button>
+  </div>
+  <h1><span class="ball">⚾</span> <span data-i18n="title"></span></h1>
+  <p data-i18n="subtitle"></p>
+</header>
+
+<div id="my-team-bar"></div>
+
+<div class="tabs">
+  <div class="tab active" role="tab" tabindex="0" data-view="upcoming" data-i18n="tabUpcoming"></div>
+  <div class="tab" role="tab" tabindex="0" data-view="past" data-i18n="tabPast"></div>
+  <div class="tab" role="tab" tabindex="0" data-view="bracket" data-i18n="tabBracket"></div>
+  <div class="tab" role="tab" tabindex="0" data-view="pickem" data-i18n="tabPickem"></div>
+  <div class="tab" role="tab" tabindex="0" data-view="standings" data-i18n="tabStandings"></div>
+  <div class="tab" role="tab" tabindex="0" data-view="rules" data-i18n="tabRules"></div>
+</div>
+
+<main>
+  <section id="upcoming" class="view active"><div class="loading">Загрузка…</div></section>
+  <section id="past" class="view"><div class="loading">Загрузка…</div></section>
+  <section id="bracket" class="view"><div class="loading">Загрузка…</div></section>
+  <section id="pickem" class="view"><div class="loading">Загрузка…</div></section>
+  <section id="standings" class="view"><div class="loading">Загрузка…</div></section>
+
+  <section id="rules" class="view rules">
+    <div class="newbie" id="rules-en-notice" style="display:none;margin-bottom:16px"></div>
+    <details open><summary>Суть игры</summary><div class="body">
+      <p>Две команды по очереди атакуют и защищаются. Атакующие бьют битой по мячу, который подаёт питчер, и стараются обежать четыре базы (1-ю, 2-ю, 3-ю и «дом») — каждый добежавший до дома игрок приносит команде <b>очко (run)</b>. Побеждает команда, набравшая больше очков за 9 иннингов. Ничьих нет: при равенстве играют дополнительные иннинги.</p>
+    </div></details>
+
+    <details><summary>Как устроен иннинг</summary><div class="body">
+      <ul>
+        <li>В иннинге две половины: <b>верх (Top)</b> — атакует гостевая команда, <b>низ (Bottom)</b> — атакуют хозяева.</li>
+        <li>Половина иннинга заканчивается, когда защита набирает <b>3 аута</b>.</li>
+        <li>Если после верха 9-го иннинга хозяева уже впереди, нижнюю половину не играют. Если хозяева выходят вперёд в низу последнего иннинга — игра заканчивается сразу (<b>walk-off</b>).</li>
+        <li>В регулярном сезоне в дополнительных иннингах на 2-й базе стартует «автоматический бегун». В плей-офф играют без него.</li>
+      </ul>
+    </div></details>
+
+    <details><summary>Схватка питчера и бьющего: страйки и болы</summary><div class="body">
+      <ul>
+        <li><b>Страйк</b>: подача в зону страйка (над домом, между коленями и грудью), замах и промах, либо фол (мяч за границей поля; фол не может стать 3-м страйком, кроме неудачного банта).</li>
+        <li><b>3 страйка</b> — бьющий аут (<b>strikeout, K</b>).</li>
+        <li><b>Болл</b>: подача мимо зоны, на которую бьющий не замахнулся. <b>4 болла</b> — бьющий бесплатно идёт на 1-ю базу (<b>walk</b>).</li>
+        <li>Счёт схватки пишут «болы-страйки»: 3-2 значит 3 болла и 2 страйка (полный счёт).</li>
+      </ul>
+    </div></details>
+
+    <details><summary>Как бьющий попадает на базу</summary><div class="body">
+      <ul>
+        <li><b>Хит</b> — бьющий ударил в игру и достиг базы до того, как защита его выбросила: сингл (1 база), дабл (2), трипл (3), <b>хоум-ран</b> (мяч за забором — набирают очки все, включая бьющего).</li>
+        <li><b>Walk</b> — 4 болла. <b>Hit by pitch</b> — мяч попал в бьющего.</li>
+        <li><b>Ошибка защиты</b> — защитник мог поймать или выбросить, но не смог.</li>
+        <li>Бегущие продвигаются по кругу и не могут обгонять друг друга.</li>
+      </ul>
+    </div></details>
+
+    <details><summary>Как ставят аут</summary><div class="body">
+      <ul>
+        <li><b>Страйкаут</b>: 3 страйка.</li>
+        <li><b>Fly out / pop out / line out</b>: мяч пойман в воздухе.</li>
+        <li><b>Ground out</b>: мяч по земле, защита успела выбросить бьющего до 1-й базы.</li>
+        <li><b>Force out</b>: бегущий обязан бежать на следующую базу, а защитник касается её мячом раньше.</li>
+        <li><b>Tag out</b>: защитник касается бегущего мячом (в перчатке), пока тот не на базе.</li>
+        <li><b>Double play</b>: два аута за один розыгрыш, чаще всего когда мяч по земле бросают на 2-ю, а потом на 1-ю базу.</li>
+      </ul>
+    </div></details>
+
+    <details><summary>Позиции в защите</summary><div class="body">
+      <p>В поле 9 защитников: <b>питчер (P)</b>, <b>кэтчер (C)</b> за домом, инфилд — <b>1-я база (1B)</b>, <b>2-я база (2B)</b>, <b>шортстоп (SS)</b>, <b>3-я база (3B)</b>, и аутфилд — <b>левый (LF)</b>, <b>центральный (CF)</b>, <b>правый (RF)</b>. Вместо питчера в атаке бьёт <b>назначенный бьющий (DH)</b>: с 2022 года это правило действует в обеих лигах.</p>
+    </div></details>
+
+    <details><summary>Правила последних лет</summary><div class="body">
+      <ul>
+        <li><b>Питч-клок</b>: питчер должен начать подачу за отведённое время (примерно 15–20 секунд, меньше при пустых базах), иначе автоматически добавляется болл.</li>
+        <li>Ограничены попытки пикоффа (бросков на базу, чтобы прижать бегущего), поэтому воровать базы стало проще.</li>
+        <li>Запрещены крайние защитные «шифты» (расстановка инфилдеров с одной стороны поля), базы стали больше.</li>
+      </ul>
+    </div></details>
+
+    <details><summary>Американская и Национальная лиги</summary><div class="body">
+      <p>MLB (Главная лига бейсбола) состоит из 30 команд, поровну поделённых между двумя лигами — <b>Американской (AL)</b> и <b>Национальной (NL)</b>. В каждой по 15 команд, а внутри лиги ещё по три дивизиона (Восток, Центр, Запад) по 5 команд.</p>
+      <p><b>NL старше</b> — она основана в 1876 году и её иногда называют «старшим цехом» (senior circuit). <b>AL моложе</b>, появилась в 1901-м, отсюда прозвище «младший цех» (junior circuit). Обе лиги объединились под общим руководством MLB ещё в начале XX века, но по сей день сохраняют отдельную турнирную структуру.</p>
+      <p>Главное практическое отличие много лет было в одном правиле — <b>designated hitter (назначенный бьющий)</b>: в AL вместо питчера отбивал специальный игрок, который не играет в защите, а в NL питчеры почти всегда отбивали сами. С 2022 года это правило стало общим для обеих лиг, так что сейчас на поле команды AL и NL играют одинаково.</p>
+      <p>Сегодня разница в основном организационная:</p>
+      <ul>
+        <li>Команда играет в регулярном сезоне в основном с соперниками своей лиги, но несколько раз в году встречается и с другой (интерлиговые игры).</li>
+        <li>Чемпиона каждой лиги определяет своя Championship Series — <b>ALCS</b> у Американской и <b>NLCS</b> у Национальной.</li>
+        <li>Победители ALCS и NLCS встречаются в финале — <b>World Series</b>, — и именно там впервые в плей-офф сходятся команды из разных лиг.</li>
+      </ul>
+      <p>Поэтому в сетке плей-офф (вкладка «Путь к финалу») команды AL и NL идут отдельными колонками вплоть до самого финала.</p>
+    </div></details>
+
+    <details><summary>Формат плей-офф MLB</summary><div class="body">
+      <p>12 команд: по 6 от каждой лиги (3 победителя дивизионов и 3 уайлд-кард). Два лучших победителя дивизионов пропускают первый раунд (<b>bye</b>).</p>
+      <ul>
+        <li><b>Wild Card Series</b> — до 2 побед из 3</li>
+        <li><b>Division Series</b> — до 3 побед из 5</li>
+        <li><b>Championship Series</b> — до 4 побед из 7 (определяет чемпиона лиги)</li>
+        <li><b>World Series</b> — до 4 побед из 7 (финал)</li>
+      </ul>
+    </div></details>
+
+    <details><summary>Как читать «Зону страйка»</summary><div class="body">
+      <p>Это вид <b>глазами кэтчера</b>, стоящего за домом и смотрящего на питчера. Серый прямоугольник — зона страйка конкретного бьющего (её верх и низ зависят от его роста и стойки). Линии внутри делят зону на 9 секторов «три на три» — комментаторы часто называют подачу «внутрь-вверх» или «наружу-вниз», имея в виду именно эти сектора.</p>
+      <p>Каждая подача — кружок с номером по порядку. Цвет говорит о результате:</p>
+      <div class="demo-legend-row">
+        <span class="fchip" style="cursor:default"><span class="demo-badge" style="background:#cc0000"></span>Страйк / фол</span>
+        <span class="fchip" style="cursor:default"><span class="demo-badge" style="background:#0074e8"></span>Болл</span>
+        <span class="fchip" style="cursor:default"><span class="demo-badge" style="background:#008753"></span>Мяч в игре</span>
+      </div>
+      <div class="rules-demo">
+        <svg class="demo-svg" id="sz-demo-svg" viewBox="0 0 300 340" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="demo-side">
+          <p style="margin:0 0 8px">Наведите или нажмите на кружок, чтобы увидеть, чем эта подача отличается от других. Подачи внутри прямоугольника — страйки, снаружи — боллы (если бьющий не замахнулся).</p>
+          <p class="demo-hint" id="sz-demo-info">Нажмите на любую точку внутри квадрата — узнаете, что там показано.</p>
+          <p class="demo-hint">🖐 Попробуйте сами: нажмите в любом месте диаграммы (не на кружок) — увидите, был бы это «страйк» или «болл» в этой точке.</p>
+          <button class="toggle-btn" id="sz-pos-toggle" onclick="toggleSzPositions()">👥 Показать питчера и кэтчера</button>
+          <p class="demo-hint" id="sz-pos-hint" style="display:none">Схема расположения, без масштаба: питчер бросает мяч примерно с 18,4 м (60 футов 6 дюймов), кэтчер сидит вплотную за домом и ловит подачу.</p>
+        </div>
+      </div>
+    </div></details>
+
+    <details><summary>Как читать «Спрей-чарт»</summary><div class="body">
+      <p>Это вид на поле <b>сверху, глазами судьи за домом</b>: дом внизу по центру, аутфилд — дугой сверху. Левый край диаграммы — сторона третьей базы (<b>LF</b>, левый филд), правый — сторона первой базы (<b>RF</b>, правый филд), верх — центр поля (<b>CF</b>).</p>
+      <p>Каждая точка — место, где бита встретилась с мячом за игру. Чем точка ближе к дому — тем короче был удар, чем дальше к дуге — тем дальше улетел мяч.</p>
+      <div class="demo-legend-row" id="spray-demo-legend"></div>
+      <div class="rules-demo">
+        <svg class="demo-svg" id="spray-demo-svg" viewBox="0 0 280 260" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="demo-side">
+          <p style="margin:0 0 8px">Нажимайте на цветные кнопки слева, чтобы включать и выключать типы ударов на диаграмме — так удобно смотреть, например, только хоум-раны.</p>
+          <p class="demo-hint" id="spray-demo-info">Наведите на точку, чтобы увидеть подсказку с типом удара.</p>
+        </div>
+      </div>
+    </div></details>
+
+    <div class="section-title" style="margin-top:28px" data-i18n="glossaryTitle"></div>
+    <input id="gl-search" class="gl-search" type="search" data-i18n-ph="glossaryPh" placeholder="Поиск: например «dp», «уок», «bullpen»…" oninput="renderGlossary()">
+    <div id="gl-list" class="gl-list"></div>
+  </section>
+</main>
+
+<footer>MLB Stats API (неофициальный, бесплатный) · сезон 2026</footer>
+
+<script>
+
+/* ============ Локализация интерфейса (RU/EN) ============ */
+let lang = localStorage.getItem('lang') || 'ru';
+const STR = {
+  title:{ru:'MLB Плей-офф Трекер 2026',en:'MLB Playoff Tracker 2026'},
+  subtitle:{ru:'Данные — live с statsapi.mlb.com',en:'Live data from statsapi.mlb.com'},
+  tabUpcoming:{ru:'Предстоящие',en:'Upcoming'},
+  tabPast:{ru:'Прошедшие',en:'Past'},
+  tabBracket:{ru:'Путь к финалу',en:'Bracket'},
+  tabPickem:{ru:'Прогнозы',en:"Pick'em"},
+  tabStandings:{ru:'Таблица',en:'Standings'},
+  tabRules:{ru:'Правила',en:'Rules'},
+  share:{ru:'Поделиться',en:'Share'},
+  back:{ru:'← Назад',en:'← Back'},
+  loading:{ru:'Загрузка…',en:'Loading…'},
+  retry:{ru:'Повторить',en:'Retry'},
+  final:{ru:'Завершён',en:'Final'},
+  live:{ru:'Идёт сейчас',en:'Live'},
+  seriesWord:{ru:'Серия',en:'Series'},
+  starts_in:{ru:'начало через',en:'starts in'},
+  balls:{ru:'Боллы',en:'Balls'},
+  strikes:{ru:'Страйки',en:'Strikes'},
+  outs:{ru:'Ауты',en:'Outs'},
+  boxscore:{ru:'Бокс-скор',en:'Box score'},
+  batting:{ru:'Нападение',en:'Batting'},
+  pitching:{ru:'Питчинг',en:'Pitching'},
+  starters:{ru:'Стартовые питчеры',en:'Probable pitchers'},
+  allPlays:{ru:'Все розыгрыши',en:'All plays'},
+  winProb:{ru:'Вероятность победы',en:'Win probability'},
+  strikeZoneT:{ru:'Зона страйка',en:'Strike zone'},
+  spray:{ru:'Спрей-чарт (контакт с мячом)',en:'Spray chart (ball contact)'},
+  myTeamEmpty:{ru:'Нажмите ★ у своей команды, чтобы следить за её путём к финалу',en:'Tap ★ next to your team to follow its road to the title'},
+  myTeamNotYet:{ru:'Ещё не участвует в текущем раунде плей-офф',en:'Not yet in the current playoff round'},
+  eliminated:{ru:'✕ Команда выбыла из плей-офф',en:'✕ Team eliminated from the playoffs'},
+  winsNeeded:{ru:'Побед в сериях до финала',en:'Series wins to the title'},
+  icsTeam:{ru:'📅 Все игры в календарь',en:'📅 Export schedule (.ics)'},
+  bracketToolbarHint:{ru:'🔮 Режим прогнозов',en:'🔮 Prediction mode'},
+  bracketOddsHint:{ru:'Шансы пройти дальше (при равных командах)',en:'Chance to advance (assuming even teams)'},
+  pickemTitle:{ru:'Прогнозы на серии плей-офф',en:"Playoff series pick'em"},
+  pickemScore:{ru:'Верных прогнозов',en:'Correct picks'},
+  pickemHint:{ru:'Выберите победителя каждой серии. Счёт обновляется по мере завершения серий.',en:'Pick a winner for each series. The score updates as series finish.'},
+  pickemUnknown:{ru:'Пары ещё не определены',en:'Matchup not yet set'},
+  notifyOn:{ru:'🔔 Уведомления: вкл',en:'🔔 Notifications: on'},
+  notifyOff:{ru:'🔔 Уведомления',en:'🔔 Notifications'},
+  gameStarted:{ru:'⚾ Игра началась',en:'⚾ Game started'},
+  gameFinished:{ru:'🏁 Игра завершена',en:'🏁 Game finished'},
+  scoreEvent:{ru:'⚡ Очко!',en:'⚡ Scoring play!'},
+  hrEvent:{ru:'💥 Хоум-ран!',en:'💥 Home run!'},
+  rulesEnNotice:{ru:'',en:'This section is written in Russian only for now.'},
+  playerLoadErr:{ru:'Не удалось загрузить карточку игрока.',en:'Could not load the player card.'},
+  glossaryTitle:{ru:'Словарь терминов (для текстовой трансляции)',en:'Glossary (for the text play-by-play)'},
+  glossaryPh:{ru:'Поиск: например «dp», «уок», «bullpen»…',en:'Search: e.g. "dp", "walk", "bullpen"…'},
+  linkCopied:{ru:'Ссылка на игру скопирована',en:'Game link copied'},
+};
+function t(k){ const e = STR[k]; return e ? (e[lang] || e.ru) : k; }
+function applyLocale(){
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ el.placeholder = t(el.dataset.i18nPh); });
+  const back = document.getElementById('back-btn'); if(back) back.textContent = t('back');
+  const share = document.getElementById('share-btn'); if(share) share.innerHTML = '🔗 ' + t('share');
+  const langBtn = document.getElementById('lang-btn'); if(langBtn){ langBtn.textContent = lang==='ru' ? 'EN' : 'RU'; langBtn.setAttribute('aria-label', lang==='ru' ? 'Switch to English' : 'Переключить на русский'); }
+  document.querySelectorAll('.loading').forEach(el=>{ if(!el.dataset.kept) el.textContent = t('loading'); });
+  const rn = document.getElementById('rules-en-notice');
+  if(rn){ rn.style.display = lang==='en' ? 'block' : 'none'; rn.textContent = t('rulesEnNotice'); }
+}
+function toggleLang(){
+  lang = lang === 'ru' ? 'en' : 'ru';
+  localStorage.setItem('lang', lang);
+  applyLocale();
+  loadGames(); loadBracket(); loadStandings(); renderMyTeamBar(); renderGlossary(); renderPickem();
+}
+
+const API = "https://statsapi.mlb.com/api/v1";
+const SEASON = 2026;
+
+const TEAM_COLORS = {
+  108:'#BA0021',109:'#A71930',110:'#DF4601',111:'#BD3039',112:'#0E3386',
+  113:'#C6011F',114:'#00385D',115:'#33006F',116:'#0C2C56',117:'#EB6E1F',
+  118:'#004687',119:'#005A9C',120:'#AB0003',121:'#002D72',133:'#003831',
+  134:'#FDB827',135:'#2F241D',136:'#0C2C56',137:'#FD5A1E',138:'#C41E3A',
+  139:'#092C5C',140:'#C0111F',141:'#134A8E',142:'#002B5C',143:'#E81828',
+  144:'#CE1141',145:'#27251F',146:'#00A3E0',147:'#003087',158:'#12284B'
+};
+function teamDot(id){
+  return `<span class="tdot" style="background:${TEAM_COLORS[id]||'#666'}"></span>`;
+}
+
+/* ============ Уведомления по своей команде ============ */
+let notifyOn = localStorage.getItem('notifyOn') === '1';
+function updateNotifyBtn(){
+  const b = document.getElementById('notify-btn'); if(!b) return;
+  b.classList.toggle('on', notifyOn);
+  b.textContent = notifyOn ? t('notifyOn') : t('notifyOff');
+}
+function notify(title, body){
+  if(!notifyOn || typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  try{ new Notification(title, {body, icon:'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%E2%9A%BE%3C/text%3E%3C/svg%3E'}); }catch(e){}
+}
+function toggleNotify(){
+  if(typeof Notification === 'undefined'){ alert('Браузер не поддерживает уведомления / Notifications are not supported in this browser'); return; }
+  if(!notifyOn){
+    if(Notification.permission === 'granted'){ notifyOn = true; }
+    else if(Notification.permission !== 'denied'){
+      Notification.requestPermission().then(p=>{ notifyOn = p === 'granted'; localStorage.setItem('notifyOn', notifyOn ? '1':'0'); updateNotifyBtn(); });
+      return;
+    } else { alert('Уведомления заблокированы в настройках браузера / Notifications are blocked in browser settings'); return; }
+  } else {
+    notifyOn = false;
+  }
+  localStorage.setItem('notifyOn', notifyOn ? '1':'0');
+  updateNotifyBtn();
+}
+let prevGameState = {};
+function checkMyTeamTransitions(games){
+  const team = getMyTeam(); if(!team) return;
+  games.forEach(g=>{
+    const involves = g.teams.away.team.id === team.id || g.teams.home.team.id === team.id;
+    if(!involves) return;
+    const prev = prevGameState[g.gamePk];
+    const cur = g.status.abstractGameState;
+    if(prev && prev !== cur){
+      if(cur === 'Live' && prev === 'Preview') notify(t('gameStarted'), `${g.teams.away.team.name} @ ${g.teams.home.team.name}`);
+      if(cur === 'Final') notify(t('gameFinished'), `${g.teams.away.team.name} ${g.teams.away.score ?? ''} – ${g.teams.home.score ?? ''} ${g.teams.home.team.name}`);
+    }
+    prevGameState[g.gamePk] = cur;
+  });
+}
+let notifyPlayCounts = {};
+async function pollMyTeamLive(){
+  if(!notifyOn) return;
+  const team = getMyTeam(); if(!team) return;
+  const games = window.lastGames || [];
+  const live = games.find(g => g.status.abstractGameState === 'Live' && (g.teams.away.team.id === team.id || g.teams.home.team.id === team.id));
+  if(!live) return;
+  try{
+    const data = await getJSON(`https://statsapi.mlb.com/api/v1.1/game/${live.gamePk}/feed/live`);
+    const allPlays = data.liveData?.plays?.allPlays || [];
+    const key = live.gamePk;
+    const prevCount = notifyPlayCounts[key] ?? allPlays.length;
+    if(allPlays.length > prevCount){
+      allPlays.slice(prevCount).forEach(p=>{
+        const ev = (p.result?.eventType || p.result?.event || '').toLowerCase();
+        if(ev.includes('home_run')) notify(t('hrEvent'), p.result?.description || '');
+        else if(p.about?.isScoringPlay) notify(t('scoreEvent'), p.result?.description || '');
+      });
+    }
+    notifyPlayCounts[key] = allPlays.length;
+  }catch(e){}
+}
+
+function addToCalendar(gamePk, awayName, homeName, isoDate, ev){
+  if(ev) ev.stopPropagation();
+  const start = new Date(isoDate);
+  const end = new Date(start.getTime() + 3*60*60*1000);
+  const fmt = d => d.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+  const ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:${gamePk}@mlb-tracker\r\nDTSTAMP:${fmt(new Date())}\r\nDTSTART:${fmt(start)}\r\nDTEND:${fmt(end)}\r\nSUMMARY:${awayName} @ ${homeName}\r\nDESCRIPTION:MLB Playoff Tracker\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+  const blob = new Blob([ics], {type:'text/calendar'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `${awayName}-vs-${homeName}.ics`.replace(/\s+/g,'-');
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* ============ .ics для всего расписания команды ============ */
+function teamScheduleIcs(teamId, teamName){
+  const games = (window.lastGames || []).filter(g => g.teams.away.team.id === teamId || g.teams.home.team.id === teamId);
+  if(!games.length) return;
+  const fmt = d => new Date(d).toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+  const evs = games.map(g=>{
+    const start = new Date(g.gameDate), end = new Date(start.getTime() + 3*3600000);
+    const atHome = g.teams.home.team.id === teamId;
+    const opp = atHome ? g.teams.away.team.name : g.teams.home.team.name;
+    return `BEGIN:VEVENT\r\nUID:${g.gamePk}@mlb-tracker\r\nDTSTAMP:${fmt(new Date())}\r\nDTSTART:${fmt(start)}\r\nDTEND:${fmt(end)}\r\nSUMMARY:${teamName} ${atHome?'vs':'@'} ${opp}\r\nDESCRIPTION:MLB Playoff Tracker\r\nEND:VEVENT`;
+  }).join('\r\n');
+  const ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\n${evs}\r\nEND:VCALENDAR`;
+  const blob = new Blob([ics], {type:'text/calendar'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `${teamName}-postseason.ics`.replace(/\s+/g,'-');
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* ============ Ссылка на игру ============ */
+function showShareToast(url, msg){
+  let toast = document.getElementById('share-toast');
+  if(!toast){
+    toast = document.createElement('div');
+    toast.id = 'share-toast';
+    toast.className = 'share-toast';
+    toast.innerHTML = `<div class="st-msg" id="st-msg"></div>
+      <input id="st-input" type="text" readonly>
+      <button class="st-copy" id="st-copy" type="button"></button>
+      <button class="st-close" type="button" onclick="hideShareToast()">✕</button>`;
+    document.body.appendChild(toast);
+    document.getElementById('st-input').addEventListener('click', function(){ this.select(); });
+    document.getElementById('st-copy').addEventListener('click', copyShareToastLink);
+  }
+  document.getElementById('st-msg').textContent = msg;
+  document.getElementById('st-input').value = url;
+  document.getElementById('st-copy').textContent = lang === 'ru' ? 'Копировать' : 'Copy';
+  toast.classList.add('show');
+  clearTimeout(toast._hideTimer);
+  toast._hideTimer = setTimeout(hideShareToast, 8000);
+}
+function hideShareToast(){
+  const toast = document.getElementById('share-toast');
+  if(toast) toast.classList.remove('show');
+}
+function copyShareToastLink(){
+  const input = document.getElementById('st-input');
+  if(!input) return;
+  input.select();
+  input.setSelectionRange(0, 99999);
+  let ok = false;
+  try{ ok = document.execCommand('copy'); }catch(e){}
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(input.value).catch(()=>{});
+  }
+  const msg = document.getElementById('st-msg');
+  if(msg) msg.textContent = ok ? t('linkCopied') : (lang==='ru' ? 'Ссылка выделена — нажмите Ctrl/⌘+C' : 'Link selected — press Ctrl/⌘+C');
+}
+function shareGame(){
+  const gamePk = window.currentGamePk;
+  if(!gamePk) return;
+  const url = `${location.origin}${location.pathname}#game=${gamePk}`;
+  if(navigator.share){
+    navigator.share({title:'MLB Playoff Tracker', url}).catch((e)=>{
+      if(e && e.name === 'AbortError') return;
+      showShareToast(url, lang==='ru' ? 'Ссылка на игру:' : 'Link to this game:');
+    });
+    return;
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(()=>{
+      showShareToast(url, t('linkCopied'));
+    }).catch(()=>{
+      showShareToast(url, lang==='ru' ? 'Ссылка на игру:' : 'Link to this game:');
+    });
+    return;
+  }
+  showShareToast(url, lang==='ru' ? 'Ссылка на игру:' : 'Link to this game:');
+}
+
+/* ============ Карточка игрока ============ */
+async function openPlayerCard(id, name){
+  if(!id) return;
+  const ov = document.getElementById('player-overlay');
+  document.getElementById('player-body').innerHTML = `<div class="loading">${t('loading')}</div>`;
+  ov.classList.add('active');
+  try{
+    const p = await getJSON(`${API}/people/${id}`);
+    const person = (p.people || [])[0] || {};
+    const isPitcher = person.primaryPosition?.code === '1';
+    const statGroup = isPitcher ? 'pitching' : 'hitting';
+    const s2 = await getJSON(`${API}/people/${id}/stats?stats=season&group=${statGroup}&season=${SEASON}`);
+    const stat = s2.stats?.[0]?.splits?.[0]?.stat || {};
+    const lines = isPitcher
+      ? [['ERA',stat.era],['W-L',`${stat.wins ?? 0}-${stat.losses ?? 0}`],['K',stat.strikeOuts],['BB',stat.baseOnBalls],['IP',stat.inningsPitched],['WHIP',stat.whip]]
+      : [['AVG',stat.avg],['HR',stat.homeRuns],['RBI',stat.rbi],['H',stat.hits],['OBP',stat.obp],['SLG',stat.slg]];
+    document.getElementById('player-body').innerHTML = `
+      <div class="player-head">
+        <div class="player-num">#${person.primaryNumber ?? '—'}</div>
+        <div>
+          <div class="player-name">${person.fullName || name || ''}</div>
+          <div class="player-sub">${person.primaryPosition?.name || ''} · ${person.currentTeam?.name || ''}</div>
+          <div class="player-sub">${person.height || ''}${person.weight ? ', '+person.weight+' lb' : ''} · ${person.birthDate || ''}</div>
+        </div>
+      </div>
+      <div class="player-stats">${lines.map(([k,v])=>`<div class="pstat-box"><div class="pstat-v">${v ?? '—'}</div><div class="pstat-k">${k}</div></div>`).join('')}</div>`;
+  }catch(e){
+    document.getElementById('player-body').innerHTML = `<div class="empty">${t('playerLoadErr')}</div>`;
+  }
+}
+function closePlayerCard(){ document.getElementById('player-overlay').classList.remove('active'); }
+function playerLink(id, name){
+  if(!id || !name) return name || '';
+  return `<span class="pname-link" onclick="openPlayerCard(${id},'${String(name).replace(/'/g,"\\\\'")}')">${name}</span>`;
+}
+
+/* ============ Бокс-скор ============ */
+function boxRows(team, order){
+  const players = team.players || {};
+  return (order || []).map(id=>{
+    const pl = players[`ID${id}`]; if(!pl) return '';
+    const b = pl.stats?.batting || {};
+    if(b.atBats == null && !b.plateAppearances) return '';
+    return `<tr>
+      <td>${playerLink(pl.person?.id, pl.person?.fullName)}</td>
+      <td>${b.atBats ?? 0}</td><td>${b.runs ?? 0}</td><td>${b.hits ?? 0}</td>
+      <td>${b.rbi ?? 0}</td><td>${b.baseOnBalls ?? 0}</td><td>${b.strikeOuts ?? 0}</td>
+    </tr>`;
+  }).join('');
+}
+function pitchRows(team, order){
+  const players = team.players || {};
+  return (order || []).map(id=>{
+    const pl = players[`ID${id}`]; if(!pl) return '';
+    const pStat = pl.stats?.pitching || {};
+    if(pStat.inningsPitched == null) return '';
+    return `<tr>
+      <td>${playerLink(pl.person?.id, pl.person?.fullName)}</td>
+      <td>${pStat.inningsPitched ?? '0.0'}</td><td>${pStat.hits ?? 0}</td>
+      <td>${pStat.runs ?? 0}</td><td>${pStat.earnedRuns ?? 0}</td>
+      <td>${pStat.baseOnBalls ?? 0}</td><td>${pStat.strikeOuts ?? 0}</td>
+    </tr>`;
+  }).join('');
+}
+function buildBoxscore(box, awayName, homeName){
+  if(!box || !box.teams) return '';
+  const away = box.teams.away || {}, home = box.teams.home || {};
+  const bh = `<tr><th>${lang==='ru'?'Игрок':'Player'}</th><th>AB</th><th>R</th><th>H</th><th>RBI</th><th>BB</th><th>SO</th></tr>`;
+  const ph = `<tr><th>${lang==='ru'?'Питчер':'Pitcher'}</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>K</th></tr>`;
+  const awayBat = boxRows(away, away.batters), homeBat = boxRows(home, home.batters);
+  const awayPit = pitchRows(away, away.pitchers), homePit = pitchRows(home, home.pitchers);
+  if(!awayBat && !homeBat && !awayPit && !homePit) return '';
+  const battingBlock = (awayBat || homeBat) ? `
+    <details class="section-collapse">
+      <summary>${t('boxscore')}</summary>
+      <div class="collapse-body">
+        <div class="box-team-h">${awayName} — ${t('batting')}</div>
+        ${awayBat ? `<table class="box-table">${bh}${awayBat}</table>` : ''}
+        <div class="box-team-h">${homeName} — ${t('batting')}</div>
+        ${homeBat ? `<table class="box-table">${bh}${homeBat}</table>` : ''}
+      </div>
+    </details>` : '';
+  const pitchingBlock = (awayPit || homePit) ? `
+    <details class="section-collapse">
+      <summary>${t('pitching')}</summary>
+      <div class="collapse-body">
+        <table class="box-table">${ph}${awayPit}${homePit}</table>
+      </div>
+    </details>` : '';
+  return battingBlock + pitchingBlock;
+}
+
+/* ============ Спрей-чарт ============ */
+function collectHits(allPlays){
+  const hits = [];
+  allPlays.forEach(p=>{
+    (p.playEvents || []).forEach(pe=>{
+      const hd = pe.hitData;
+      if(hd && hd.coordinates && hd.coordinates.coordX != null){
+        const ev = (p.result?.eventType || p.result?.event || '').toLowerCase();
+        let cls = 'out';
+        if(ev === 'home_run') cls = 'hr';
+        else if(['single','double','triple'].includes(ev)) cls = 'hit';
+        else if(ev.includes('error')) cls = 'err';
+        hits.push({x:hd.coordinates.coordX, y:hd.coordinates.coordY, cls, desc:p.result?.description || '', batter:p.matchup?.batter?.fullName || ''});
+      }
+    });
+  });
+  return hits;
+}
+function buildSprayChart(allPlays){
+  const hits = collectHits(allPlays);
+  if(!hits.length) return '';
+  const oxp = 140, oyp = 230, scale = 0.92;
+  const colorOf = cls => cls==='hr' ? 'var(--live)' : cls==='hit' ? 'var(--win)' : cls==='err' ? '#e8a400' : 'var(--muted)';
+  const pts = hits.map(h=>{
+    const x = oxp + (h.x - 125) * scale;
+    const y = oyp - (204 - h.y) * scale;
+    const esc = String(h.desc).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5" fill="${colorOf(h.cls)}" fill-opacity="0.85" stroke="#fff" stroke-width="1"><title>${h.batter}: ${esc}</title></circle>`;
+  }).join('');
+  return `
+    <details class="section-collapse" open>
+      <summary>${t('spray')}</summary>
+      <div class="collapse-body">
+        <div class="spray-wrap">
+          <svg viewBox="0 0 280 260" class="spray-svg">
+            <path d="M20 ${oyp} A160 160 0 0 1 260 ${oyp}" fill="none" style="stroke:var(--line);stroke-width:2"/>
+            <path d="M${oxp} ${oyp} L${oxp-90} ${oyp-90} M${oxp} ${oyp} L${oxp+90} ${oyp-90}" style="stroke:var(--line);stroke-width:1.5"/>
+            <polygon points="${oxp-9},${oyp} ${oxp},${oyp-9} ${oxp+9},${oyp} ${oxp+6},${oyp+6} ${oxp-6},${oyp+6}" style="fill:var(--line)"/>
+            ${pts}
+          </svg>
+          <div class="sz-legend">
+            <span><i style="background:var(--win)"></i>${lang==='ru'?'Хит':'Hit'}</span>
+            <span><i style="background:var(--live)"></i>${lang==='ru'?'Хоум-ран':'Home run'}</span>
+            <span><i style="background:#e8a400"></i>${lang==='ru'?'Ошибка':'Error'}</span>
+            <span><i style="background:var(--muted)"></i>${lang==='ru'?'Аут в поле':'Field out'}</span>
+          </div>
+        </div>
+      </div>
+    </details>`;
+}
+
+async function loadStandings(){
+  try{
+    const data = await getJSON(`${API}/standings?leagueId=103,104&season=${SEASON}&standingsTypes=regularSeason`);
+    const records = data.records || [];
+    window.teamLeague = window.teamLeague || {};
+    records.forEach(r=>{
+      (r.teamRecords||[]).forEach(tr=>{ if(tr.team?.id) window.teamLeague[tr.team.id] = r.league?.id; });
+    });
+    if(!records.length){
+      document.getElementById('standings').innerHTML = '<div class="empty">Таблица недоступна.</div>';
+      return;
+    }
+    const html = records.map(r=>{
+      const DIVS = {
+        200:'Американская лига · Запад (AL West)',
+        201:'Американская лига · Восток (AL East)',
+        202:'Американская лига · Центр (AL Central)',
+        203:'Национальная лига · Запад (NL West)',
+        204:'Национальная лига · Восток (NL East)',
+        205:'Национальная лига · Центр (NL Central)'
+      };
+      const divName = DIVS[r.division?.id] || r.division?.nameShort || r.division?.name || 'Дивизион';
+      const rows = (r.teamRecords||[]).map(tr=>`
+        <tr class="${tr.clinched ? 'clinched':''}">
+          <td>${teamDot(tr.team?.id)}${tr.team?.name||''}</td>
+          <td>${tr.wins}</td><td>${tr.losses}</td>
+          <td>${tr.divisionGamesBack ?? tr.gamesBack ?? '-'}</td>
+        </tr>`).join('');
+      return `<div class="standings-group"><h3>${divName}</h3>
+        <table class="standings-table">
+          <tr><th>Команда</th><th>W</th><th>L</th><th>GB</th></tr>
+          ${rows}
+        </table></div>`;
+    }).join('');
+    document.getElementById('standings').innerHTML = html;
+  }catch(e){
+    document.getElementById('standings').innerHTML =
+      `<div class="empty">Не удалось загрузить таблицу (${e.message}).<button class="reload" onclick="loadStandings()">${t('retry')}</button></div>`;
+  }
+}
+
+async function getJSON(url){
+  const r = await fetch(url);
+  if(!r.ok) throw new Error("HTTP "+r.status);
+  return r.json();
+}
+
+function fmtDate(d){
+  return new Date(d).toLocaleDateString('ru-RU',{day:'2-digit',month:'short'});
+}
+function fmtClock(d){
+  if(!d) return '';
+  const x = new Date(d);
+  return isNaN(x) ? '' : x.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+function fmtTime(d){
+  return new Date(d).toLocaleTimeString(lang==='ru'?'ru-RU':'en-US',{hour:'2-digit',minute:'2-digit'});
+}
+function countdownText(iso){
+  const diff = new Date(iso) - new Date();
+  if(diff <= 0) return '';
+  const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000);
+  const hh = lang==='ru' ? 'ч' : 'h', mm = lang==='ru' ? 'мин' : 'm';
+  return `${t('starts_in')} ${h>0? h+hh+' ':''}${m}${mm}`;
+}
+function updateCountdowns(){
+  document.querySelectorAll('.countdown[data-start]').forEach(el=>{
+    el.textContent = countdownText(el.dataset.start);
+  });
+}
+
+function getMyTeam(){
+  try{ return JSON.parse(localStorage.getItem('myTeam')); }catch(e){ return null; }
+}
+function isMyTeam(id){
+  const t = getMyTeam();
+  return t && t.id === id;
+}
+function setMyTeam(id, name, ev){
+  if(ev) ev.stopPropagation();
+  if(!id) return;
+  localStorage.setItem('myTeam', JSON.stringify({id, name}));
+  refreshStars();
+  renderMyTeamBar();
+}
+function clearMyTeam(){
+  localStorage.removeItem('myTeam');
+  refreshStars();
+  renderMyTeamBar();
+}
+function refreshStars(){
+  document.querySelectorAll('.star').forEach(s=>{
+    const onclickAttr = s.getAttribute('onclick') || '';
+    const m = onclickAttr.match(/setMyTeam\((\d+)/);
+    if(m) s.classList.toggle('active', isMyTeam(Number(m[1])));
+  });
+}
+function renderMyTeamBar(){
+  const bar = document.getElementById('my-team-bar');
+  const team = getMyTeam();
+  if(!team){
+    bar.innerHTML = `<div class="myteam-empty">${t('myTeamEmpty')}</div>`;
+    return;
+  }
+  const order = ['Wild Card Series','Division Series','League Championship Series','World Series'];
+  const nameOf = s => s.gameType==='F' ? 'World Series'
+    : s.gameType==='L' ? 'League Championship Series'
+    : s.gameType==='D' ? 'Division Series' : 'Wild Card Series';
+  const series = window.allSeries || [];
+  const mySeries = series.filter(s => (s.matchupTeams||[]).some(t=>t.team?.id===team.id));
+  let stageIdx = -1, statusText = '', currentSeries = null;
+  mySeries.forEach(s=>{
+    const idx = order.indexOf(nameOf(s));
+    if(idx > stageIdx){ stageIdx = idx; statusText = s.seriesStatus?.shortStatusText || nameOf(s); currentSeries = s; }
+  });
+
+  let eliminated = false;
+  if(currentSeries?.seriesStatus?.isOver){
+    const myRec = (currentSeries.matchupTeams||[]).find(t=>t.team?.id===team.id);
+    const oppRec = (currentSeries.matchupTeams||[]).find(t=>t.team?.id!==team.id);
+    if(myRec && oppRec && (oppRec.seriesRecord?.wins||0) > (myRec.seriesRecord?.wins||0)) eliminated = true;
+  }
+
+  const stepsHtml = order.map((r,i)=>
+    `<span class="stage ${i<stageIdx?'done':''} ${i===stageIdx?'now':''}">${r.replace(' Series','')}</span>`
+  ).join('<span class="arrow">→</span>');
+
+  const remainingSeries = stageIdx >= 0 ? order.length - stageIdx : null;
+
+  bar.innerHTML = `<div class="myteam-bar">
+    <div class="myteam-name">⭐ ${team.name} <button class="mini-btn" onclick="clearMyTeam()">✕</button></div>
+    <div class="stage-track">${stepsHtml}</div>
+    <div class="meta">${stageIdx>=0 ? statusText : t('myTeamNotYet')}</div>
+    ${eliminated
+      ? `<div class="eliminated">${t('eliminated')}</div>`
+      : remainingSeries ? `<div class="wins-needed">${t('winsNeeded')}: <b>${remainingSeries}</b></div>` : ''}
+    <button class="toggle-btn" onclick="teamScheduleIcs(${team.id}, '${team.name.replace(/'/g,"\\'")}')">${t('icsTeam')}</button>
+  </div>`;
+}
+
+function seriesBadge(g){
+  if(!window.allSeries) return '';
+  const s = window.allSeries.find(sr=>{
+    const ids = (sr.matchupTeams||[]).map(t=>t.team?.id);
+    return ids.includes(g.teams.away.team.id) && ids.includes(g.teams.home.team.id);
+  });
+  if(!s) return '';
+  const aw = s.matchupTeams.find(t=>t.team?.id===g.teams.away.team.id)?.seriesRecord?.wins ?? 0;
+  const hw = s.matchupTeams.find(t=>t.team?.id===g.teams.home.team.id)?.seriesRecord?.wins ?? 0;
+  return `<span class="series-badge">${t('seriesWord')} ${aw}-${hw}</span>`;
+}
+
+function gameCard(g){
+  const away = g.teams.away, home = g.teams.home;
+  const state = g.status.abstractGameState; // Preview, Live, Final
+  const cls = state === 'Final' ? 'final' : (state === 'Live' ? 'live' : 'pre');
+  const label = state === 'Final' ? t('final') : (state === 'Live' ? t('live') : g.status.detailedState);
+  const countdown = state === 'Preview' ? `<span class="countdown" data-start="${g.gameDate}">${countdownText(g.gameDate)}</span>` : '';
+  const awayWin = state==='Final' && away.score > home.score;
+  const homeWin = state==='Final' && home.score > away.score;
+  const round = g.seriesDescription || 'Regular Season';
+  const accent = TEAM_COLORS[home.team.id] || TEAM_COLORS[away.team.id] || 'transparent';
+  const calBtn = state==='Preview'
+    ? `<span class="cal-btn" title="В календарь" onclick="addToCalendar(${g.gamePk},'${(away.team.name||'').replace(/'/g,"\\'")}','${(home.team.name||'').replace(/'/g,"\\'")}','${g.gameDate}',event)">📅</span>`
+    : '';
+  const featuredCls = state === 'Live' ? ' live-featured' : '';
+  return `<div class="card clickable${featuredCls}" style="border-left-color:${accent}" onclick="openDetail(${g.gamePk})">
+    <div class="round">${round}${g.seriesGameNumber ? ' · Игра '+g.seriesGameNumber : ''}</div>
+    <div class="matchup">
+      <div class="team ${awayWin?'win':''}"><span class="star ${isMyTeam(away.team.id)?'active':''}" onclick="setMyTeam(${away.team.id},'${(away.team.name||'').replace(/'/g,"\\'")}',event)">★</span>${teamDot(away.team.id)}${away.team.name}</div>
+      <div class="score">${state!=='Preview' ? (away.score ?? '-') : ''}</div>
+    </div>
+    <div class="matchup">
+      <div class="team ${homeWin?'win':''}"><span class="star ${isMyTeam(home.team.id)?'active':''}" onclick="setMyTeam(${home.team.id},'${(home.team.name||'').replace(/'/g,"\\'")}',event)">★</span>${teamDot(home.team.id)}${home.team.name}</div>
+      <div class="score">${state!=='Preview' ? (home.score ?? '-') : ''}</div>
+    </div>
+    <div class="meta">${fmtDate(g.gameDate)} · ${fmtTime(g.gameDate)} <span class="status ${cls}">${label}</span> ${countdown} ${seriesBadge(g)} ${calBtn}</div>
+  </div>`;
+}
+
+async function loadGames(){
+  try{
+    // берём постсезон целиком: и прошедшие, и будущие игры
+    const data = await getJSON(`${API}/schedule/postseason?season=${SEASON}&sportId=1&hydrate=team,linescore`);
+    const games = (data.dates || []).flatMap(d => d.games);
+
+    window.lastGames = games;
+    checkMyTeamTransitions(games);
+
+    const now = new Date();
+    const past = games.filter(g => g.status.abstractGameState === 'Final')
+                       .sort((a,b)=> new Date(b.gameDate)-new Date(a.gameDate));
+    const upcoming = games.filter(g => g.status.abstractGameState !== 'Final')
+                           .sort((a,b)=>{
+                             const aLive = a.status.abstractGameState === 'Live', bLive = b.status.abstractGameState === 'Live';
+                             if(aLive !== bLive) return aLive ? -1 : 1;
+                             return new Date(a.gameDate) - new Date(b.gameDate);
+                           });
+    const hasLive = games.some(g => g.status.abstractGameState === 'Live');
+    scheduleGamesRefresh(hasLive);
+
+    document.getElementById('upcoming').innerHTML =
+      upcoming.length ? upcoming.map(gameCard).join('') : '<div class="empty">Пока нет запланированных игр постсезона — начало 29 сентября.</div>';
+
+    if(past.length){
+      document.getElementById('past').innerHTML = past.map(gameCard).join('');
+    } else {
+      // постсезон ещё не начался — покажем последние игры regular season как fallback
+      const end = new Date();
+      const start = new Date(end); start.setDate(end.getDate() - 6);
+      const iso = d => d.toISOString().slice(0,10);
+      const rs = await getJSON(`${API}/schedule?sportId=1&startDate=${iso(start)}&endDate=${iso(end)}&hydrate=team,linescore`);
+      const rsGames = (rs.dates || []).flatMap(d => d.games)
+        .filter(g => g.status.abstractGameState === 'Final')
+        .sort((a,b)=> new Date(b.gameDate)-new Date(a.gameDate))
+        .slice(0, 20);
+      document.getElementById('past').innerHTML = rsGames.length
+        ? `<div class="empty" style="padding:10px 0 16px">Постсезон ещё не начался — показаны последние игры regular season</div>` + rsGames.map(gameCard).join('')
+        : '<div class="empty">Сыгранных матчей пока нет.</div>';
+    }
+
+  }catch(e){
+    const msg = `<div class="empty">Не удалось загрузить данные (${e.message}).<br>
+      Если вы открыли файл как artifact внутри Claude — сохраните его на диск и откройте в браузере напрямую.
+      <button class="reload" onclick="loadGames()">${t('retry')}</button></div>`;
+    document.getElementById('upcoming').innerHTML = msg;
+    document.getElementById('past').innerHTML = msg;
+  }
+}
+let gamesTimer = null, countdownTimer = null, notifyTimer = null;
+function scheduleGamesRefresh(hasLive){
+  clearInterval(gamesTimer);
+  gamesTimer = setInterval(loadGames, hasLive ? 20000 : 60000);
+}
+
+async function loadBracket(){
+  try{
+    const data = await getJSON(`${API}/schedule/postseason/series?season=${SEASON}&sportId=1`);
+    const series = data.series || [];
+    window.allSeries = series;
+    if(!series.length){
+      document.getElementById('bracket').innerHTML = `<div class="empty">${lang==='ru' ? 'Сетка появится с началом Wild Card Series (29 сентября).' : 'The bracket will appear once the Wild Card Series begins (Sept 29).'}</div>`;
+      renderPickem();
+      return;
+    }
+
+    document.getElementById('bracket').innerHTML = `
+      <div class="bracket-toolbar">
+        <button class="toggle-btn ${picksOn?'on':''}" id="picks-toggle" onclick="togglePicksMode()">${t('bracketToolbarHint')}</button>
+      </div>
+      <div class="league-cols" id="al-cols"></div>
+      <div class="league-cols" id="nl-cols"></div>
+      <div id="ws-col"></div>
+    `;
+
+    const order = ['Wild Card Series','Division Series','League Championship Series'];
+    const nameOf = s => s.gameType === 'F' ? 'World Series'
+      : s.gameType === 'L' ? 'League Championship Series'
+      : s.gameType === 'D' ? 'Division Series' : 'Wild Card Series';
+
+    const teamLeague = window.teamLeague || {};
+    const leagueOf = s => {
+      const t0 = (s.matchupTeams||[]).find(t=>t.team?.id!=null);
+      return t0 ? teamLeague[t0.team.id] : null;
+    };
+
+    ['al-cols','nl-cols'].forEach((elId, li)=>{
+      const wantLeague = li === 0 ? 103 : 104; // 103 AL, 104 NL
+      const cols = order.map(name=>{
+        const list = series.filter(s2 => nameOf(s2) === name && (leagueOf(s2) === wantLeague || leagueOf(s2) == null));
+        if(!list.length) return '';
+        const matches = list.map(seriesMatchHtml).join('');
+        return `<div class="bcol"><div class="bcol-h">${name.replace(' Series','')}</div>${matches}</div>`;
+      }).join('');
+      const holder = document.getElementById(elId);
+      if(cols.trim()){
+        holder.innerHTML = `<div class="league-lbl">${wantLeague===103 ? 'American League' : 'National League'}</div><div class="league-cols">${cols}</div>`;
+      }
+    });
+
+    const ws = series.find(s2 => s2.gameType === 'F');
+    document.getElementById('ws-col').innerHTML = ws
+      ? `<div class="league-lbl">World Series</div><div class="league-cols"><div class="bcol">${seriesMatchHtml(ws)}</div></div>`
+      : '';
+
+    renderMyTeamBar();
+    renderPickem();
+  }catch(e){
+    document.getElementById('bracket').innerHTML =
+      `<div class="empty">${lang==='ru'?'Не удалось загрузить сетку':'Could not load the bracket'} (${e.message}).<button class="reload" onclick="loadBracket()">${t('retry')}</button></div>`;
+  }
+}
+
+/* ---- Шансы пройти дальше: модель равных по силе команд (p=0.5 на игру) ---- */
+const seriesProbCache = new Map();
+function seriesWinProb(winsFor, winsAgainst, bestOf, p){
+  const need = Math.ceil(bestOf/2);
+  if(winsFor >= need) return 1;
+  if(winsAgainst >= need) return 0;
+  const key = `${winsFor}-${winsAgainst}-${bestOf}-${p}`;
+  if(seriesProbCache.has(key)) return seriesProbCache.get(key);
+  const v = p*seriesWinProb(winsFor+1, winsAgainst, bestOf, p) + (1-p)*seriesWinProb(winsFor, winsAgainst+1, bestOf, p);
+  seriesProbCache.set(key, v);
+  return v;
+}
+function bestOfFor(gameType){
+  return gameType === 'F' || gameType === 'L' ? 7 : gameType === 'D' ? 5 : 3;
+}
+
+let picksOn = localStorage.getItem('picksOn') === '1';
+function togglePicksMode(){
+  picksOn = !picksOn;
+  localStorage.setItem('picksOn', picksOn ? '1' : '0');
+  loadBracket();
+}
+function getPicks(){ try{ return JSON.parse(localStorage.getItem('picks') || '{}'); }catch(e){ return {}; } }
+function seriesKey(s){
+  const ids = (s.matchupTeams||[]).map(t=>t.team?.id).filter(Boolean).sort((a,b)=>a-b);
+  return `${s.gameType}-${ids.join('-')}`;
+}
+function setPick(key, teamId, ev){
+  if(ev) ev.stopPropagation();
+  const p = getPicks();
+  p[key] = teamId;
+  localStorage.setItem('picks', JSON.stringify(p));
+  loadBracket();
+}
+
+function seriesMatchHtml(s){
+  const matchup = s.matchupTeams || [];
+  const bestOf = bestOfFor(s.gameType);
+  const key = seriesKey(s);
+  const picks = getPicks();
+  const pick = picks[key];
+  const isOver = s.seriesStatus?.isOver;
+
+  if(matchup.length < 2){
+    const names = matchup.map(t2 => t2.team ? `${teamDot(t2.team.id)}${t2.team.name}` : '?').join(' vs ') || t('pickemUnknown');
+    return `<div class="bmatch"><div>${names}</div></div>`;
+  }
+
+  const a = matchup[0], b = matchup[1];
+  const aw = a.seriesRecord?.wins ?? 0, bw = b.seriesRecord?.wins ?? 0;
+  const aWinner = isOver && aw > bw, bWinner = isOver && bw > aw;
+  const pA = seriesWinProb(aw, bw, bestOf, 0.5), pB = seriesWinProb(bw, aw, bestOf, 0.5);
+
+  const teamRow = (team, wins, winner) => {
+    const clickable = picksOn && !isOver && team.team;
+    const cls = ['bteam', winner?'winner':'', pick===team.team?.id?'pick':'', clickable?'clickable':''].join(' ').trim();
+    const onclick = clickable ? ` onclick="setPick('${key}',${team.team.id},event)"` : '';
+    return `<div class="${cls}"${onclick}>${team.team ? teamDot(team.team.id)+team.team.name : '?'} <b>${wins}</b></div>`;
+  };
+
+  return `<div class="bmatch">
+    ${teamRow(a, aw, aWinner)}
+    ${teamRow(b, bw, bWinner)}
+    <div class="bodds">${Math.round(pA*100)}% · ${Math.round(pB*100)}%</div>
+  </div>`;
+}
+
+/* ============ Pick'em ============ */
+function renderPickem(){
+  const el = document.getElementById('pickem');
+  if(!el) return;
+  const series = window.allSeries || [];
+  if(!series.length){
+    el.innerHTML = `<div class="empty">${lang==='ru' ? 'Прогнозы появятся, когда определятся пары серий.' : 'Picks will appear once matchups are set.'}</div>`;
+    return;
+  }
+  const nameOf = s => s.gameType === 'F' ? 'World Series'
+    : s.gameType === 'L' ? 'League Championship Series'
+    : s.gameType === 'D' ? 'Division Series' : 'Wild Card Series';
+  const picks = getPicks();
+  let correct = 0, decided = 0;
+  const cards = series.map(s=>{
+    const matchup = s.matchupTeams || [];
+    const key = seriesKey(s);
+    const pick = picks[key];
+    const isOver = s.seriesStatus?.isOver;
+    if(matchup.length < 2){
+      return `<div class="pick-card"><div class="sname">${nameOf(s)}</div><div class="empty" style="padding:4px 0">${t('pickemUnknown')}</div></div>`;
+    }
+    const a = matchup[0], b = matchup[1];
+    let winnerId = null;
+    if(isOver){
+      decided++;
+      winnerId = (a.seriesRecord?.wins ?? 0) > (b.seriesRecord?.wins ?? 0) ? a.team?.id : b.team?.id;
+      if(pick && pick === winnerId) correct++;
+    }
+    const resultIcon = isOver ? (pick ? (pick === winnerId ? '✅' : '❌') : '➖') : '';
+    const choice = (team) => {
+      const sel = pick === team.team?.id;
+      const dis = isOver ? 'disabled' : '';
+      return `<button class="pick-choice ${sel?'sel':''}" ${dis} onclick="setPick('${key}',${team.team?.id},event); renderPickem();">${teamDot(team.team?.id)}${team.team?.name || '?'}</button>`;
+    };
+    return `<div class="pick-card">
+      <div class="sname">${nameOf(s)} ${s.seriesStatus?.shortStatusText || ''}</div>
+      <div class="pick-row">${choice(a)}${choice(b)}<span class="pick-result">${resultIcon}</span></div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="pickem-score">
+      <div>
+        <div style="font-weight:700">${t('pickemTitle')}</div>
+        <div style="color:var(--muted);font-size:13px;margin-top:4px">${t('pickemHint')}</div>
+      </div>
+      <div style="text-align:center"><div class="num">${correct}/${decided}</div><div style="font-size:12px;color:var(--muted)">${t('pickemScore')}</div></div>
+    </div>
+    ${cards}`;
+}
+
+let liveTimer = null;
+
+async function openDetail(gamePk){
+  if(!gamePk) return;
+  window.lastPlayCount = 0;
+  window.currentGamePk = gamePk;
+  pbFilter = 'all';
+  if(location.hash !== `#game=${gamePk}`) history.replaceState(null,'',`#game=${gamePk}`);
+  document.getElementById('detail-overlay').classList.add('active');
+  document.getElementById('detail-body').innerHTML = `<div class="loading">${t('loading')}</div>`;
+  await renderDetail(gamePk);
+  clearInterval(liveTimer);
+  liveTimer = setInterval(()=>renderDetail(gamePk), 12000);
+}
+
+function closeDetail(){
+  document.getElementById('detail-overlay').classList.remove('active');
+  window.currentGamePk = null;
+  if(location.hash.startsWith('#game=')) history.replaceState(null,'',location.pathname+location.search);
+  clearInterval(liveTimer);
+}
+
+const PITCH_RU = {
+  'Four-Seam Fastball':'Фастбол (4-seam)','Two-Seam Fastball':'Фастбол (2-seam)','Fastball':'Фастбол',
+  'Sinker':'Синкер','Cutter':'Каттер','Slider':'Слайдер','Sweeper':'Суипер','Curveball':'Кервбол',
+  'Knuckle Curve':'Кнукл-кервбол','Slurve':'Слерв','Changeup':'Чейнджап','Splitter':'Сплиттер',
+  'Split-Finger':'Сплиттер','Forkball':'Форкбол','Knuckleball':'Кнуклбол','Screwball':'Скрюбол',
+  'Eephus':'Эфус','Slow Curve':'Медленный кервбол','Pitch Out':'Питчаут','Intentional Ball':'Преднамеренный болл'
+};
+const CALL_RU = {
+  'Ball':'Болл','Ball In Dirt':'Болл в землю','Called Strike':'Страйк (без замаха)',
+  'Swinging Strike':'Страйк (промах)','Swinging Strike (Blocked)':'Страйк (промах)',
+  'Foul':'Фол','Foul Tip':'Фол-тип','Foul Bunt':'Фол (бант)','Missed Bunt':'Промах на банте',
+  'Hit By Pitch':'Попадание мячом','In play, out(s)':'В игре — аут','In play, no out':'В игре — без аута',
+  'In play, run(s)':'В игре — очко','Automatic Ball':'Автоматический болл','Automatic Strike':'Автоматический страйк',
+  'Intent Ball':'Преднамеренный болл','Pitchout':'Питчаут'
+};
+
+let nbOn = localStorage.getItem('nbOn') === '1';
+function updateNbBtn(){
+  document.body.classList.toggle('nb-on', nbOn);
+  const b = document.getElementById('nb-btn');
+  if(!b) return;
+  b.classList.toggle('on', nbOn);
+  b.textContent = nbOn ? '🎓 Режим новичка: вкл' : '🎓 Режим новичка';
+}
+function toggleNb(){
+  nbOn = !nbOn;
+  localStorage.setItem('nbOn', nbOn ? '1' : '0');
+  updateNbBtn();
+}
+
+function ruRuns(n){
+  const m = n % 100, d = n % 10;
+  if(m >= 11 && m <= 14) return `${n} очков`;
+  if(d === 1) return `${n} очко`;
+  if(d >= 2 && d <= 4) return `${n} очка`;
+  return `${n} очков`;
+}
+
+const NB_NOTES = {
+  single:'Сингл: бьющий отбил мяч и успел добежать до 1-й базы, пока защита не выбросила его.',
+  double:'Дабл: удар получился настолько хорошим, что бьющий добежал до 2-й базы.',
+  triple:'Трипл: редкий удар — бьющий добежал сразу до 3-й базы.',
+  home_run:'Хоум-ран: мяч улетел за забор. Бьющий спокойно обегает все базы, а очко получают он сам и все бегущие, которые были на базах.',
+  walk:'Уок: питчер бросил 4 болла (подачи мимо зоны, на которые бьющий не замахнулся). Бьющий бесплатно идёт на 1-ю базу.',
+  intent_walk:'Преднамеренный уок: защита сама решила не подавать в удар и отправила бьющего на 1-ю базу (чаще всего, чтобы не дать бить сильному игроку).',
+  hit_by_pitch:'Мяч попал в бьющего — за это он бесплатно идёт на 1-ю базу.',
+  strikeout:'Страйкаут: бьющий получил 3 страйка — это аут.',
+  strikeout_double_play:'Страйкаут и ещё один аут: бьющий выбыл на 3 страйках, и в том же розыгрыше защита выбросила бегущего.',
+  force_out:'Форс-аут: бегущий обязан был бежать на следующую базу, а защитник коснулся её с мячом раньше него.',
+  double_play:'Дабл-плей: защита вывела в аут сразу двоих за один розыгрыш — обычно мяч по земле бросают на 2-ю базу, а оттуда на 1-ю.',
+  grounded_into_double_play:'Дабл-плей: защита вывела в аут сразу двоих за один розыгрыш — обычно мяч по земле бросают на 2-ю базу, а оттуда на 1-ю.',
+  triple_play:'Трипл-плей: три аута за один розыгрыш — очень редкое событие.',
+  sac_fly:'Сакрифайс-флай: бьющий выбит в воздух, но бегущий с 3-й базы успел добежать до дома. Бьющему аут, зато команда получила очко.',
+  sac_fly_double_play:'Сакрифайс-флай с дабл-плеем: мяч поймали в воздухе, бегущий с 3-й успел домой, но ещё одного игрока выбросили.',
+  sac_bunt:'Жертвенный бант: бьющий сознательно лишь подставил биту, чтобы продвинуть бегущих на базу вперёд ценой собственного аута.',
+  sac_bunt_double_play:'Жертвенный бант закончился дабл-плеем: защита выбросила двоих.',
+  fielders_choice:'Выбор защитника: защита выбросила другого бегущего вместо бьющего. Бьющий остался на базе, но хит ему не записали.',
+  fielders_choice_out:'Выбор защитника: защита выбросила другого бегущего вместо бьющего. Бьющий остался на базе, но хит ему не записали.',
+  field_error:'Ошибка защитника: он мог поймать мяч или сделать бросок, но не справился. Бьющий выходит на базу без хита.',
+  catcher_interf:'Помеха кэтчера: кэтчер задел биту при замахе — бьющий бесплатно идёт на 1-ю базу.',
+  wild_pitch:'Дикая подача: питчер бросил так, что кэтчер не смог поймать мяч, и бегущие продвинулись на базу.',
+  passed_ball:'Пропущенный мяч: кэтчер не поймал нормальную подачу — бегущие продвинулись на базу.',
+  balk:'Балк: питчер нарушил правила движения при подаче — все бегущие получают по одной базе.',
+  pitching_substitution:'Замена питчера: на горку выходит другой питчер.',
+  offensive_substitution:'Замена в атаке: вместо игрока выходит пинч-хиттер (бьющий) или пинч-раннер (бегущий).',
+  defensive_substitution:'Замена в защите: в поле выходит другой игрок.',
+  defensive_switch:'Перестановка в защите: игроки меняются позициями на поле.',
+  mound_visit:'Визит на горку: кто-то из команды подошёл поговорить с питчером.'
+};
+
+function beginnerNote(p){
+  const ev = (p.result?.eventType || '').toLowerCase().replace(/\s+/g,'_');
+  const d = (p.result?.description || '').toLowerCase();
+  let t = NB_NOTES[ev] || '';
+
+  if(!t){
+    if(ev.startsWith('stolen_base')) t = 'Украденная база: бегущий рванул на следующую базу во время подачи и успел до броска.';
+    else if(ev.startsWith('caught_stealing')) t = 'Кража базы не удалась: защита выбросила бегущего — это аут.';
+    else if(ev.startsWith('pickoff_error')) t = 'Бросок питчера на базу закончился ошибкой — бегущие могут продвинуться.';
+    else if(ev.startsWith('pickoff')) t = 'Пикофф: питчер бросил на базу и поймал бегущего, пока тот был далеко от базы — аут.';
+    else if(ev === 'field_out'){
+      if(/pops? out/.test(d)) t = 'Высокий короткий мяч поймал защитник рядом с инфилдом — бьющему аут.';
+      else if(/lines? out/.test(d)) t = 'Лайнер: резкий низкий мяч попал прямо в перчатку защитника — бьющему аут.';
+      else if(/flies out|fly out|flies into/.test(d)) t = 'Аут с полёта: мяч в воздухе поймал защитник — бьющий выбывает.';
+      else if(/grounds? out|grounds into/.test(d)) t = 'Мяч покатился по земле, защитник подобрал его и выбросил бьющего у базы — аут.';
+      else if(/bunt/.test(d)) t = 'Бант: мяч лишь тычком отправили на землю, защита выбросила бьющего — аут.';
+      else t = 'Аут: защита поймала мяч или выбросила бьющего у базы.';
+    }
+  }
+  if(!t) return '';
+
+  const runs = (p.runners || []).filter(r => r.details?.runScored).length;
+  if(runs > 0 && ev !== 'home_run') t += ` Команда получила ${ruRuns(runs)}.`;
+  else if(runs > 1 && ev === 'home_run') t += ` За этот розыгрыш команда набрала ${ruRuns(runs)}.`;
+
+  if(ev === 'strikeout'){
+    if(/called out on strikes/.test(d)) t += ' Последний страйк судья засчитал без замаха: подача пришлась в зону, а бьющий не бил.';
+    else if(/swings/.test(d) || /swinging/.test(d)) t += ' Бьющий замахнулся и промахнулся.';
+  }
+  return t;
+}
+
+function nbNote(p){
+  const t = p ? beginnerNote(p) : '';
+  return t ? `<div class="newbie">🎓 ${t}</div>` : '';
+}
+
+function pickZonePlay(ld){
+  const all = ld.plays?.allPlays || [];
+  const cands = [];
+  if(ld.plays?.currentPlay) cands.push(ld.plays.currentPlay);
+  for(let i = all.length - 1; i >= 0; i--) cands.push(all[i]);
+  return cands.find(p => (p.playEvents || []).some(e => e.isPitch)) || null;
+}
+
+function buildStrikeZone(p){
+  if(!p) return '';
+  const pitches = (p.playEvents || []).filter(e => e.isPitch);
+  if(!pitches.length) return '';
+
+  const S = 70, CX = 150, BASE = 320;               // масштаб: пикселей на фут
+  const ref = pitches.find(e => e.pitchData?.strikeZoneTop && e.pitchData?.strikeZoneBottom);
+  const top = ref?.pitchData.strikeZoneTop ?? 3.4;   // верх зоны для этого бьющего, футы
+  const bot = ref?.pitchData.strikeZoneBottom ?? 1.6;
+  const half = 0.708;                                // половина ширины дома (17 дюймов), футы
+  const zx = CX - half*S, zw = 2*half*S, zy = BASE - top*S, zh = (top - bot)*S;
+
+  const col = e => e.details?.isInPlay ? '#008753'
+                 : e.details?.isBall ? '#0074e8'
+                 : e.details?.isStrike ? '#cc0000' : '#767676';
+
+  const dots = pitches.map((e,i)=>{
+    const c = e.pitchData?.coordinates;
+    if(!c || c.pX == null || c.pZ == null) return '';
+    const n = e.pitchNumber ?? (i+1);
+    const x = CX + c.pX*S, y = BASE - c.pZ*S;
+    const tip = `${n}. ${PITCH_RU[e.details?.type?.description] || e.details?.type?.description || ''}`;
+    return `<g class="dot" style="--i:${i}"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="11" style="fill:${col(e)};stroke:#fff;stroke-width:1.5"><title>${tip}</title></circle>
+      <text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="middle" style="font-size:11px;font-weight:800;fill:#fff;pointer-events:none">${n}</text></g>`;
+  }).join('');
+
+  const svg = `<svg class="sz-svg" viewBox="0 0 300 340" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="${CX},338 292,171 ${CX},4 8,171" style="fill:var(--panel2)"/>
+    <line x1="${zx+zw/3}" y1="${zy}" x2="${zx+zw/3}" y2="${zy+zh}" style="stroke:var(--line);stroke-width:1"/>
+    <line x1="${zx+2*zw/3}" y1="${zy}" x2="${zx+2*zw/3}" y2="${zy+zh}" style="stroke:var(--line);stroke-width:1"/>
+    <line x1="${zx}" y1="${zy+zh/3}" x2="${zx+zw}" y2="${zy+zh/3}" style="stroke:var(--line);stroke-width:1"/>
+    <line x1="${zx}" y1="${zy+2*zh/3}" x2="${zx+zw}" y2="${zy+2*zh/3}" style="stroke:var(--line);stroke-width:1"/>
+    <rect x="${zx}" y="${zy}" width="${zw}" height="${zh}" style="fill:rgba(128,128,128,.1);stroke:var(--text);stroke-width:2"/>
+    <polygon points="${CX-half*S},330 ${CX+half*S},330 ${CX+half*S},334 ${CX},339 ${CX-half*S},334" style="fill:var(--line)"/>
+    ${dots}
+  </svg>`;
+
+  const rows = pitches.map((e,i)=>{
+    const n = e.pitchNumber ?? (i+1);
+    const type = PITCH_RU[e.details?.type?.description] || e.details?.type?.description || 'Подача';
+    const mph = e.pitchData?.startSpeed;
+    const speed = mph ? `${Math.round(mph*1.60934)} км/ч <span class="sz-call">(${mph.toFixed(1)} mph)</span>` : '';
+    const call = CALL_RU[e.details?.call?.description] || e.details?.call?.description || '';
+    const cnt = e.count ? `${e.count.balls}-${e.count.strikes}` : '';
+    return `<div class="sz-row">
+      <span class="sz-n" style="background:${col(e)}">${n}</span>
+      <div><b>${type}</b>${speed ? ' · '+speed : ''}<br><span class="sz-call">${call}</span></div>
+      <span class="sz-count">${cnt ? 'счёт '+cnt : ''}</span>
+    </div>`;
+  }).join('');
+
+  const batter = p.matchup?.batter?.fullName || '';
+  const pitcher = p.matchup?.pitcher?.fullName || '';
+  const state = p.about?.isComplete ? 'последняя схватка' : 'текущая схватка';
+
+  return `
+    <details class="section-collapse" open>
+      <summary>Зона страйка</summary>
+      <div class="collapse-body">
+        <div class="sz-wrap">
+          ${svg}
+          <div class="sz-side">
+            <div class="sz-title">${pitcher} → ${batter}</div>
+            <div class="sz-sub">Питчер → бьющий · ${state}. Вид глазами кэтчера: прямоугольник — зона страйка, цифры — порядок подач.</div>
+            ${rows}
+            <div class="sz-legend">
+              <span><i style="background:#0074e8"></i>Болл</span>
+              <span><i style="background:#cc0000"></i>Страйк / фол</span>
+              <span><i style="background:#008753"></i>Мяч в игре</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </details>`;
+}
+
+function buildWinProbSVG(plays, homeName, awayName){
+  const pts = plays.map(p => p.winProbability?.homeTeamWinProbability).filter(v => v != null);
+  if(pts.length < 2) return '';
+  const w = 300, h = 90;
+  const stepX = w / (pts.length - 1);
+  const path = pts.map((v,i) => `${i===0?'M':'L'}${(i*stepX).toFixed(1)},${(h-(v/100*h)).toFixed(1)}`).join(' ');
+  return `
+    <div class="section-title">Вероятность победы — ${homeName} (дома)</div>
+    <svg class="wp-chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <line x1="0" y1="${h/2}" x2="${w}" y2="${h/2}" style="stroke:var(--line);stroke-width:1"/>
+      <path d="${path}" pathLength="1" fill="none" style="stroke:var(--accent);stroke-width:2"/>
+    </svg>`;
+}
+
+async function fetchPitcherStats(id){
+  try{
+    const d = await getJSON(`${API}/people/${id}/stats?stats=season&group=pitching&season=${SEASON}`);
+    return d.stats?.[0]?.splits?.[0]?.stat || null;
+  }catch(e){ return null; }
+}
+async function pitcherBlock(p){
+  if(!p || !p.id) return '';
+  const stat = await fetchPitcherStats(p.id);
+  const line = stat
+    ? `ERA ${stat.era ?? '-'} · W-L ${stat.wins ?? 0}-${stat.losses ?? 0} · K/9 ${stat.strikeoutsPer9Inn ?? '-'}`
+    : 'Статистика недоступна';
+  return `<div class="pitcher-card"><div class="pname">${playerLink(p.id, p.fullName)}</div><div class="pstat">${line}</div></div>`;
+}
+
+function showFlash(text){
+  const el = document.createElement('div');
+  el.className = 'flash-banner';
+  el.style.transform = 'translate(-50%,-50%)';
+  el.textContent = text;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 2200);
+}
+function detectFlashEvents(allPlays){
+  if(typeof window.lastPlayCount !== 'number'){ window.lastPlayCount = allPlays.length; return; }
+  if(allPlays.length > window.lastPlayCount){
+    allPlays.slice(window.lastPlayCount).forEach(p=>{
+      const ev = (p.result?.eventType || p.result?.event || '').toLowerCase();
+      if(ev.includes('home_run') || ev.includes('home run')) showFlash('💥 ХОУМ-РАН!');
+      else if(ev.includes('strikeout')) showFlash('🔥 СТРАЙКАУТ!');
+    });
+  }
+  window.lastPlayCount = allPlays.length;
+}
+
+let pbFilter = 'all';
+
+function playCats(p){
+  const ev = (p.result?.eventType || p.result?.event || '').toLowerCase().replace(/\s+/g,'_');
+  const cats = [];
+  const isHR = ev === 'home_run';
+  if(p.about?.isScoringPlay) cats.push('score');
+  if(isHR || ['single','double','triple'].includes(ev)) cats.push('hit');
+  if(ev.includes('strikeout')) cats.push('k');
+  if(isHR) cats.push('hr');
+  return cats;
+}
+
+function setPbFilter(f){
+  pbFilter = f;
+  const l = document.getElementById('pbp-list');
+  if(l) l.dataset.f = f;
+  document.querySelectorAll('.fchip').forEach(b=>b.classList.toggle('active', b.dataset.f === f));
+  const b = document.querySelector(`.fchip[data-f="${f}"]`);
+  const e = document.getElementById('pbp-empty');
+  if(e) e.style.display = (f !== 'all' && b && b.dataset.n === '0') ? 'block' : 'none';
+  applyTranslations();
+}
+
+let pbOldestFirst = localStorage.getItem('pbOldestFirst') === '1';
+
+function pbOrderLabel(){
+  return pbOldestFirst ? '↓ Новые снизу' : '↑ Новые сверху';
+}
+function togglePbOrder(){
+  pbOldestFirst = !pbOldestFirst;
+  localStorage.setItem('pbOldestFirst', pbOldestFirst ? '1' : '0');
+  const l = document.getElementById('pbp-list');
+  if(l) l.append(...[...l.children].reverse());
+  const b = document.getElementById('pb-order-btn');
+  if(b) b.textContent = pbOrderLabel();
+}
+
+const trCache = new Map();
+let trOn = localStorage.getItem('trOn') === '1';
+
+function updateTrBtn(){
+  const b = document.getElementById('tr-btn');
+  if(!b) return;
+  b.classList.toggle('on', trOn);
+  b.textContent = trOn ? '🌐 Перевод: вкл' : '🌐 Перевод на русский';
+}
+
+async function translateText(t){
+  if(trCache.has(t)) return trCache.get(t);
+  let out = null;
+  try{
+    const r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(t)}`);
+    if(r.ok){
+      const j = await r.json();
+      out = (j[0]||[]).map(x=>x[0]).join('');
+    }
+  }catch(e){}
+  if(!out){
+    try{
+      const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(t.slice(0,480))}&langpair=en|ru`);
+      const j = await r.json();
+      out = j.responseData?.translatedText || null;
+    }catch(e){}
+  }
+  if(out) trCache.set(t, out);
+  return out;
+}
+
+async function applyTranslations(){
+  if(!trOn) return;
+  const lp = [...document.querySelectorAll('#detail-body .lastplay .tr-src')];
+  let rows = [...document.querySelectorAll('#pbp-list .tr-src')].filter(el=>el.offsetParent !== null);
+  if(pbOldestFirst) rows.reverse(); // берём самые свежие розыгрыши при любом порядке
+  const els = lp.concat(rows.slice(0, 80));
+  const queue = [];
+  els.forEach(el=>{
+    const src = el.dataset.orig || el.textContent;
+    el.dataset.orig = src;
+    if(trCache.has(src)) el.textContent = trCache.get(src);
+    else queue.push(el);
+  });
+  const worker = async ()=>{
+    while(queue.length && trOn){
+      const el = queue.shift();
+      const res = await translateText(el.dataset.orig);
+      if(res && el.isConnected && trOn) el.textContent = res;
+    }
+  };
+  await Promise.all([worker(),worker(),worker(),worker(),worker()]);
+}
+
+function toggleTr(){
+  trOn = !trOn;
+  localStorage.setItem('trOn', trOn ? '1' : '0');
+  updateTrBtn();
+  if(trOn) applyTranslations();
+  else document.querySelectorAll('#detail-body .tr-src').forEach(el=>{
+    if(el.dataset.orig) el.textContent = el.dataset.orig;
+  });
+}
+
+function buildPlayByPlay(plays){
+  if(!plays.length) return '';
+  const cnt = {score:0, hit:0, k:0, hr:0};
+  plays.forEach(p=>playCats(p).forEach(c=>{ cnt[c]++; }));
+  const ordered = pbOldestFirst ? plays.slice() : plays.slice().reverse();
+  const rows = ordered.map(p=>{
+    const isTop = (p.about?.halfInning || '').toLowerCase() === 'top';
+    const hcls = isTop ? 'top' : 'bot';
+    const inn = p.about?.inning ?? '';
+    const desc = p.result?.description || p.result?.event || '';
+    if(!desc) return '';
+    const t = fmtClock(p.about?.endTime || p.about?.startTime);
+    const ev = (p.result?.eventType || p.result?.event || '').toLowerCase();
+    let chip = '';
+    if(ev.includes('home_run') || ev.includes('home run')) chip = '<span class="chip hr">💥 Хоум-ран</span>';
+    else if(ev.includes('strikeout')) chip = '<span class="chip k">🔥 Страйкаут</span>';
+    else if(p.about?.isScoringPlay) chip = '<span class="chip run">⚡ Очко</span>';
+    const hkey = p.about?.atBatIndex ?? '';
+    const cats = playCats(p).join(' ');
+    const idxs = hintIdxs(desc);
+    const openI = openHints[hkey];
+    const boxOpen = openI !== undefined && idxs.includes(openI);
+    const hintsHtml = idxs.length
+      ? `<div class="hints">${idxs.map(i=>`<button class="hint ${openI===i?'open':''}" data-i="${i}" onclick="toggleHint(this)">💡 ${GLOSSARY[i][1]}</button>`).join('')}</div>
+         <div class="hint-box" style="display:${boxOpen?'block':'none'}">${boxOpen ? hintHtml(GLOSSARY[openI]) : ''}</div>`
+      : '';
+    return `<div class="play-row ${hcls} ${p.about?.isScoringPlay ? 'scoring' : ''}" data-key="${hkey}" data-cats="${cats}">
+      <div class="ptags">
+        <span class="pill ${hcls}">${isTop ? '▲ Верх' : '▼ Низ'} ${inn}</span>
+        ${t ? `<span class="ptime">🕐 ${t}</span>` : ''}${chip}
+      </div>
+      <span class="tr-src">${desc}</span>
+      ${nbNote(p)}
+      ${hintsHtml}
+    </div>`;
+  }).join('');
+  return `
+    <div class="section-title">Все розыгрыши (${plays.length})</div>
+    <button class="toggle-btn" onclick="const l=document.getElementById('pbp-list'); l.style.display = l.style.display==='none' ? 'block' : 'none';">Показать / скрыть</button>
+    <button id="pb-order-btn" class="toggle-btn" style="margin-left:8px" onclick="togglePbOrder()">${pbOrderLabel()}</button>
+    <button class="toggle-btn" style="margin-left:8px" onclick="jumpToLastPlay()">⬇ К последней записи</button>
+    <div class="filters">${[['all','Всё'],['score','⚡ Очки'],['hit','Хиты'],['k','🔥 Страйкауты'],['hr','💥 Хоум-раны']].map(([k,label])=>{
+      const n = k === 'all' ? plays.length : cnt[k];
+      return `<button class="fchip ${pbFilter===k?'active':''}" data-f="${k}" data-n="${n}" onclick="setPbFilter('${k}')">${label} (${n})</button>`;
+    }).join('')}</div>
+    <div id="pbp-empty" class="empty" style="display:${pbFilter!=='all' && cnt[pbFilter]===0 ? 'block' : 'none'};padding:20px 10px">Таких событий пока не было.</div>
+    <div id="pbp-list" class="playbyplay-list" data-f="${pbFilter}">${rows}</div>`;
+}
+
+async function renderDetail(gamePk){
+  try{
+    const data = await getJSON(`https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`);
+    const ld = data.liveData;
+    const away = data.gameData.teams.away, home = data.gameData.teams.home;
+    const ls = ld.linescore || {};
+    const awayRuns = ls.teams?.away?.runs ?? 0, homeRuns = ls.teams?.home?.runs ?? 0;
+    const state = data.gameData.status.abstractGameState;
+
+    const inningTxt = state === 'Final' ? (lang==='ru' ? 'Матч завершён' : 'Game finished')
+      : state === 'Preview' ? (lang==='ru' ? 'Матч ещё не начался' : 'Game has not started yet')
+      : lang==='ru'
+        ? `${ls.inningHalf === 'Top' ? 'Верх' : 'Низ'} ${ls.currentInningOrdinal || ls.currentInning || ''} иннинга`
+        : `${ls.inningHalf === 'Top' ? 'Top' : 'Bottom'} of the ${ls.currentInningOrdinal || ls.currentInning || ''} inning`;
+
+    const outs = ls.outs ?? 0, balls = ls.balls ?? 0, strikes = ls.strikes ?? 0;
+    const offense = ls.offense || {};
+    const onFirst = !!offense.first, onSecond = !!offense.second, onThird = !!offense.third;
+    const lastPlay = ld.plays?.currentPlay?.result?.description
+      || (ld.plays?.allPlays?.length ? ld.plays.allPlays[ld.plays.allPlays.length-1]?.result?.description : '');
+
+    const innings = ls.innings || [];
+    const inningHeaders = innings.map((_,i)=>`<th>${i+1}</th>`).join('');
+    const awayRow = innings.map(inn=>`<td>${inn.away?.runs ?? ''}</td>`).join('');
+    const homeRow = innings.map(inn=>`<td>${inn.home?.runs ?? ''}</td>`).join('');
+
+    const allPlays = ld.plays?.allPlays || [];
+    if(state === 'Live') detectFlashEvents(allPlays);
+    const lastPlayObj = ld.plays?.currentPlay || allPlays[allPlays.length-1];
+    const lastPlayTime = fmtClock(lastPlayObj?.about?.endTime || lastPlayObj?.about?.startTime);
+
+    let pitchersHtml = '';
+    if(state === 'Preview'){
+      const pp = data.gameData.probablePitchers || {};
+      const awayP = await pitcherBlock(pp.away);
+      const homeP = await pitcherBlock(pp.home);
+      if(awayP || homeP){
+        pitchersHtml = `<div class="section-title">${t('starters')}</div><div class="pitchers-wrap">${awayP}${homeP}</div>`;
+      }
+    }
+    const boxscoreHtml = state !== 'Preview' ? buildBoxscore(ld.boxscore, away.name, home.name) : '';
+    const sprayHtml = state !== 'Preview' ? buildSprayChart(allPlays) : '';
+
+    document.getElementById('detail-body').innerHTML = `
+      <div class="score-big">
+        <div class="side"><div class="name">${away.name}</div><div class="num">${awayRuns}</div></div>
+        <div class="side"><div class="name">${home.name}</div><div class="num">${homeRuns}</div></div>
+      </div>
+      <div class="inning-info">${inningTxt}</div>
+      ${state === 'Live' ? `
+        <div class="diamond-wrap">
+          <div class="diamond">
+            <div class="base second ${onSecond?'on':''}"></div>
+            <div class="base first ${onFirst?'on':''}"></div>
+            <div class="base third ${onThird?'on':''}"></div>
+          </div>
+        </div>
+        <div class="counts">
+          <span>Боллы: <b>${balls}</b></span>
+          <span>Страйки: <b>${strikes}</b></span>
+          <span>Ауты: <b>${outs}</b></span>
+        </div>` : ''}
+      ${lastPlay ? `<div class="lastplay">${lastPlayTime ? `<span class="tag" style="display:block;color:var(--muted);font-size:12px;font-weight:600;margin-bottom:4px">🕐 ${lastPlayTime}</span>` : ''}<span class="tr-src">${lastPlay}</span>${nbNote(lastPlayObj)}</div>` : ''}
+      ${innings.length ? `
+        <table class="linescore-table">
+          <tr><th></th>${inningHeaders}<th>R</th></tr>
+          <tr><td>${away.abbreviation || away.name}</td>${awayRow}<td><b>${awayRuns}</b></td></tr>
+          <tr><td>${home.abbreviation || home.name}</td>${homeRow}<td><b>${homeRuns}</b></td></tr>
+        </table>` : ''}
+      ${pitchersHtml}
+      ${boxscoreHtml}
+      ${buildStrikeZone(pickZonePlay(ld))}
+      ${sprayHtml}
+      ${buildWinProbSVG(allPlays, home.name, away.name)}
+      ${buildPlayByPlay(allPlays)}
+    `;
+
+    applyTranslations();
+    if(state === 'Final') clearInterval(liveTimer);
+  }catch(e){
+    document.getElementById('detail-body').innerHTML =
+      `<div class="empty">Не удалось загрузить данные матча (${e.message})</div>`;
+  }
+}
+
+const GLOSSARY = [
+  ['Inning','иннинг','Игровой период: атакуют обе команды. В матче 9 иннингов.'],
+  ['Top / Bottom','верх / низ','В верхней половине иннинга атакуют гости, в нижней — хозяева.'],
+  ['Out','аут','Игрок атаки выбыл. После 3 аутов команды меняются ролями.'],
+  ['Strike','страйк','Подача в зону, замах и промах или фол. 3 страйка — аут.'],
+  ['Ball','болл','Подача мимо зоны без замаха. 4 болла — бьющий идёт на 1-ю базу.'],
+  ['Count','счёт схватки','Пишется «болы-страйки»: 3-2 — 3 болла и 2 страйка.'],
+  ['At-bat (AB)','выход на биту','Одна схватка бьющего с питчером.'],
+  ['Walk (BB)','уок, база на болах','Бьющий получил 4 болла и бесплатно идёт на 1-ю базу.'],
+  ['Intentional walk (IBB)','преднамеренный уок','Защита сознательно отправляет бьющего на 1-ю базу.'],
+  ['Strikeout (K)','страйкаут','Бьющий получил 3 страйка. «K» — принятое сокращение.'],
+  ['Hit by pitch (HBP)','попадание мячом','Мяч попал в бьющего — он идёт на 1-ю базу.'],
+  ['Single / Double / Triple','сингл / дабл / трипл','Хит на 1, 2 или 3 базы.'],
+  ['Home run (HR)','хоум-ран','Мяч за забором: бьющий и все бегущие набирают очки.'],
+  ['Grand slam','гранд-слэм','Хоум-ран при заполненных базах — сразу 4 очка.'],
+  ['Ground out','аут с земли','Мяч по земле, защита выбросила бьющего до 1-й базы.'],
+  ['Fly out / Pop out','аут с полёта','Мяч в воздухе пойман защитником (pop out — высокий мяч в пределах инфилда).'],
+  ['Line out','аут на лайнере','Резкий низкий мяч, пойманный защитником.'],
+  ['Force out','форс-аут','Бегущий обязан бежать, защитник касается базы мячом раньше.'],
+  ['Tag out','тэг-аут','Защитник касается бегущего мячом, пока тот не на базе.'],
+  ['Double play (DP)','дабл-плей','Два аута за один розыгрыш. Triple play — три аута.'],
+  ["Fielder's choice (FC)",'выбор защитника','Защита выбрасывает другого бегущего, а бьющий остаётся на базе без хита.'],
+  ['Sacrifice fly (SF)','сакрифайс-флай','Мяч пойман в воздухе, но бегущий с 3-й успевает домой и приносит очко.'],
+  ['Bunt','бант','Лёгкий тычок битой без замаха, чтобы продвинуть бегущих. Sacrifice bunt — жертвенный бант.'],
+  ['Stolen base (SB)','украденная база','Бегущий успевает на следующую базу, пока идёт подача.'],
+  ['Caught stealing (CS)','пойман на краже','Бегущего выбросили при попытке украсть базу.'],
+  ['Pickoff','пикофф','Бросок питчера на базу, чтобы поймать бегущего.'],
+  ['Tag up','тэг-ап','Бегущий должен коснуться базы после пойманного в воздухе мяча, прежде чем бежать дальше.'],
+  ['Run / RBI','ран / RBI','Run — очко. RBI — очко, набранное благодаря действию бьющего.'],
+  ['Error (E)','ошибка','Защитник мог сыграть, но не сумел. Не считается хитом.'],
+  ['Wild pitch / Passed ball','дикая подача / пропущенный мяч','Мяч ушёл от кэтчера, бегущие продвигаются. WP — вина питчера, PB — кэтчера.'],
+  ['Balk','балк','Нарушение питчера при бегущих: все бегущие продвигаются на базу.'],
+  ['Foul ball','фол','Мяч за пределами игровой зоны: обычно засчитывается как страйк (но не как 3-й).'],
+  ['Starter / Reliever','стартовый питчер / реливер','Starter начинает игру, reliever выходит на замену.'],
+  ['Bullpen','буллпен','Группа запасных питчеров.'],
+  ['Closer','клоузер','Питчер, который закрывает концовку близкой игры.'],
+  ['Save (SV)','сейв','Питчер сохранил узкое преимущество в концовке игры.'],
+  ['Pinch hitter / runner','пинч-хиттер / пинч-раннер','Замена бьющего или бегущего по ходу игры.'],
+  ['Designated hitter (DH)','назначенный бьющий','Бьёт вместо питчера и в защите не играет. Действует в обеих лигах.'],
+  ['Walk-off','волк-офф','Хозяева выходят вперёд в нижней половине последнего иннинга — игра сразу заканчивается.'],
+  ['Extra innings','экстра-иннинги','Дополнительные иннинги при равенстве после 9-го. Ничьих нет.'],
+  ['Shutout','шатаут','Команда не позволила сопернику набрать ни одного очка.'],
+  ['No-hitter','ноу-хиттер','За всю игру соперник не сделал ни одного хита.'],
+  ['ERA','эра (ERA)','Среднее число заработанных очков, пропущенных питчером за 9 иннингов. Чем меньше, тем лучше.'],
+  ['IP','иннинги подачи','Сколько иннингов отработал питчер: 5.2 — 5 иннингов и 2 аута.'],
+  ['K/9','страйкаутов за 9','Сколько бьющих питчер в среднем выбивает страйкаутом за 9 иннингов.'],
+  ['W-L','победы-поражения','Записанные питчеру победы и поражения.'],
+  ['AVG / OBP / OPS','статистика бьющего','AVG — доля успешных хитов, OBP — доля выходов на базу, OPS — OBP плюс мощность ударов.'],
+  ['Replay review / Challenge','пересмотр / челлендж','Спорное решение судьи проверяют по видеоповтору.'],
+  ['Pitch clock','питч-клок','Часы, ограничивающие время между подачами.'],
+  ['Wild Card','уайлд-кард','Путёвка в плей-офф для лучших команд, не выигравших дивизион.'],
+  ['Bye','бай','Пропуск первого раунда плей-офф для двух лучших победителей дивизионов лиги.']
+];
+
+function renderGlossary(){
+  const q = (document.getElementById('gl-search')?.value || '').trim().toLowerCase();
+  const rows = GLOSSARY.filter(([en,ru,ds]) => !q || (en+' '+ru+' '+ds).toLowerCase().includes(q));
+  document.getElementById('gl-list').innerHTML = rows.length
+    ? rows.map(([en,ru,ds])=>`<div class="term"><span class="en">${en}</span> — <span class="ru">${ru}</span><span class="ds">${ds}</span></div>`).join('')
+    : '<div class="empty">Ничего не найдено.</div>';
+}
+
+// Подсказки к терминам: шаблоны ищутся в английском оригинале розыгрыша
+const TERM_HINTS = [
+  [/grand slam/i,'Grand slam'],
+  [/home run|homers/i,'Home run (HR)'],
+  [/double play|triple play|grounds into/i,'Double play (DP)'],
+  [/fielder'?s choice/i,"Fielder's choice (FC)"],
+  [/sacrifice fly|sac fly/i,'Sacrifice fly (SF)'],
+  [/bunt/i,'Bunt'],
+  [/caught stealing/i,'Caught stealing (CS)'],
+  [/stolen base|\bsteals\b/i,'Stolen base (SB)'],
+  [/pickoff|picks off|picked off/i,'Pickoff'],
+  [/wild pitch|passed ball/i,'Wild pitch / Passed ball'],
+  [/\bbalk/i,'Balk'],
+  [/intentional walk|intentionally walks/i,'Intentional walk (IBB)'],
+  [/\bwalks\b|base on balls/i,'Walk (BB)'],
+  [/strikes out|strikeout|called out on strikes/i,'Strikeout (K)'],
+  [/hit by pitch/i,'Hit by pitch (HBP)'],
+  [/\b(singles|doubles|triples)\b/i,'Single / Double / Triple'],
+  [/grounds out|ground out/i,'Ground out'],
+  [/flies out|pops out|fly out|pop out/i,'Fly out / Pop out'],
+  [/lines out|line out/i,'Line out'],
+  [/force out|forceout/i,'Force out'],
+  [/tags? out|tagged out/i,'Tag out'],
+  [/tags up/i,'Tag up'],
+  [/error/i,'Error (E)'],
+  [/pinch[- ]hit|pinch[- ]run/i,'Pinch hitter / runner'],
+  [/pitching change/i,'Starter / Reliever'],
+  [/challenge|review/i,'Replay review / Challenge'],
+  [/foul/i,'Foul ball'],
+  [/\bscores\b|\bRBI\b/i,'Run / RBI']
+];
+const openHints = {};
+
+function hintIdxs(desc){
+  const out = [];
+  for(const [re,key] of TERM_HINTS){
+    if(re.test(desc)){
+      const i = GLOSSARY.findIndex(g=>g[0]===key);
+      if(i >= 0 && !out.includes(i)) out.push(i);
+    }
+    if(out.length >= 3) break;
+  }
+  return out;
+}
+function hintHtml(g){ return `<b>${g[0]}</b> — ${g[1]}<br>${g[2]}`; }
+
+function toggleHint(btn){
+  const row = btn.closest('.play-row');
+  const key = row.dataset.key;
+  const i = Number(btn.dataset.i);
+  if(openHints[key] === i) delete openHints[key]; else openHints[key] = i;
+  row.querySelectorAll('.hint').forEach(h=>h.classList.toggle('open', openHints[key] === Number(h.dataset.i)));
+  const box = row.querySelector('.hint-box');
+  if(openHints[key] === undefined){ box.style.display = 'none'; }
+  else { box.innerHTML = hintHtml(GLOSSARY[openHints[key]]); box.style.display = 'block'; }
+}
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.view).classList.add('active');
+  });
+});
+
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();t.click();}}));
+const themeBtn=document.getElementById('theme-btn');
+function syncThemeBtn(){
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  themeBtn.textContent=dark?'☀ Светлая тема':'☾ Тёмная тема';
+  const mt=document.querySelector('meta[name=theme-color]'); if(mt) mt.setAttribute('content',dark?'#111111':'#ffffff');
+  themeBtn.setAttribute('aria-label',dark?'Включить светлую тему':'Включить тёмную тему');
+}
+themeBtn.addEventListener('click',()=>{
+  const root=document.documentElement; root.classList.add('theme-anim'); setTimeout(()=>root.classList.remove('theme-anim'),450);
+  const next=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  try{localStorage.setItem('theme',next)}catch(e){}
+  syncThemeBtn();
+});
+if(window.matchMedia){
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change',ev=>{
+    let saved=null; try{saved=localStorage.getItem('theme')}catch(e){}
+    if(!saved){document.documentElement.setAttribute('data-theme',ev.matches?'dark':'light');syncThemeBtn();}
+  });
+}
+(function(){
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // «прожектор» за курсором на карточках
+  document.addEventListener('pointermove',e=>{
+    const c=e.target.closest&&e.target.closest('.card.clickable'); if(!c) return;
+    const r=c.getBoundingClientRect();
+    c.style.setProperty('--mx',(e.clientX-r.left)+'px'); c.style.setProperty('--my',(e.clientY-r.top)+'px');
+  },{passive:true});
+  // вход экрана игры: анимируем только первую отрисовку, без повторов при автообновлении
+  const ov=document.getElementById('detail-overlay'), body=document.getElementById('detail-body');
+  let armed=false, timer=null;
+  new MutationObserver(()=>{ armed=ov.classList.contains('active'); if(armed){ body.classList.remove('enter'); } })
+    .observe(ov,{attributes:true,attributeFilter:['class']});
+  new MutationObserver(()=>{
+    if(!armed||reduce||!body.children.length||body.querySelector('.loading')) return;
+    armed=false;
+    body.classList.add('enter');
+    clearTimeout(timer); timer=setTimeout(()=>body.classList.remove('enter'),2400);
+    body.querySelectorAll('.score-big .num').forEach(el=>{
+      const to=parseInt(el.textContent,10); if(!(to>0)) return;
+      const t0=performance.now(), dur=800; el.textContent='0';
+      (function step(t){
+        const p=Math.min(1,(t-t0)/dur);
+        el.textContent=p<1?Math.round(to*(1-Math.pow(1-p,3))):to;
+        if(p<1) requestAnimationFrame(step);
+      })(t0);
+    });
+  }).observe(body,{childList:true});
+})();
+(function(){
+  // PWA-манифест как data: URI — приложение можно "установить", офлайн-кэш недоступен из одного HTML-файла
+  const manifest = {
+    name:'MLB Playoff Tracker 2026', short_name:'MLB Tracker', start_url: location.pathname,
+    display:'standalone', background_color:'#ffffff', theme_color:'#e60023',
+    icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23e60023'/%3E%3Ctext x='50' y='68' font-size='56' text-anchor='middle'%3E%E2%9A%BE%3C/text%3E%3C/svg%3E", sizes:'100x100', type:'image/svg+xml'}]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'});
+  const link = document.getElementById('pwa-manifest');
+  if(link) link.href = URL.createObjectURL(blob);
+})();
+
+/* ============ Кнопка "наверх" в экране игры ============ */
+function scrollDetailTop(){
+  document.getElementById('detail-overlay').scrollTo({top:0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+}
+document.getElementById('detail-overlay').addEventListener('scroll', ()=>{
+  const ov = document.getElementById('detail-overlay');
+  document.getElementById('top-btn').classList.toggle('show', ov.scrollTop > 400);
+}, {passive:true});
+
+/* ============ Разбор "Зоны страйка" в правилах (учебный пример, без сети) ============ */
+let szShowPositions = false;
+function toggleSzPositions(){
+  szShowPositions = !szShowPositions;
+  const btn = document.getElementById('sz-pos-toggle');
+  const hint = document.getElementById('sz-pos-hint');
+  if(btn) btn.classList.toggle('on', szShowPositions);
+  if(hint) hint.style.display = szShowPositions ? 'block' : 'none';
+  initStrikeZoneDemo(true);
+}
+
+function jumpToLastPlay(){
+  const list = document.getElementById('pbp-list');
+  if(!list) return;
+  const rows = Array.from(list.querySelectorAll('.play-row')).filter(r => getComputedStyle(r).display !== 'none');
+  const target = rows.length ? rows[rows.length - 1] : list.lastElementChild;
+  if(!target) return;
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  target.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'start'});
+}
+
+function initStrikeZoneDemo(keepInfo){
+  const svg = document.getElementById('sz-demo-svg'); if(!svg) return;
+  const info = document.getElementById('sz-demo-info');
+  if(!keepInfo && info) info.textContent = 'Нажмите на любую точку внутри квадрата — узнаете, что там показано.';
+  const S = 70, CX = 150, BASE = 320;
+  const top = 3.4, bot = 1.6, half = 0.708;
+  const zx = CX - half*S, zw = 2*half*S, zy = BASE - top*S, zh = (top - bot)*S;
+  const showPos = szShowPositions;
+  const padTop = showPos ? 105 : 0, padBot = showPos ? 75 : 0;
+
+  const pitches = [
+    {n:1, x:-1.15, z:2.05, cls:'ball',  label:'Болл: мимо зоны, снаружи слева.'},
+    {n:2, x: 0.30, z:3.00, cls:'strike',label:'Страйк: верхний правый сектор зоны.'},
+    {n:3, x: 0.60, z:2.55, cls:'strike',label:'Фол: бьющий замахнулся, мяч ушёл за пределы поля — тоже считается страйком (если страйков ещё не два).'},
+    {n:4, x: 0.05, z:2.25, cls:'inplay',label:'Мяч в игре: бьющий отбил подачу, защита пытается сыграть на аут.'},
+    {n:5, x: 1.35, z:1.20, cls:'ball',  label:'Болл: низко и в сторону — явно мимо зоны.'}
+  ];
+  const colorOf = c => c==='inplay' ? '#008753' : c==='ball' ? '#0074e8' : '#cc0000';
+  const labelOf = c => c==='inplay' ? 'Мяч в игре' : c==='ball' ? 'Болл' : 'Страйк / фол';
+
+  const dots = pitches.map(p=>{
+    const x = CX + p.x*S, y = BASE - p.z*S;
+    return `<g class="demo-dot" data-i="${p.n-1}" style="cursor:pointer">
+      <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="12" style="fill:${colorOf(p.cls)};stroke:#fff;stroke-width:1.5"/>
+      <text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="middle" style="font-size:11px;font-weight:800;fill:#fff;pointer-events:none">${p.n}</text>
+    </g>`;
+  }).join('');
+
+  // Схематичные фигурки питчера (сверху) и кэтчера (снизу) — вне масштаба, только для ориентации
+  const posOverlay = !showPos ? '' : `
+    <line x1="${CX}" y1="-14" x2="${CX}" y2="${zy+zh/2}" style="stroke:var(--accent);stroke-width:1.5;stroke-dasharray:4 4;opacity:.55"/>
+    <g>
+      <rect x="${CX-20}" y="-30" width="40" height="7" rx="3.5" style="fill:var(--line)"/>
+      <path d="M${CX-15} -34 Q${CX} -58 ${CX+15} -34 L${CX+12} -18 Q${CX} -24 ${CX-12} -18 Z" style="fill:var(--accent-fill)"/>
+      <circle cx="${CX}" cy="-64" r="11" style="fill:var(--accent-fill)"/>
+      <path d="M${CX-11} -71 A11 8 0 0 1 ${CX+11} -71 L${CX+9} -76 A11 6 0 0 0 ${CX-9} -76 Z" style="fill:var(--bg);opacity:.85"/>
+      <circle cx="${CX}" cy="-16" r="3.5" style="fill:var(--accent-fill)"/>
+      <text x="${CX}" y="-84" text-anchor="middle" style="font-size:12px;font-weight:700;fill:var(--text)">Питчер</text>
+    </g>
+    <g>
+      <path d="M${CX-16} 356 Q${CX} 332 ${CX+16} 356 L${CX+17} 384 Q${CX} 393 ${CX-17} 384 Z" style="fill:var(--muted)"/>
+      <circle cx="${CX}" cy="342" r="10" style="fill:var(--muted)"/>
+      <path d="M${CX-10} 336 A10 7 0 0 1 ${CX+10} 336 L${CX+8} 331 A10 5 0 0 0 ${CX-8} 331 Z" style="fill:var(--bg);opacity:.85"/>
+      <circle cx="${CX+19}" cy="368" r="7.5" style="fill:var(--muted);stroke:var(--bg);stroke-width:1.5"/>
+      <text x="${CX}" y="402" text-anchor="middle" style="font-size:12px;font-weight:700;fill:var(--text)">Кэтчер</text>
+    </g>`;
+
+  svg.setAttribute('viewBox', `0 ${-padTop} 300 ${340+padTop+padBot}`);
+  svg.innerHTML = `
+    <polygon points="${CX},338 292,171 ${CX},4 8,171" style="fill:var(--panel2,var(--panel));fill-opacity:.4"/>
+    <line x1="${zx+zw/3}" y1="${zy}" x2="${zx+zw/3}" y2="${zy+zh}" style="stroke:var(--line);stroke-width:1"/>
+    <line x1="${zx+2*zw/3}" y1="${zy}" x2="${zx+2*zw/3}" y2="${zy+zh}" style="stroke:var(--line);stroke-width:1"/>
+    <line x1="${zx}" y1="${zy+zh/3}" x2="${zx+zw}" y2="${zy+zh/3}" style="stroke:var(--line);stroke-width:1"/>
+    <line x1="${zx}" y1="${zy+2*zh/3}" x2="${zx+zw}" y2="${zy+2*zh/3}" style="stroke:var(--line);stroke-width:1"/>
+    <rect id="sz-demo-zone" x="${zx}" y="${zy}" width="${zw}" height="${zh}" style="fill:rgba(128,128,128,.1);stroke:var(--text);stroke-width:2"/>
+    <polygon points="${CX-half*S},330 ${CX+half*S},330 ${CX+half*S},334 ${CX},339 ${CX-half*S},334" style="fill:var(--line)"/>
+    ${dots}
+    ${posOverlay}
+    <rect x="0" y="0" width="300" height="340" fill="transparent" class="demo-try" id="sz-demo-try"/>
+  `;
+
+  svg.querySelectorAll('.demo-dot').forEach(el=>{
+    const show = ()=>{ if(info) info.textContent = `${labelOf(pitches[+el.dataset.i].cls)} — ${pitches[+el.dataset.i].label}`; };
+    el.addEventListener('mouseenter', show);
+    el.addEventListener('click', ev=>{ ev.stopPropagation(); show(); });
+  });
+
+  const tryRect = svg.querySelector('#sz-demo-try');
+  tryRect.addEventListener('click', ev=>{
+    const rect = svg.getBoundingClientRect();
+    const vbH = 340 + padTop + padBot;
+    const vx = (ev.clientX - rect.left) / rect.width * 300;
+    const vy = (ev.clientY - rect.top) / rect.height * vbH - padTop;
+    const inZone = vx >= zx && vx <= zx+zw && vy >= zy && vy <= zy+zh;
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.innerHTML = `<circle cx="${vx.toFixed(1)}" cy="${vy.toFixed(1)}" r="9" style="fill:none;stroke:${inZone?'#cc0000':'#0074e8'};stroke-width:2.5"/>
+      <text class="demo-feedback" x="${vx.toFixed(1)}" y="${(vy-14).toFixed(1)}" text-anchor="middle" style="fill:${inZone?'#cc0000':'#0074e8'}">${inZone?'Страйк!':'Болл!'}</text>`;
+    svg.appendChild(g);
+    if(info) info.textContent = inZone ? 'В этой точке подача попала бы в зону — судья считает страйком.' : 'В этой точке подача прошла мимо зоны — судья считает боллом (если бьющий не замахнулся).';
+    setTimeout(()=> g.remove(), 1400);
+  });
+}
+
+/* ============ Разбор "Спрей-чарта" в правилах (учебный пример, без сети) ============ */
+function initSprayDemo(){
+  const svg = document.getElementById('spray-demo-svg'); if(!svg) return;
+  const legend = document.getElementById('spray-demo-legend');
+  const info = document.getElementById('spray-demo-info');
+  const oxp = 140, oyp = 230;
+
+  const CATS = [
+    {k:'hit', label:'Хит',      color:'var(--win)'},
+    {k:'hr',  label:'Хоум-ран', color:'var(--live)'},
+    {k:'err', label:'Ошибка',   color:'#e8a400'},
+    {k:'out', label:'Аут в поле', color:'var(--muted)'}
+  ];
+  const hits = [
+    {x:130, y:150, cls:'hit', label:'Сингл в центр поля — короткий удар, мяч упал перед аутфилдерами.'},
+    {x:70,  y:95,  cls:'hit', label:'Дабл в левый угол, вдоль линии.'},
+    {x:195, y:25,  cls:'hr',  label:'Хоум-ран в правый филд — мяч улетел за забор.'},
+    {x:120, y:55,  cls:'out', label:'Флай-аут в центр поля — пойман аутфилдером.'},
+    {x:88,  y:178, cls:'err', label:'Мяч по земле к третьей базе — защитник ошибся при броске.'},
+    {x:175, y:170, cls:'out', label:'Граунд-аут на вторую базу.'}
+  ];
+  let active = new Set(CATS.map(c=>c.k));
+
+  legend.innerHTML = CATS.map(c=>`<button class="fchip" data-k="${c.k}" style="border-left:10px solid ${c.color}">${c.label}</button>`).join('');
+  legend.querySelectorAll('.fchip').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const k = btn.dataset.k;
+      if(active.has(k)) active.delete(k); else active.add(k);
+      btn.classList.toggle('dim', !active.has(k));
+      draw();
+    });
+  });
+
+  function draw(){
+    const pts = hits.filter(h=>active.has(h.cls)).map(h=>{
+      const cat = CATS.find(c=>c.k===h.cls);
+      return `<circle class="spray-demo-dot" data-x="${h.x}" data-y="${h.y}" cx="${h.x}" cy="${h.y}" r="7" fill="${cat.color}" fill-opacity="0.9" stroke="#fff" stroke-width="1.5" style="cursor:pointer"/>`;
+    }).join('');
+    svg.innerHTML = `
+      <path d="M20 ${oyp} A160 160 0 0 1 260 ${oyp}" fill="none" style="stroke:var(--line);stroke-width:2"/>
+      <path d="M${oxp} ${oyp} L${oxp-90} ${oyp-90} M${oxp} ${oyp} L${oxp+90} ${oyp-90}" style="stroke:var(--line);stroke-width:1.5"/>
+      <polygon points="${oxp-9},${oyp} ${oxp},${oyp-9} ${oxp+9},${oyp} ${oxp+6},${oyp+6} ${oxp-6},${oyp+6}" style="fill:var(--line)"/>
+      <text x="${oxp-88}" y="${oyp-92}" style="font-size:10px;fill:var(--muted)">LF</text>
+      <text x="${oxp-4}" y="18" style="font-size:10px;fill:var(--muted)">CF</text>
+      <text x="${oxp+78}" y="${oyp-92}" style="font-size:10px;fill:var(--muted)">RF</text>
+      <text x="${oxp-8}" y="${oyp+16}" style="font-size:10px;fill:var(--muted)">Дом</text>
+      ${pts}
+    `;
+    svg.querySelectorAll('.spray-demo-dot').forEach(el=>{
+      const h = hits.find(hh=>String(hh.x)===el.dataset.x && String(hh.y)===el.dataset.y);
+      const show = ()=>{ if(info && h) info.textContent = h.label; };
+      el.addEventListener('mouseenter', show);
+      el.addEventListener('click', show);
+    });
+  }
+  draw();
+}
+
+syncThemeBtn();
+applyLocale();
+updateNotifyBtn();
+updateTrBtn();
+updateNbBtn();
+renderGlossary();
+initStrikeZoneDemo();
+initSprayDemo();
+renderMyTeamBar();
+loadGames();
+loadBracket();
+loadStandings();
+
+clearInterval(countdownTimer); countdownTimer = setInterval(updateCountdowns, 30000);
+clearInterval(notifyTimer); notifyTimer = setInterval(pollMyTeamLive, 20000);
+
+// Открытие игры по ссылке #game=12345
+if(location.hash.startsWith('#game=')){
+  const gp = Number(location.hash.slice(6));
+  if(gp) setTimeout(()=>openDetail(gp), 400);
+}
+window.addEventListener('hashchange', ()=>{
+  if(!location.hash.startsWith('#game=')){
+    document.getElementById('detail-overlay').classList.remove('active');
+    clearInterval(liveTimer);
+  }
+});
+</script>
+</body>
+</html>
