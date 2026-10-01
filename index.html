@@ -75,8 +75,17 @@
   header p{margin:4px 0 0;color:var(--muted);font-size:14px;line-height:21px}
   .theme-toggle{position:absolute;top:16px;right:var(--gutter);background:var(--panel);border:none;color:var(--text);
     min-height:40px;padding:0 16px;border-radius:9999px;font-size:14px;font-weight:600;cursor:pointer;
-    transition:background-color var(--motion)}
-  .theme-toggle:hover{background:var(--hover)}
+    isolation:isolate;overflow:hidden;
+    transition:background-color 260ms ease,color 260ms ease,transform 320ms cubic-bezier(.16,1,.3,1),box-shadow 320ms cubic-bezier(.16,1,.3,1)}
+  .theme-toggle::before{content:'';position:absolute;inset:0;z-index:0;
+    background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.55) 50%,transparent 60%);
+    transform:translateX(-120%);transition:transform 650ms cubic-bezier(.2,.8,.2,1)}
+  :root[data-theme="dark"] .theme-toggle::before{background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.16) 50%,transparent 60%)}
+  .theme-toggle>*{position:relative;z-index:1}
+  .theme-toggle:hover{background:var(--hover);transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,.12)}
+  :root[data-theme="dark"] .theme-toggle:hover{box-shadow:0 8px 18px rgba(0,0,0,.45)}
+  .theme-toggle:hover::before{transform:translateX(120%)}
+  .theme-toggle:active{transform:translateY(0) scale(.95);box-shadow:none;transition-duration:120ms}
 
   #my-team-bar{max-width:720px;margin:0 auto;padding:16px 16px 0}
   .myteam-empty{color:var(--muted);font-size:14px;line-height:21px;text-align:center;padding:12px 16px;
@@ -397,12 +406,11 @@
   .star.active{animation:starPop 560ms cubic-bezier(.34,1.56,.64,1)}
 
   /* Кнопки: «пружинящее» нажатие */
-  .reload,.back-btn,.toggle-btn,.fchip,.tab,.hint,.theme-toggle{
+  .reload,.back-btn,.toggle-btn,.fchip,.tab,.hint{
     transition:background-color var(--motion),color var(--motion),transform 180ms cubic-bezier(.34,1.56,.64,1)}
-  .reload:active,.back-btn:active,.toggle-btn:active,.fchip:active,.tab:active,.hint:active,.theme-toggle:active{transform:scale(.94)}
+  .reload:active,.back-btn:active,.toggle-btn:active,.fchip:active,.tab:active,.hint:active{transform:scale(.94)}
   .tab:hover,.fchip:hover,.back-btn:hover,.toggle-btn:hover{transform:translateY(-1px)}
   .tab:active,.fchip:active,.back-btn:active,.toggle-btn:active{transform:scale(.94)}
-  .theme-toggle:hover{transform:rotate(-2deg)}
 
   /* Аккордеон и подсказки */
   .rules summary::before{content:'▸';display:inline-block;transition:transform var(--motion)}
@@ -614,6 +622,30 @@
     transition:background-color var(--motion)}
   .share-toast .st-copy:hover{background:var(--accent-fill-hover)}
   .share-toast .st-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 4px;flex:0 0 auto}
+  /* Поиск по командам */
+  #team-search-wrap{max-width:720px;margin:0 auto;padding:12px 16px 0}
+  #team-search-empty{display:none;text-align:center;color:var(--muted);font-size:14px;padding:16px}
+  /* Интерактивность реальной зоны страйка и спрей-чарта на экране игры */
+  .sz-wrap .dot{cursor:pointer}
+  .sz-wrap .dot.sel circle{stroke:var(--text);stroke-width:3}
+  .sz-wrap .sz-row{cursor:pointer;border-radius:8px;transition:background-color var(--motion)}
+  .sz-wrap .sz-row.sel{background:var(--hover)}
+  .legend-toggle{cursor:pointer;transition:opacity var(--motion)}
+  .legend-toggle.off{opacity:.3}
+  .spray-dot{cursor:pointer;transition:stroke-width 160ms ease}
+  .spray-dot.sel{stroke:var(--text);stroke-width:2.5}
+  .spray-info{margin-top:10px;font-size:13px;color:var(--muted);line-height:19px;min-height:19px}
+  .myteam-games{margin-top:12px;max-height:0;overflow:hidden;transition:max-height 320ms cubic-bezier(.2,.8,.2,1)}
+  .myteam-games.open{max-height:1400px}
+  .myteam-game-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;
+    border-top:1px solid var(--line);cursor:pointer;transition:background-color var(--motion)}
+  .myteam-game-row:hover{background:var(--hover)}
+  .myteam-game-row .mg-date{font-size:12px;color:var(--muted);min-width:70px}
+  .myteam-game-row .mg-opp{flex:1;font-size:14px;font-weight:600}
+  .myteam-game-row .mg-score{font-variant-numeric:tabular-nums;font-weight:700;font-size:14px}
+  .myteam-toggle-btn{display:inline-flex;align-items:center;gap:6px}
+  .myteam-toggle-btn .chev{display:inline-block;transition:transform var(--motion);font-size:11px}
+  .myteam-toggle-btn.open .chev{transform:rotate(180deg)}
   @media (prefers-reduced-motion:reduce){.side-deco .deco-ball{animation:none}}
   @media (prefers-reduced-motion:reduce){.top-btn{transition:opacity 120ms}}
   @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
@@ -628,6 +660,7 @@
     <button class="back-btn" id="back-btn" onclick="closeDetail()"></button>
     <div class="hdr-tools">
       <button class="back-btn" id="share-btn" onclick="shareGame()">🔗 <span data-i18n="share"></span></button>
+      <button class="back-btn" onclick="openGameday()">⚾ Gameday</button>
       <button class="back-btn" id="nb-btn" onclick="toggleNb()">🎓 Режим новичка</button>
       <button class="back-btn" id="tr-btn" onclick="toggleTr()">🌐 Перевод на русский</button>
     </div>
@@ -660,6 +693,11 @@
   <div class="tab" role="tab" tabindex="0" data-view="standings" data-i18n="tabStandings"></div>
   <div class="tab" role="tab" tabindex="0" data-view="rules" data-i18n="tabRules"></div>
 </div>
+
+<div id="team-search-wrap">
+  <input id="team-search" class="gl-search" type="search" data-i18n-ph="teamSearchPh" placeholder="Поиск по командам…" oninput="filterByTeam()">
+</div>
+<div id="team-search-empty"></div>
 
 <main>
   <section id="upcoming" class="view active"><div class="loading">Загрузка…</div></section>
@@ -747,6 +785,28 @@
       </ul>
     </div></details>
 
+    <details><summary>Как читать бокс-скор и статистику питчинга</summary><div class="body">
+      <p><b>Бокс-скор</b> — это сводная таблица статистики каждого игрока именно в этом матче, а не за весь сезон. Появляется на экране игры, когда матч уже начался, и разбита на два сворачиваемых блока: нападение (сам «Бокс-скор») и «Питчинг» — отдельно про подающих.</p>
+      <p>Нападение — колонки в таблице «Бокс-скор»:</p>
+      <ul>
+        <li><b>AB</b> — количество официальных выходов на биту (at bats)</li>
+        <li><b>R</b> — сколько раз игрок добежал до дома и принёс команде очко (runs)</li>
+        <li><b>H</b> — количество хитов, то есть удачных ударов (hits)</li>
+        <li><b>RBI</b> — сколько очков команде принёс своим ударом лично этот игрок (runs batted in)</li>
+        <li><b>BB</b> — сколько раз получил уок, то есть прошёл на базу за четыре болла подряд (base on balls)</li>
+        <li><b>SO</b> — сколько раз выбыл на страйкауте (strikeouts)</li>
+      </ul>
+      <p>Питчинг — колонки в таблице «Питчинг»:</p>
+      <ul>
+        <li><b>IP</b> — сколько иннингов отработал питчер (innings pitched). Число после точки — это не десятые доли, а ауты: «6.1» значит 6 полных иннингов и ещё 1 аут в придачу, «6.2» — 6 иннингов и 2 аута</li>
+        <li><b>H</b> — сколько хитов допустил (hits allowed)</li>
+        <li><b>R</b> — сколько очков допустил всего, включая те, что случились из-за ошибок защиты (runs)</li>
+        <li><b>ER</b> — earned runs, «заработанные» соперником очки — то есть допущенные именно из-за собственных подач, без учёта чужих ошибок в поле. Это более честная оценка мастерства питчера, чем просто R</li>
+        <li><b>BB</b> — сколько уоков выдал бьющим соперника (base on balls)</li>
+        <li><b>K</b> — сколько страйкаутов записал на свой счёт (strikeouts). Это тот же самый показатель, что SO у бьющего, — просто у питчера его принято обозначать буквой K</li>
+      </ul>
+    </div></details>
+
     <details><summary>Как читать «Зону страйка»</summary><div class="body">
       <p>Это вид <b>глазами кэтчера</b>, стоящего за домом и смотрящего на питчера. Серый прямоугольник — зона страйка конкретного бьющего (её верх и низ зависят от его роста и стойки). Линии внутри делят зону на 9 секторов «три на три» — комментаторы часто называют подачу «внутрь-вверх» или «наружу-вниз», имея в виду именно эти сектора.</p>
       <p>Каждая подача — кружок с номером по порядку. Цвет говорит о результате:</p>
@@ -824,7 +884,9 @@ const STR = {
   myTeamNotYet:{ru:'Ещё не участвует в текущем раунде плей-офф',en:'Not yet in the current playoff round'},
   eliminated:{ru:'✕ Команда выбыла из плей-офф',en:'✕ Team eliminated from the playoffs'},
   winsNeeded:{ru:'Побед в сериях до финала',en:'Series wins to the title'},
-  icsTeam:{ru:'📅 Все игры в календарь',en:'📅 Export schedule (.ics)'},
+  icsTeam:{ru:'📅 Сохранить в календарь',en:'📅 Export schedule (.ics)'},
+  allGamesBtn:{ru:'Все игры',en:'All games'},
+  allGamesEmpty:{ru:'Игры этой команды пока не найдены',en:'No games found for this team yet'},
   bracketToolbarHint:{ru:'🔮 Режим прогнозов',en:'🔮 Prediction mode'},
   bracketOddsHint:{ru:'Шансы пройти дальше (при равных командах)',en:'Chance to advance (assuming even teams)'},
   pickemTitle:{ru:'Прогнозы на серии плей-офф',en:"Playoff series pick'em"},
@@ -842,6 +904,8 @@ const STR = {
   glossaryTitle:{ru:'Словарь терминов (для текстовой трансляции)',en:'Glossary (for the text play-by-play)'},
   glossaryPh:{ru:'Поиск: например «dp», «уок», «bullpen»…',en:'Search: e.g. "dp", "walk", "bullpen"…'},
   linkCopied:{ru:'Ссылка на игру скопирована',en:'Game link copied'},
+  teamSearchPh:{ru:'Поиск по командам…',en:'Search teams…'},
+  teamSearchEmpty:{ru:'Команда не найдена',en:'No matching team'},
 };
 function t(k){ const e = STR[k]; return e ? (e[lang] || e.ru) : k; }
 function applyLocale(){
@@ -1148,14 +1212,15 @@ function collectHits(allPlays){
 function buildSprayChart(allPlays){
   const hits = collectHits(allPlays);
   if(!hits.length) return '';
+  window.sprayHitsData = hits;
   const oxp = 140, oyp = 230, scale = 0.92;
   const colorOf = cls => cls==='hr' ? 'var(--live)' : cls==='hit' ? 'var(--win)' : cls==='err' ? '#e8a400' : 'var(--muted)';
-  const pts = hits.map(h=>{
+  const pts = hits.map((h,i)=>{
     const x = oxp + (h.x - 125) * scale;
     const y = oyp - (204 - h.y) * scale;
-    const esc = String(h.desc).replace(/&/g,'&amp;').replace(/</g,'&lt;');
-    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5" fill="${colorOf(h.cls)}" fill-opacity="0.85" stroke="#fff" stroke-width="1"><title>${h.batter}: ${esc}</title></circle>`;
+    return `<circle class="spray-dot" data-i="${i}" data-cls="${h.cls}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5.5" fill="${colorOf(h.cls)}" fill-opacity="0.85" stroke="#fff" stroke-width="1.5" onclick="showSprayInfo(${i})" onmouseenter="showSprayInfo(${i})"/>`;
   }).join('');
+  const hintTxt = lang==='ru' ? 'Наведите или нажмите на точку — покажем, что это был за удар.' : 'Hover or click a dot to see what that hit was.';
   return `
     <details class="section-collapse" open>
       <summary>${t('spray')}</summary>
@@ -1168,11 +1233,12 @@ function buildSprayChart(allPlays){
             ${pts}
           </svg>
           <div class="sz-legend">
-            <span><i style="background:var(--win)"></i>${lang==='ru'?'Хит':'Hit'}</span>
-            <span><i style="background:var(--live)"></i>${lang==='ru'?'Хоум-ран':'Home run'}</span>
-            <span><i style="background:#e8a400"></i>${lang==='ru'?'Ошибка':'Error'}</span>
-            <span><i style="background:var(--muted)"></i>${lang==='ru'?'Аут в поле':'Field out'}</span>
+            <span class="legend-toggle" data-cls="hit" onclick="toggleSprayCls('hit')"><i style="background:var(--win)"></i>${lang==='ru'?'Хит':'Hit'}</span>
+            <span class="legend-toggle" data-cls="hr" onclick="toggleSprayCls('hr')"><i style="background:var(--live)"></i>${lang==='ru'?'Хоум-ран':'Home run'}</span>
+            <span class="legend-toggle" data-cls="err" onclick="toggleSprayCls('err')"><i style="background:#e8a400"></i>${lang==='ru'?'Ошибка':'Error'}</span>
+            <span class="legend-toggle" data-cls="out" onclick="toggleSprayCls('out')"><i style="background:var(--muted)"></i>${lang==='ru'?'Аут в поле':'Field out'}</span>
           </div>
+          <div class="spray-info" id="spray-info">${hintTxt}</div>
         </div>
       </div>
     </details>`;
@@ -1213,6 +1279,7 @@ async function loadStandings(){
         </table></div>`;
     }).join('');
     document.getElementById('standings').innerHTML = html;
+    filterByTeam();
   }catch(e){
     document.getElementById('standings').innerHTML =
       `<div class="empty">Не удалось загрузить таблицу (${e.message}).<button class="reload" onclick="loadStandings()">${t('retry')}</button></div>`;
@@ -1233,6 +1300,29 @@ function fmtClock(d){
   const x = new Date(d);
   return isNaN(x) ? '' : x.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 }
+const DETAILED_STATE_RU = {
+  'scheduled': 'Запланирован',
+  'pre-game': 'Перед игрой',
+  'pregame': 'Перед игрой',
+  'warmup': 'Разминка',
+  'delayed start': 'Задержка начала',
+  'delayed': 'Задержка',
+  'delayed: rain': 'Задержка: дождь',
+  'postponed': 'Отложен',
+  'suspended': 'Приостановлен',
+  'suspended: rain': 'Приостановлен: дождь',
+  'cancelled': 'Отменён',
+  'forfeit': 'Технический результат',
+  'game over': 'Игра окончена',
+  'umpire review': 'Проверка судьями',
+  'replay review': 'Проверка повтором'
+};
+function translateDetailedState(text){
+  if(!text) return text;
+  if(lang !== 'ru') return text;
+  return DETAILED_STATE_RU[text.toLowerCase()] || text;
+}
+
 function fmtTime(d){
   return new Date(d).toLocaleTimeString(lang==='ru'?'ru-RU':'en-US',{hour:'2-digit',minute:'2-digit'});
 }
@@ -1314,7 +1404,11 @@ function renderMyTeamBar(){
     ${eliminated
       ? `<div class="eliminated">${t('eliminated')}</div>`
       : remainingSeries ? `<div class="wins-needed">${t('winsNeeded')}: <b>${remainingSeries}</b></div>` : ''}
-    <button class="toggle-btn" onclick="teamScheduleIcs(${team.id}, '${team.name.replace(/'/g,"\\'")}')">${t('icsTeam')}</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="toggle-btn myteam-toggle-btn" id="myteam-allgames-btn" onclick="toggleMyTeamGames()">${t('allGamesBtn')} <span class="chev">▾</span></button>
+      <button class="toggle-btn" onclick="teamScheduleIcs(${team.id}, '${team.name.replace(/'/g,"\\'")}')">${t('icsTeam')}</button>
+    </div>
+    <div class="myteam-games" id="myteam-games"></div>
   </div>`;
 }
 
@@ -1334,7 +1428,7 @@ function gameCard(g){
   const away = g.teams.away, home = g.teams.home;
   const state = g.status.abstractGameState; // Preview, Live, Final
   const cls = state === 'Final' ? 'final' : (state === 'Live' ? 'live' : 'pre');
-  const label = state === 'Final' ? t('final') : (state === 'Live' ? t('live') : g.status.detailedState);
+  const label = state === 'Final' ? t('final') : (state === 'Live' ? t('live') : translateDetailedState(g.status.detailedState));
   const countdown = state === 'Preview' ? `<span class="countdown" data-start="${g.gameDate}">${countdownText(g.gameDate)}</span>` : '';
   const awayWin = state==='Final' && away.score > home.score;
   const homeWin = state==='Final' && home.score > away.score;
@@ -1366,6 +1460,8 @@ async function loadGames(){
 
     window.lastGames = games;
     checkMyTeamTransitions(games);
+    setTimeout(filterByTeam, 0);
+    refreshMyTeamGamesIfOpen();
 
     const now = new Date();
     const past = games.filter(g => g.status.abstractGameState === 'Final')
@@ -1739,9 +1835,8 @@ function buildStrikeZone(p){
   const half = 0.708;                                // половина ширины дома (17 дюймов), футы
   const zx = CX - half*S, zw = 2*half*S, zy = BASE - top*S, zh = (top - bot)*S;
 
-  const col = e => e.details?.isInPlay ? '#008753'
-                 : e.details?.isBall ? '#0074e8'
-                 : e.details?.isStrike ? '#cc0000' : '#767676';
+  const callCat = e => e.details?.isInPlay ? 'inplay' : e.details?.isBall ? 'ball' : e.details?.isStrike ? 'strike' : 'other';
+  const col = e => ({inplay:'#008753', ball:'#0074e8', strike:'#cc0000', other:'#767676'})[callCat(e)];
 
   const dots = pitches.map((e,i)=>{
     const c = e.pitchData?.coordinates;
@@ -1749,7 +1844,7 @@ function buildStrikeZone(p){
     const n = e.pitchNumber ?? (i+1);
     const x = CX + c.pX*S, y = BASE - c.pZ*S;
     const tip = `${n}. ${PITCH_RU[e.details?.type?.description] || e.details?.type?.description || ''}`;
-    return `<g class="dot" style="--i:${i}"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="11" style="fill:${col(e)};stroke:#fff;stroke-width:1.5"><title>${tip}</title></circle>
+    return `<g class="dot" data-n="${n}" data-call="${callCat(e)}" style="--i:${i}" onclick="selectPitch(${n})"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="11" style="fill:${col(e)};stroke:#fff;stroke-width:1.5"><title>${tip}</title></circle>
       <text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="middle" style="font-size:11px;font-weight:800;fill:#fff;pointer-events:none">${n}</text></g>`;
   }).join('');
 
@@ -1771,7 +1866,7 @@ function buildStrikeZone(p){
     const speed = mph ? `${Math.round(mph*1.60934)} км/ч <span class="sz-call">(${mph.toFixed(1)} mph)</span>` : '';
     const call = CALL_RU[e.details?.call?.description] || e.details?.call?.description || '';
     const cnt = e.count ? `${e.count.balls}-${e.count.strikes}` : '';
-    return `<div class="sz-row">
+    return `<div class="sz-row" data-n="${n}" data-call="${callCat(e)}" onclick="selectPitch(${n})">
       <span class="sz-n" style="background:${col(e)}">${n}</span>
       <div><b>${type}</b>${speed ? ' · '+speed : ''}<br><span class="sz-call">${call}</span></div>
       <span class="sz-count">${cnt ? 'счёт '+cnt : ''}</span>
@@ -1793,10 +1888,11 @@ function buildStrikeZone(p){
             <div class="sz-sub">Питчер → бьющий · ${state}. Вид глазами кэтчера: прямоугольник — зона страйка, цифры — порядок подач.</div>
             ${rows}
             <div class="sz-legend">
-              <span><i style="background:#0074e8"></i>Болл</span>
-              <span><i style="background:#cc0000"></i>Страйк / фол</span>
-              <span><i style="background:#008753"></i>Мяч в игре</span>
+              <span class="legend-toggle" data-call="ball" onclick="toggleSzCall('ball')"><i style="background:#0074e8"></i>Болл</span>
+              <span class="legend-toggle" data-call="strike" onclick="toggleSzCall('strike')"><i style="background:#cc0000"></i>Страйк / фол</span>
+              <span class="legend-toggle" data-call="inplay" onclick="toggleSzCall('inplay')"><i style="background:#008753"></i>Мяч в игре</span>
             </div>
+            <div class="demo-hint">Нажмите на точку или строку, чтобы выделить подачу. Нажмите на цвет в легенде, чтобы скрыть/показать подачи этого типа.</div>
           </div>
         </div>
       </div>
@@ -2213,6 +2309,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
     document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById(tab.dataset.view).classList.add('active');
+    filterByTeam();
   });
 });
 
@@ -2306,6 +2403,128 @@ function jumpToLastPlay(){
   if(!target) return;
   const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   target.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'start'});
+}
+
+/* ============ Поиск по командам ============ */
+function filterByTeam(){
+  const input = document.getElementById('team-search');
+  const q = (input?.value || '').trim().toLowerCase();
+
+  let activeHasMatches = true;
+
+  ['upcoming','past'].forEach(id=>{
+    const section = document.getElementById(id);
+    const cards = section.querySelectorAll(':scope > .card');
+    let visible = 0;
+    cards.forEach(card=>{
+      const match = !q || card.textContent.toLowerCase().includes(q);
+      card.style.display = match ? '' : 'none';
+      if(match) visible++;
+    });
+    if(section.classList.contains('active') && cards.length){
+      activeHasMatches = visible > 0;
+    }
+  });
+
+  const standings = document.getElementById('standings');
+  if(standings){
+    const groups = standings.querySelectorAll('.standings-group');
+    let anyGroupVisible = 0;
+    groups.forEach(group=>{
+      let rowsVisible = 0;
+      group.querySelectorAll('.standings-table tr').forEach(row=>{
+        if(row.querySelector('th')) return;
+        const match = !q || row.textContent.toLowerCase().includes(q);
+        row.style.display = match ? '' : 'none';
+        if(match) rowsVisible++;
+      });
+      const groupMatch = !q || rowsVisible > 0;
+      group.style.display = groupMatch ? '' : 'none';
+      if(groupMatch) anyGroupVisible++;
+    });
+    if(standings.classList.contains('active') && groups.length){
+      activeHasMatches = anyGroupVisible > 0;
+    }
+  }
+
+  const notice = document.getElementById('team-search-empty');
+  if(notice){
+    notice.style.display = (q && !activeHasMatches) ? 'block' : 'none';
+    notice.textContent = t('teamSearchEmpty');
+  }
+}
+
+/* ============ Интерактивность реальной зоны страйка и спрей-чарта ============ */
+function selectPitch(n){
+  document.querySelectorAll('.sz-wrap .dot').forEach(d=> d.classList.toggle('sel', d.dataset.n === String(n)));
+  document.querySelectorAll('.sz-wrap .sz-row').forEach(r=> r.classList.toggle('sel', r.dataset.n === String(n)));
+  const row = document.querySelector(`.sz-wrap .sz-row[data-n="${n}"]`);
+  if(row) row.scrollIntoView({block:'nearest'});
+}
+function toggleSzCall(call){
+  const legend = document.querySelector('.sz-wrap .sz-legend'); if(!legend) return;
+  const item = legend.querySelector(`[data-call="${call}"]`);
+  if(item) item.classList.toggle('off');
+  const active = Array.from(legend.querySelectorAll('[data-call]')).filter(el => !el.classList.contains('off')).map(el => el.dataset.call);
+  document.querySelectorAll('.sz-wrap .dot').forEach(d=>{ d.style.display = (d.dataset.call === 'other' || active.includes(d.dataset.call)) ? '' : 'none'; });
+  document.querySelectorAll('.sz-wrap .sz-row').forEach(r=>{ r.style.display = (r.dataset.call === 'other' || active.includes(r.dataset.call)) ? '' : 'none'; });
+}
+function showSprayInfo(i){
+  const h = (window.sprayHitsData || [])[i]; if(!h) return;
+  const el = document.getElementById('spray-info');
+  if(el) el.textContent = `${h.batter ? h.batter + ': ' : ''}${h.desc}`;
+  document.querySelectorAll('.spray-dot').forEach(d => d.classList.toggle('sel', d.dataset.i === String(i)));
+}
+function toggleSprayCls(cls){
+  const legend = document.querySelector('.spray-wrap .sz-legend'); if(!legend) return;
+  const item = legend.querySelector(`[data-cls="${cls}"]`);
+  if(item) item.classList.toggle('off');
+  const active = Array.from(legend.querySelectorAll('[data-cls]')).filter(el => !el.classList.contains('off')).map(el => el.dataset.cls);
+  document.querySelectorAll('.spray-dot').forEach(d=>{ d.style.display = active.includes(d.dataset.cls) ? '' : 'none'; });
+}
+
+/* ============ Ссылка на официальный MLB Gameday этой игры ============ */
+function openGameday(){
+  const gamePk = window.currentGamePk;
+  if(!gamePk) return;
+  window.open(`https://www.mlb.com/gameday/${gamePk}`, '_blank', 'noopener');
+}
+
+/* ============ Список всех игр своей команды — сразу на странице, без скачивания ============ */
+function buildMyTeamGamesList(team){
+  const games = (window.lastGames || []).filter(g => g.teams.away.team.id === team.id || g.teams.home.team.id === team.id)
+    .sort((a,b) => new Date(a.gameDate) - new Date(b.gameDate));
+  if(!games.length) return `<div class="empty" style="padding:12px 0">${t('allGamesEmpty')}</div>`;
+  return games.map(g=>{
+    const atHome = g.teams.home.team.id === team.id;
+    const opp = atHome ? g.teams.away.team : g.teams.home.team;
+    const state = g.status.abstractGameState;
+    const label = state === 'Final' ? t('final') : (state === 'Live' ? t('live') : translateDetailedState(g.status.detailedState));
+    const cls = state === 'Final' ? 'final' : (state === 'Live' ? 'live' : 'pre');
+    const score = state !== 'Preview' ? `<span class="mg-score">${g.teams.away.score ?? ''}–${g.teams.home.score ?? ''}</span>` : '';
+    return `<div class="myteam-game-row" onclick="openDetail(${g.gamePk})">
+      <span class="mg-date">${fmtDate(g.gameDate)}</span>
+      <span class="mg-opp">${atHome ? '' : '@ '}${teamDot(opp.id)}${opp.name}</span>
+      ${score}
+      <span class="status ${cls}">${label}</span>
+    </div>`;
+  }).join('');
+}
+function toggleMyTeamGames(){
+  const wrap = document.getElementById('myteam-games');
+  const btn = document.getElementById('myteam-allgames-btn');
+  if(!wrap || !btn) return;
+  const team = getMyTeam(); if(!team) return;
+  const opening = !wrap.classList.contains('open');
+  if(opening) wrap.innerHTML = buildMyTeamGamesList(team);
+  wrap.classList.toggle('open', opening);
+  btn.classList.toggle('open', opening);
+}
+function refreshMyTeamGamesIfOpen(){
+  const wrap = document.getElementById('myteam-games');
+  if(!wrap || !wrap.classList.contains('open')) return;
+  const team = getMyTeam(); if(!team) return;
+  wrap.innerHTML = buildMyTeamGamesList(team);
 }
 
 function initStrikeZoneDemo(keepInfo){
