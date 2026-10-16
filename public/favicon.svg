@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <radialGradient id="ballShading" cx="38%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="75%" stop-color="#f1f5f9"/>
+      <stop offset="100%" stop-color="#cbd5e1"/>
+    </radialGradient>
+  </defs>
+  <!-- Ball Sphere -->
+  <circle cx="50" cy="50" r="46" fill="url(#ballShading)" stroke="#94a3b8" stroke-width="2.5"/>
+  
+  <!-- Left Seam Path -->
+  <path d="M 28 6 C 14 26, 14 74, 28 94" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/>
+  
+  <!-- Left Stitches -->
+  <path d="
+    M 27 12 L 23 15 M 25 21 L 20 23 M 23 30 L 17 31 M 22 40 L 16 40 
+    M 22 50 L 15 50 M 22 60 L 16 60 M 23 70 L 17 69 M 25 79 L 20 77 M 27 88 L 23 85
+  " stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Right Seam Path -->
+  <path d="M 72 6 C 86 26, 86 74, 72 94" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/>
+  
+  <!-- Right Stitches -->
+  <path d="
+    M 73 12 L 77 15 M 75 21 L 80 23 M 77 30 L 83 31 M 78 40 L 84 40 
+    M 78 50 L 85 50 M 78 60 L 84 60 M 77 70 L 83 69 M 75 79 L 80 77 M 73 88 L 77 85
+  " stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
+</svg>
