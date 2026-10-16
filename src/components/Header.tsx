@@ -221,23 +221,35 @@ export const Header: React.FC<HeaderProps> = ({
           >
             {TABS.map((tab) => {
               const isActive = activeTab === tab.id;
+              const isLight = theme === 'light';
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className="relative flex items-center gap-1.5 px-3 py-2 rounded-[10px] text-[11px] font-semibold whitespace-nowrap transition-all shrink-0"
+                  className={`relative flex items-center gap-1.5 px-3 py-2 rounded-[10px] text-[11px] font-bold whitespace-nowrap transition-all shrink-0 ${
+                    isActive
+                      ? isLight
+                        ? 'text-slate-950 font-extrabold shadow-sm'
+                        : 'text-white'
+                      : isLight
+                        ? 'text-slate-600 hover:text-slate-950 hover:bg-slate-200/60'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                  }`}
                   style={{
                     transitionDuration: '250ms',
                     transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)',
                     background: isActive
-                      ? `linear-gradient(135deg, ${tab.color}22 0%, ${tab.color}11 100%)`
+                      ? isLight
+                        ? `linear-gradient(135deg, ${tab.color}28 0%, ${tab.color}15 100%)`
+                        : `linear-gradient(135deg, ${tab.color}22 0%, ${tab.color}11 100%)`
                       : 'transparent',
-                    color: isActive ? '#fff' : 'rgba(148,163,184,0.9)',
                     boxShadow: isActive
-                      ? `inset 0 1px 1px rgba(255,255,255,0.08), 0 0 16px ${tab.color}20`
+                      ? isLight
+                        ? `inset 0 1px 1px rgba(255,255,255,0.8), 0 2px 8px ${tab.color}30`
+                        : `inset 0 1px 1px rgba(255,255,255,0.08), 0 0 16px ${tab.color}20`
                       : 'none',
                     border: isActive
-                      ? `1px solid ${tab.color}30`
+                      ? `1px solid ${tab.color}${isLight ? '60' : '30'}`
                       : '1px solid transparent',
                   }}
                 >
@@ -256,7 +268,7 @@ export const Header: React.FC<HeaderProps> = ({
                   {isActive && (
                     <span
                       className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
-                      style={{ background: tab.color, opacity: 0.7 }}
+                      style={{ background: tab.color, opacity: isLight ? 1 : 0.7 }}
                     />
                   )}
                 </button>
