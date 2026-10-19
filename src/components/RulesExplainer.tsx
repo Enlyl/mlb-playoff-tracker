@@ -15,6 +15,7 @@ import {
   MapPin,
 } from 'lucide-react';
 import { sounds } from '../services/soundEffects';
+import { AnatomyBaseballFigure } from './AnatomyBaseballFigure';
 
 interface ScenarioStep {
   title: string;
@@ -858,6 +859,9 @@ export const RulesExplainer: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* ── ANATOMY ISOMETRIC 3D SIMULATOR (Anatomy Skill) ── */}
+      <AnatomyBaseballFigure />
 
       {/* ── MAIN INTERACTIVE STAGE: FIELD DIAMOND + CONTROLS ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
