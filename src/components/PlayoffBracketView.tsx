@@ -17,6 +17,7 @@ import {
   getPostseasonSeries,
   getTeamLogoUrl,
 } from '../services/mlbApi';
+import { InteractiveBracketTree } from './InteractiveBracketTree';
 
 interface PlayoffBracketViewProps {
   onSelectTeam?: (teamId: number, teamName: string) => void;
@@ -474,6 +475,16 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
           {/* TOURNAMENT BRACKET TREE VIEW */}
           {viewMode === 'bracket' && (
             <div className="space-y-6">
+              {/* Animated Interactive Playoff Bracket Tree */}
+              <InteractiveBracketTree
+                seriesList={seriesList}
+                favoriteTeamId={favoriteTeamId}
+                onSelectTeam={onSelectTeam}
+                onSelectGame={onSelectGame}
+                picksMode={picksMode}
+                picks={picks}
+                onSetPick={handleSetPick}
+              />
               
               {/* World Series Centerpiece Card */}
               {worldSeries && (() => {
