@@ -43,6 +43,7 @@ import { WinProbabilityChart } from './WinProbabilityChart';
 import { sounds } from '../services/soundEffects';
 import { notifications } from '../services/notifications';
 import { downloadGameIcs, getGoogleCalendarUrl } from '../utils/calendarExport';
+import { Match3DReplay } from './Match3DReplay';
 import { CelebrationOverlay, CelebrationData } from './CelebrationOverlay';
 import { StrikeZoneWidget } from './StrikeZoneWidget';
 import { SprayChartWidget } from './SprayChartWidget';
@@ -67,7 +68,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
   favoriteTeamId,
 }) => {
   const [activeTab, setActiveTab] = useState<
-    'live' | 'boxscore' | 'strikezone' | 'spraychart' | 'highlights' | 'venue' | 'winprob' | 'lineups' | 'h2h'
+    'live' | 'replay3d' | 'boxscore' | 'strikezone' | 'spraychart' | 'highlights' | 'venue' | 'winprob' | 'lineups' | 'h2h'
   >('live');
   const [feedData, setFeedData] = useState<LiveGameFeed | null>(null);
   const [winProbData, setWinProbData] = useState<WinProbabilityItem[]>([]);
@@ -726,6 +727,21 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
           </button>
 
           <button
+            onClick={() => setActiveTab('replay3d')}
+            className={`py-3 px-3 text-xs font-bold border-b-2 flex items-center gap-1.5 transition shrink-0 ${
+              activeTab === 'replay3d'
+                ? 'border-emerald-500 text-white shadow-[0_0_12px_rgba(16,185,129,0.3)]'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+            <span>3D Повтор матча</span>
+            <span className="px-1 py-0.2 rounded text-[9px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              3D
+            </span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('boxscore')}
             className={`py-3 px-3 text-xs font-bold border-b-2 flex items-center gap-1.5 transition shrink-0 ${
               activeTab === 'boxscore'
@@ -825,6 +841,18 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
         {/* Modal Scrollable Body */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
           
+          {/* TAB: 3D REPLAY (ANATOMY ISOMETRIC RIG) */}
+          {activeTab === 'replay3d' && (
+            <div className="space-y-4">
+              <Match3DReplay
+                game={game}
+                allPlays={allPlays}
+                currentIndex={simPlayIndex}
+                onSelectPlayIndex={(idx) => setSimPlayIndex(idx)}
+              />
+            </div>
+          )}
+
           {/* TAB 1: LIVE FEED & DIAMOND */}
           {activeTab === 'live' && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
