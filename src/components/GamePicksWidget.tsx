@@ -368,9 +368,9 @@ export const GamePicksWidget: React.FC<GamePicksWidgetProps> = ({ games, onSelec
 
             {showMore && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-800 animate-in fade-in duration-150">
-                {otherMatches.map(({ g, sp }) => (
+                {otherMatches.map(({ g, sp }, idx) => (
                   <div
-                    key={g.gamePk}
+                    key={`${g.gamePk}-${idx}`}
                     onClick={() => onSelectGame(g)}
                     className="p-2.5 rounded-xl bg-slate-900/50 hover:bg-slate-800/80 border border-slate-800 hover:border-slate-700 cursor-pointer transition flex items-center justify-between"
                   >

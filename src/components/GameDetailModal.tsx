@@ -940,28 +940,28 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                 {/* Base Runners Status list */}
                 <div className="grid grid-cols-3 gap-2 text-center text-xs">
                   <div
-                    className={`p-1.5 rounded-lg border ${
+                    className={`p-1.5 rounded-lg border transition ${
                       hasRunner1B
-                        ? 'bg-amber-500/20 border-amber-500/40 text-amber-300 font-bold'
-                        : 'bg-slate-900 border-slate-800 text-slate-500'
+                        ? 'bg-amber-500/20 border-amber-500/40 text-amber-600 dark:text-amber-300 font-bold'
+                        : 'bg-slate-100 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-medium'
                     }`}
                   >
                     1-я база
                   </div>
                   <div
-                    className={`p-1.5 rounded-lg border ${
+                    className={`p-1.5 rounded-lg border transition ${
                       hasRunner2B
-                        ? 'bg-amber-500/20 border-amber-500/40 text-amber-300 font-bold'
-                        : 'bg-slate-900 border-slate-800 text-slate-500'
+                        ? 'bg-amber-500/20 border-amber-500/40 text-amber-600 dark:text-amber-300 font-bold'
+                        : 'bg-slate-100 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-medium'
                     }`}
                   >
                     2-я база
                   </div>
                   <div
-                    className={`p-1.5 rounded-lg border ${
+                    className={`p-1.5 rounded-lg border transition ${
                       hasRunner3B
-                        ? 'bg-amber-500/20 border-amber-500/40 text-amber-300 font-bold'
-                        : 'bg-slate-900 border-slate-800 text-slate-500'
+                        ? 'bg-amber-500/20 border-amber-500/40 text-amber-600 dark:text-amber-300 font-bold'
+                        : 'bg-slate-100 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-medium'
                     }`}
                   >
                     3-я база
@@ -969,12 +969,12 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                 </div>
 
                 {/* Current Batter vs Pitcher Matchup */}
-                <div className="bg-slate-900 border border-slate-800 rounded-lg p-3 space-y-3">
-                  <div className="text-xs font-bold text-slate-400">Текущая дуэль:</div>
+                <div className="bg-slate-100/70 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 space-y-3">
+                  <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Текущая дуэль:</div>
                   
                   {/* Batter */}
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-slate-800 overflow-hidden ring-1 ring-slate-700">
+                    <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden ring-1 ring-slate-300 dark:ring-slate-700">
                       {currentPlay?.matchup?.batter?.id ? (
                         <img
                           src={getPlayerPhotoUrl(currentPlay.matchup.batter.id)}
@@ -982,24 +982,24 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xs font-bold text-slate-400">
+                        <div className="w-full h-full flex items-center justify-center text-xs font-bold text-slate-700 dark:text-slate-400">
                           Б
                         </div>
                       )}
                     </div>
                     <div>
-                      <span className="text-[10px] text-emerald-400 font-semibold uppercase block">
+                      <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold uppercase block">
                         Баттер (на бите)
                       </span>
-                      <span className="text-xs font-bold text-white">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">
                         {currentPlay?.matchup?.batter?.fullName || 'Текущий бьющий'}
                       </span>
                     </div>
                   </div>
 
                   {/* Pitcher */}
-                  <div className="flex items-center gap-2.5 border-t border-slate-800/80 pt-2">
-                    <div className="w-8 h-8 rounded-full bg-slate-800 overflow-hidden ring-1 ring-slate-700">
+                  <div className="flex items-center gap-2.5 border-t border-slate-200 dark:border-slate-800/80 pt-2">
+                    <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden ring-1 ring-slate-300 dark:ring-slate-700">
                       {currentPlay?.matchup?.pitcher?.id ? (
                         <img
                           src={getPlayerPhotoUrl(currentPlay.matchup.pitcher.id)}
@@ -1007,16 +1007,16 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xs font-bold text-slate-400">
+                        <div className="w-full h-full flex items-center justify-center text-xs font-bold text-slate-700 dark:text-slate-400">
                           П
                         </div>
                       )}
                     </div>
                     <div>
-                      <span className="text-[10px] text-blue-400 font-semibold uppercase block">
+                      <span className="text-[10px] text-blue-700 dark:text-blue-400 font-bold uppercase block">
                         Питчер (на горке)
                       </span>
-                      <span className="text-xs font-bold text-white">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">
                         {currentPlay?.matchup?.pitcher?.fullName ||
                           (isTopInning ? homePitcher?.fullName : awayPitcher?.fullName) ||
                           'Стартовый питчер'}
@@ -1617,25 +1617,25 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
               </div>
 
               {h2hGames.length === 0 ? (
-                <p className="text-xs text-slate-500 py-6 text-center">
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-medium py-6 text-center">
                   Данные по очным встречам сезона загружаются...
                 </p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {h2hGames.map((hGame) => (
+                  {h2hGames.map((hGame, idx) => (
                     <div
-                      key={hGame.gamePk}
-                      className="bg-slate-900 border border-slate-800 rounded-lg p-3 text-xs flex items-center justify-between"
+                      key={`${hGame.gamePk}-${idx}`}
+                      className="p-3 rounded-xl bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-xs flex items-center justify-between transition-all hover:border-slate-300 dark:hover:border-slate-700 shadow-sm"
                     >
                       <div>
-                        <span className="text-[10px] text-slate-500 font-mono block">
+                        <span className="text-[10px] font-mono font-bold text-blue-700 dark:text-blue-300 bg-blue-500/10 dark:bg-blue-500/20 px-2 py-0.5 rounded border border-blue-500/20 inline-block">
                           {new Date(hGame.gameDate).toLocaleDateString('ru-RU')}
                         </span>
-                        <div className="font-semibold text-slate-200 mt-0.5">
+                        <div className="font-bold text-slate-900 dark:text-white mt-1">
                           {hGame.teams.away.team.abbreviation} vs {hGame.teams.home.team.abbreviation}
                         </div>
                       </div>
-                      <div className="font-mono font-bold text-sm text-white bg-slate-800 px-2 py-1 rounded">
+                      <div className="font-mono font-black text-sm text-emerald-800 dark:text-emerald-300 bg-emerald-500/20 border border-emerald-500/35 px-2.5 py-1 rounded-lg tabular-nums shadow-sm">
                         {hGame.teams.away.score} : {hGame.teams.home.score}
                       </div>
                     </div>
@@ -1648,11 +1648,11 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="bg-slate-950 px-4 sm:px-6 py-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+        <div className="bg-slate-100 dark:bg-slate-950 px-4 sm:px-6 py-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-700 dark:text-slate-300 font-medium">
           <span>MLB Official Live Data Feed • statsapi.mlb.com</span>
           <button
             onClick={onClose}
-            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium transition"
+            className="px-3.5 py-1.5 rounded-lg bg-blue-500/10 dark:bg-blue-500/20 hover:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/25 font-bold transition cursor-pointer"
           >
             Закрыть экран
           </button>

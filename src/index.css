@@ -229,83 +229,104 @@ body::before {
 .team-accent-text    { color: var(--team-accent, #60a5fa); }
 
 /* ═══════════════════════════════════════
-   LIGHT THEME (Светлая тема)
+   LIGHT THEME COMPLETE COMPREHENSIVE OVERRIDE
    ═══════════════════════════════════════ */
 html.light,
 :root[data-theme="light"],
 .light {
   color-scheme: light;
-  --grain-opacity: 0.015;
+  --grain-opacity: 0.012;
 }
 
 html.light body,
 .light body {
-  background-color: #f1f5f9;
-  color: #0f172a;
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
 }
 
 .light .bg-mesh {
   background-color: #f8fafc !important;
   background-image:
-    radial-gradient(ellipse 900px 650px at 15% 10%, rgba(239, 68, 68, 0.08) 0%, transparent 70%),
-    radial-gradient(ellipse 750px 550px at 85% 85%, rgba(59, 130, 246, 0.09) 0%, transparent 70%),
-    radial-gradient(ellipse 650px 450px at 50% 25%, rgba(139, 92, 246, 0.06) 0%, transparent 70%) !important;
+    radial-gradient(ellipse 900px 650px at 15% 10%, rgba(239, 68, 68, 0.05) 0%, transparent 70%),
+    radial-gradient(ellipse 750px 550px at 85% 85%, rgba(59, 130, 246, 0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 650px 450px at 50% 25%, rgba(139, 92, 246, 0.04) 0%, transparent 70%) !important;
 }
 
+/* 2. Double-bezel pattern in light mode */
 .light .glass-shell {
-  background: rgba(0, 0, 0, 0.02) !important;
-  border-color: rgba(0, 0, 0, 0.08) !important;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+  background: rgba(15, 23, 42, 0.03) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
 }
 
 .light .glass-core {
-  background: rgba(255, 255, 255, 0.92) !important;
-  border-color: rgba(0, 0, 0, 0.08) !important;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 1),
-    0 10px 30px rgba(0, 0, 0, 0.06) !important;
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
   color: #0f172a !important;
 }
 
 .light .glass-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.09), 0 0 0 1px rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.09), 0 0 0 1px rgba(0, 0, 0, 0.08) !important;
 }
 
-/* Light mode backgrounds for containers */
-.light .bg-slate-950,
-.light .bg-slate-950\/80,
-.light .bg-slate-950\/90,
-.light .bg-slate-900,
-.light .bg-slate-900\/40,
-.light .bg-slate-900\/50,
-.light .bg-slate-900\/60,
-.light .bg-slate-900\/70,
-.light .bg-slate-900\/80,
-.light .bg-slate-900\/90 {
+/* 3. Dark gradients removal — turn into clean light card surfaces */
+.light [class*="from-slate-950"],
+.light [class*="from-slate-900"],
+.light [class*="via-slate-950"],
+.light [class*="via-slate-900"],
+.light [class*="to-slate-950"],
+.light [class*="to-slate-900"] {
+  background-image: none !important;
+  background-color: #f8fafc !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  color: #0f172a !important;
+}
+
+/* 4. Container backgrounds in light mode */
+.light [class*="bg-slate-950"]:not(.fixed),
+.light [class*="bg-slate-900"]:not(button):not(.fixed),
+.light [class*="bg-slate-800"]:not(button):not([class*="text-white"]):not(.fixed),
+.light [class*="bg-[#050508]"],
+.light [class*="bg-[#090d16]"],
+.light [class*="bg-[#0d1117]"],
+.light [class*="bg-[#111827]"],
+.light [class*="bg-[#161b22]"],
+.light [class*="bg-black/10"],
+.light [class*="bg-black/20"]:not(.fixed),
+.light [class*="bg-black/30"]:not(.fixed),
+.light [class*="bg-black/40"]:not(.fixed),
+.light [class*="bg-black/50"]:not(.fixed),
+.light [class*="bg-black/60"]:not(.fixed),
+.light [class*="bg-black/75"]:not(.fixed) {
   background-color: #ffffff !important;
-  color: #1e293b !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  color: #0f172a !important;
 }
 
 .light .bg-\[\#050508\]\/95,
 .light .bg-\[\#0a0d14\]\/92 {
   background-color: rgba(255, 255, 255, 0.94) !important;
-  border-color: rgba(0, 0, 0, 0.08) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  color: #0f172a !important;
 }
 
-.light .bg-black\/80,
-.light .bg-black\/85,
-.light .bg-black\/90 {
-  background-color: rgba(15, 23, 42, 0.55) !important;
+/* 5. Typography on light surfaces */
+.light h1, .light h2, .light h3, .light h4, .light h5, .light h6,
+.light .text-display {
+  color: #0f172a !important;
 }
 
-/* Typography contrast in light mode */
+.light p {
+  color: #334155;
+}
+
 .light .text-white {
   color: #0f172a !important;
 }
 
+.light .text-slate-100,
 .light .text-slate-200,
 .light .text-slate-300 {
   color: #1e293b !important;
@@ -324,44 +345,178 @@ html.light body,
 }
 
 .light .text-slate-700 {
-  color: #64748b !important;
+  color: #334155 !important;
 }
 
-/* Borders in light mode */
-.light .hairline { border-color: rgba(0, 0, 0, 0.08); }
+/* 6. CRITICAL: Preserve crisp WHITE text on dark buttons and accent badges */
+.light button[class*="bg-blue-"],
+.light button[class*="bg-emerald-"],
+.light button[class*="bg-red-"],
+.light button[class*="bg-indigo-"],
+.light button[class*="bg-purple-"],
+.light [class*="bg-blue-600"],
+.light [class*="bg-blue-500"],
+.light [class*="bg-emerald-600"],
+.light [class*="bg-emerald-500"],
+.light [class*="bg-red-600"],
+.light [class*="bg-red-500"],
+.light [class*="bg-indigo-600"],
+.light [class*="bg-purple-600"],
+.light [class*="bg-rose-600"] {
+  color: #ffffff !important;
+}
+
+.light button[class*="bg-blue-"] *,
+.light button[class*="bg-emerald-"] *,
+.light button[class*="bg-red-"] *,
+.light [class*="bg-blue-600"] *,
+.light [class*="bg-blue-500"] *,
+.light [class*="bg-emerald-600"] *,
+.light [class*="bg-emerald-500"] *,
+.light [class*="bg-red-600"] * {
+  color: #ffffff !important;
+}
+
+/* Yellow / amber buttons always get bold black text */
+.light [class*="bg-amber-400"],
+.light [class*="bg-amber-300"],
+.light [class*="bg-yellow-400"],
+.light [class*="bg-amber-400"] *,
+.light [class*="bg-amber-300"] * {
+  color: #020617 !important;
+  font-weight: 800 !important;
+}
+
+/* 7. Inline styles normalization */
+.light [style*="rgba(255, 255, 255, 0.0"],
+.light [style*="rgba(255,255,255,0.0"],
+.light [style*="rgba(255, 255, 255, 0.1)"],
+.light [style*="rgba(255,255,255,0.1)"],
+.light [style*="rgba(255, 255, 255, 0.08)"],
+.light [style*="rgba(255,255,255,0.08)"] {
+  background-color: rgba(15, 23, 42, 0.04) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  color: #0f172a !important;
+}
+
+/* Clear all dark inline background gradients & colors */
+.light [style*="rgba(15, 18, 26"],
+.light [style*="rgba(15,18,26"],
+.light [style*="rgba(15, 23, 42"],
+.light [style*="rgba(15,23,42"],
+.light [style*="rgba(10, 15, 29"],
+.light [style*="rgba(10,15,29"],
+.light [style*="rgba(10, 13, 20"],
+.light [style*="rgba(10,13,20"],
+.light [style*="rgba(5, 5, 8"],
+.light [style*="rgba(5,5,8"],
+.light [style*="rgba(30, 41, 59"],
+.light [style*="rgba(30,41,59"] {
+  background-image: none !important;
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  color: #0f172a !important;
+}
+
+.light [style*="color: rgb(255, 255, 255)"]:not([class*="bg-blue"]):not([class*="bg-emerald"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-indigo"]):not([style*="#ef4444"]):not([style*="#b91c1c"]):not([style*="#10b981"]):not([style*="#3b82f6"]),
+.light [style*="color: #fff"]:not([class*="bg-blue"]):not([class*="bg-emerald"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-indigo"]):not([style*="#ef4444"]):not([style*="#b91c1c"]):not([style*="#10b981"]):not([style*="#3b82f6"]),
+.light [style*="color:#fff"]:not([class*="bg-blue"]):not([class*="bg-emerald"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-indigo"]):not([style*="#ef4444"]):not([style*="#b91c1c"]):not([style*="#10b981"]):not([style*="#3b82f6"]),
+.light [style*="color: #ffffff"]:not([class*="bg-blue"]):not([class*="bg-emerald"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-indigo"]):not([style*="#ef4444"]):not([style*="#b91c1c"]):not([style*="#10b981"]):not([style*="#3b82f6"]),
+.light [style*="color:#ffffff"]:not([class*="bg-blue"]):not([class*="bg-emerald"]):not([class*="bg-red"]):not([class*="bg-purple"]):not([class*="bg-indigo"]):not([style*="#ef4444"]):not([style*="#b91c1c"]):not([style*="#10b981"]):not([style*="#3b82f6"]) {
+  color: #0f172a !important;
+}
+
+/* 8. Modals (GameDetailModal, TeamProfileModal, PlayerDetailModal, TeamRosterModal) */
+.light .fixed.inset-0.bg-black\/80,
+.light .fixed.inset-0.bg-black\/85,
+.light .fixed.inset-0.bg-black\/75,
+.light .fixed.inset-0.bg-black\/70,
+.light .fixed.inset-0.bg-black\/90 {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.light .fixed [class*="max-w-"] {
+  color: #0f172a !important;
+}
+
+.light .fixed [class*="bg-slate-900"],
+.light .fixed [class*="bg-slate-950"],
+.light .fixed [class*="bg-black\/"] {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+/* 9. Tables (Standings, Rankings, Boxscore, Linescore) */
+.light table th {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  font-weight: 800 !important;
+}
+
+.light table td {
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.06) !important;
+}
+
+.light table tr:hover {
+  background-color: rgba(15, 23, 42, 0.03) !important;
+}
+
+/* 10. Borders & Hairlines */
+.light .hairline,
 .light .border-slate-800,
 .light .border-slate-800\/80,
 .light .border-slate-800\/60,
 .light .border-slate-700,
 .light .border-slate-700\/50,
+.light .border-white\/5,
 .light .border-white\/10,
 .light .border-white\/15,
 .light .border-white\/20,
 .light .border-white\/\[0\.04\],
 .light .border-white\/\[0\.06\],
 .light .border-white\/\[0\.08\] {
-  border-color: rgba(0, 0, 0, 0.09) !important;
-}
-
-/* Transparent white pills become light tint in light mode */
-.light .bg-white\/5,
-.light .bg-white\/10 {
-  background-color: rgba(0, 0, 0, 0.05) !important;
-}
-.light .hover\:bg-white\/10:hover,
-.light .hover\:bg-white\/20:hover {
-  background-color: rgba(0, 0, 0, 0.08) !important;
-}
-
-/* Navigation in light mode */
-.light header nav {
-  background: rgba(241, 245, 249, 0.95) !important;
   border-color: rgba(15, 23, 42, 0.1) !important;
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* 11. Monospace stats & scores in light mode */
+.light .font-mono.text-white {
+  color: #0f172a !important;
+}
+.light .font-mono.text-emerald-400 {
+  color: #047857 !important;
+}
+.light .font-mono.text-red-400 {
+  color: #b91c1c !important;
+}
+.light .font-mono.text-amber-400,
+.light .font-mono.text-amber-300 {
+  color: #b45309 !important;
+}
+.light .font-mono.text-blue-400 {
+  color: #1d4ed8 !important;
+}
+.light .font-mono.text-purple-400 {
+  color: #6d28d9 !important;
+}
+
+/* 12. Navigation & Header in light mode */
+.light header {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+.light header nav {
+  background: rgba(15, 23, 42, 0.04) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
 }
 
 .light header nav button {
-  color: #334155 !important;
+  color: #475569 !important;
   font-weight: 700 !important;
 }
 
@@ -369,72 +524,388 @@ html.light body,
   color: #0f172a !important;
 }
 
-.light header nav button.text-slate-950,
-.light header nav button[class*="text-slate-950"] {
-  color: #020617 !important;
-  font-weight: 800 !important;
-}
-
-/* Mobile bottom floating bar in light mode */
 .light .mobile-nav-bar {
-  background: rgba(255, 255, 255, 0.94) !important;
-  border-color: rgba(0, 0, 0, 0.08) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12) !important;
 }
 
-/* Sub-tabs & modal tabs in light mode */
-.light button[class*="text-slate-400"]:not(:hover) {
+/* 13. Eyebrow tags */
+.light .eyebrow {
+  background: rgba(15, 23, 42, 0.06) !important;
+  border-color: rgba(15, 23, 42, 0.14) !important;
+  color: #1e293b !important;
+}
+
+/* 14. Scrollbar in light mode */
+.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+}
+.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.32);
+}
+
+/* 15. PLAYOFF BRACKET LIGHT MODE CONTRAST */
+.light .bracket-board {
+  background: #f8fafc !important;
+  border-color: rgba(15, 23, 42, 0.15) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+}
+
+.light .bracket-hero {
+  background: linear-gradient(135deg, #fffbeb 0%, #f8fafc 100%) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+.light .bracket-hero h2,
+.light .bracket-board h2,
+.light .bracket-board h3 {
+  color: #0f172a !important;
+}
+
+.light .bracket-hero p,
+.light .bracket-board p {
   color: #475569 !important;
 }
 
-.light .bg-slate-950,
-.light .bg-slate-900\/95,
-.light .bg-slate-900\/90,
-.light .bg-slate-900\/80 {
-  background-color: #f8fafc !important;
+.light .bracket-card {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.18) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06) !important;
 }
 
-/* Modals & panels tab bars */
-.light .border-b.border-slate-800,
-.light .border-t.border-white\/10 {
-  border-color: rgba(15, 23, 42, 0.1) !important;
+.light .bracket-card:hover {
+  border-color: rgba(15, 23, 42, 0.35) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
 }
 
-/* Standings / rankings / profile pill buttons in light mode */
-.light div[style*="rgba(255, 255, 255, 0.03)"],
-.light div[style*="rgba(255, 255, 255, 0.025)"],
-.light div[style*="rgba(255, 255, 255, 0.05)"] {
-  background: rgba(15, 23, 42, 0.04) !important;
-  border-color: rgba(15, 23, 42, 0.08) !important;
-}
-
-/* Team Profile page & modal tab strip in light mode */
-.light button[style*="color: rgb(148, 163, 184)"],
-.light button[style*="#94a3b8"],
-.light span[style*="#94a3b8"],
-.light button[style*="rgba(148, 163, 184"] {
-  color: #334155 !important;
-  font-weight: 700 !important;
-}
-
-.light button[style*="color: rgb(255, 255, 255)"],
-.light button[style*="#fff"] {
+.light .bracket-team-name {
   color: #0f172a !important;
   font-weight: 800 !important;
 }
 
-/* Rankings view main tab cards in light mode */
-.light button[style*="rgba(255, 255, 255, 0.025)"] {
-  background: rgba(255, 255, 255, 0.8) !important;
-  border-color: rgba(15, 23, 42, 0.08) !important;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+.light .bracket-team-score {
+  color: #1e293b !important;
+  font-weight: 900 !important;
 }
 
-/* Scrollbar in light mode */
-.light ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
+.light .bracket-team-score-winner {
+  color: #047857 !important;
+  font-weight: 900 !important;
 }
-.light ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.28);
+
+.light .bracket-round-eyebrow {
+  color: #334155 !important;
+  font-weight: 800 !important;
 }
+
+.light .bracket-status-badge {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+  font-weight: 800 !important;
+}
+
+.light .bracket-row-winner {
+  background: rgba(16, 185, 129, 0.14) !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+}
+
+.light .bracket-connector-al {
+  stroke: #2563eb !important;
+}
+
+.light .bracket-connector-nl {
+  stroke: #d97706 !important;
+}
+
+.light .bracket-connector-ws {
+  stroke: #b45309 !important;
+}
+
+/* 16. Pale accent texts on light theme */
+.light [style*="#93c5fd"],
+.light [style*="color: #93c5fd"],
+.light [style*="color:#93c5fd"] {
+  color: #1d4ed8 !important;
+}
+
+.light [style*="#fcd34d"],
+.light [style*="color: #fcd34d"],
+.light [style*="color:#fcd34d"],
+.light [style*="#fde047"],
+.light [style*="#fef08a"] {
+  color: #b45309 !important;
+}
+
+.light [style*="#6ee7b7"],
+.light [style*="#86efac"] {
+  color: #047857 !important;
+}
+
+.light [style*="#fca5a5"],
+.light [style*="#f87171"] {
+  color: #b91c1c !important;
+}
+
+.light [style*="#94a3b8"],
+.light [style*="color: #94a3b8"],
+.light [style*="148, 163, 184"] {
+  color: #475569 !important;
+}
+
+.light [style*="#a5b4fc"],
+.light [style*="#818cf8"] {
+  color: #4338ca !important;
+}
+
+.light [style*="#c4b5fd"],
+.light [style*="#c084fc"] {
+  color: #7c3aed !important;
+}
+
+.light [style*="#67e8f9"],
+.light [style*="#22d3ee"] {
+  color: #0e7490 !important;
+}
+
+.light [style*="#e2e8f0"],
+.light [style*="226, 232, 240"] {
+  color: #334155 !important;
+}
+
+/* 17. ALL remaining inline dark backgrounds in light mode */
+.light [style*="rgba(0, 0, 0, 0.4)"],
+.light [style*="rgba(0,0,0,0.4)"],
+.light [style*="rgba(0, 0, 0, 0.3)"],
+.light [style*="rgba(0,0,0,0.3)"] {
+  background-color: rgba(15, 23, 42, 0.06) !important;
+  color: #0f172a !important;
+}
+
+/* Catch radial-gradient and linear-gradient inline dark backgrounds */
+.light [style*="rgba(15,18,26"],
+.light [style*="rgba(10, 15, 29"],
+.light [style*="rgba(2, 44, 34, 0.8)"],
+.light [style*="rgba(5, 5, 8, 0.98)"],
+.light nav[style*="rgba(15,18,26"] {
+  background: rgba(15, 23, 42, 0.04) !important;
+  color: #0f172a !important;
+}
+
+/* button/span elements with rgba translucent white backgrounds */
+.light button[style*="rgba(255, 255, 255, 0.02)"],
+.light button[style*="rgba(255, 255, 255, 0.04)"],
+.light span[style*="rgba(255, 255, 255, 0.02)"],
+.light span[style*="rgba(255, 255, 255, 0.04)"],
+.light span[style*="rgba(255, 255, 255, 0.05)"] {
+  background-color: rgba(15, 23, 42, 0.04) !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  color: #1e293b !important;
+}
+
+/* Select elements in light mode */
+.light select {
+  background-color: #f1f5f9 !important;
+  border-color: rgba(15, 23, 42, 0.15) !important;
+  color: #0f172a !important;
+}
+
+/* Eyebrow tags with inline color overrides */
+.light .eyebrow[style] {
+  background: rgba(15, 23, 42, 0.06) !important;
+  border-color: rgba(15, 23, 42, 0.14) !important;
+  color: #334155 !important;
+}
+
+/* SVG icons inheriting wrong color inside light mode cards */
+.light .glass-core svg {
+  color: inherit;
+}
+
+/* Inline radial-gradient dark hero sections */
+.light [style*="radial-gradient"][style*="rgba(15,18,26"],
+.light [style*="radial-gradient"][style*="rgba(15, 18, 26"],
+.light [style*="radial-gradient"][style*="rgba(2, 44, 34"],
+.light [style*="radial-gradient"][style*="rgba(5, 5, 8"] {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.03) 0%, rgba(15, 23, 42, 0.06) 100%) !important;
+}
+
+/* Input range sliders in light mode */
+.light input[type="range"] {
+  accent-color: #2563eb;
+}
+
+/* 18. bg-white/XX on light bg → dark tint */
+.light .bg-white\/5,
+.light .bg-white\/10,
+.light .bg-white\/15,
+.light .bg-white\/20,
+.light .bg-white\/\[0\.02\],
+.light .bg-white\/\[0\.03\],
+.light .bg-white\/\[0\.04\],
+.light .bg-white\/\[0\.05\],
+.light .bg-white\/\[0\.08\] {
+  background-color: rgba(15, 23, 42, 0.06) !important;
+}
+
+.light .hover\:bg-white\/20:hover,
+.light .hover\:bg-white\/15:hover,
+.light .hover\:bg-white\/\[0\.08\]:hover {
+  background-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+/* 19. Ring & outline utility in light mode */
+.light .ring-slate-700,
+.light .ring-1.ring-slate-700 {
+  --tw-ring-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+/* 20. Dark inline bg for logo containers on light theme */
+.light [style*="rgba(10, 13, 20, 0.8)"],
+.light [style*="rgba(10, 13, 20, 0.9)"] {
+  background-color: rgba(15, 23, 42, 0.06) !important;
+  border-color: rgba(15, 23, 42, 0.15) !important;
+}
+
+/* 21. Celebration overlay — keep dark since it's a full-screen dramatic overlay */
+.light .fixed.inset-0[style*="radial-gradient"] {
+  /* overlays keep their cinematic dark look */
+}
+
+/* 22. Dark diamond SVG backgrounds — preserve dark for RulesExplainer field */
+.light [style*="radial-gradient(ellipse at 50% 60%, rgba(6, 78, 59"] {
+  background: radial-gradient(ellipse at 50% 60%, rgba(6, 78, 59, 0.25) 0%, rgba(15, 23, 42, 0.08) 60%, rgba(15, 23, 42, 0.04) 100%) !important;
+}
+
+/* 23. Improve tab border-b active indicator visibility in light mode */
+.light .border-b-2.border-red-500 { border-bottom-color: #dc2626 !important; }
+.light .border-b-2.border-blue-500 { border-bottom-color: #2563eb !important; }
+.light .border-b-2.border-emerald-500 { border-bottom-color: #059669 !important; }
+.light .border-b-2.border-amber-500 { border-bottom-color: #d97706 !important; }
+.light .border-b-2.border-cyan-500 { border-bottom-color: #0891b2 !important; }
+.light .border-b-2.border-indigo-500 { border-bottom-color: #4f46e5 !important; }
+.light .border-b-2.border-purple-500 { border-bottom-color: #9333ea !important; }
+
+/* 24. Accent Tailwind text colors → stronger in light mode */
+.light [class*="text-emerald-200"],
+.light [class*="text-emerald-300"],
+.light [class*="text-emerald-400"],
+.light [class*="text-green-300"],
+.light [class*="text-green-400"] {
+  color: #047857 !important;
+}
+
+.light [class*="text-red-200"],
+.light [class*="text-red-300"],
+.light [class*="text-red-400"],
+.light [class*="text-rose-200"],
+.light [class*="text-rose-300"],
+.light [class*="text-rose-400"] {
+  color: #b91c1c !important;
+}
+
+.light [class*="text-amber-100"],
+.light [class*="text-amber-200"],
+.light [class*="text-amber-300"] {
+  color: #92400e !important;
+}
+
+.light [class*="text-amber-400"],
+.light [class*="text-yellow-400"],
+.light [class*="text-yellow-500"] {
+  color: #b45309 !important;
+}
+
+.light [class*="text-blue-100"],
+.light [class*="text-blue-200"],
+.light [class*="text-blue-300"],
+.light [class*="text-blue-400"] {
+  color: #1d4ed8 !important;
+}
+
+.light [class*="text-indigo-300"],
+.light [class*="text-indigo-400"] {
+  color: #4338ca !important;
+}
+
+.light [class*="text-purple-300"],
+.light [class*="text-purple-400"],
+.light [class*="text-violet-300"],
+.light [class*="text-violet-400"] {
+  color: #6d28d9 !important;
+}
+
+.light [class*="text-cyan-200"],
+.light [class*="text-cyan-300"],
+.light [class*="text-cyan-400"] {
+  color: #0e7490 !important;
+}
+
+.light [class*="text-sky-300"],
+.light [class*="text-sky-400"] {
+  color: #0284c7 !important;
+}
+
+/* 25. Fill colors for SVG icons in light */
+.light .fill-amber-400 { fill: #d97706 !important; }
+.light .fill-emerald-400 { fill: #059669 !important; }
+.light .fill-red-400 { fill: #dc2626 !important; }
+.light .fill-current { fill: currentColor !important; }
+
+/* 26. Badge backgrounds with low-opacity accent colors — boost */
+.light .bg-blue-600\/15,
+.light .bg-blue-500\/20 { background-color: rgba(37, 99, 235, 0.12) !important; }
+.light .bg-emerald-500\/15,
+.light .bg-emerald-500\/10 { background-color: rgba(5, 150, 105, 0.12) !important; }
+.light .bg-amber-500\/15,
+.light .bg-amber-500\/10,
+.light .bg-amber-500\/20,
+.light .bg-amber-400\/10,
+.light .bg-amber-400\/20 { background-color: rgba(217, 119, 6, 0.12) !important; }
+.light .bg-red-500\/20,
+.light .bg-red-500\/10 { background-color: rgba(220, 38, 38, 0.1) !important; }
+.light .bg-indigo-500\/10,
+.light .bg-indigo-500\/15 { background-color: rgba(79, 70, 229, 0.1) !important; }
+.light .bg-purple-500\/10 { background-color: rgba(147, 51, 234, 0.1) !important; }
+
+/* 27. Hover text on white-bg elements → dark */
+.light .hover\:text-white:hover {
+  color: #0f172a !important;
+}
+.light .hover\:text-slate-200:hover {
+  color: #1e293b !important;
+}
+.light .hover\:text-amber-300:hover {
+  color: #b45309 !important;
+}
+
+/* 28. Diagram & Canvas SVG contrast for light mode */
+.light svg text:not([fill="#022c22"]):not([fill="#0f172a"]):not([fill="#10b981"]):not([fill="#ef4444"]) {
+  fill: #1e293b;
+}
+
+.light svg path[stroke*="255, 255, 255"],
+.light svg path[stroke*="255,255,255"],
+.light svg line[stroke*="255, 255, 255"],
+.light svg line[stroke*="255,255,255"] {
+  stroke: rgba(15, 23, 42, 0.25) !important;
+}
+
+/* 29. Subtle unspaced text colors in inline styles */
+.light [style*="100, 116, 139"],
+.light [style*="100,116,139"],
+.light [style*="148, 163, 184"],
+.light [style*="148,163,184"],
+.light [style*="203, 213, 225"],
+.light [style*="203,213,225"] {
+  color: #475569 !important;
+}
+
+.light [style*="226, 232, 240"],
+.light [style*="226,232,240"] {
+  color: #1e293b !important;
+}
+
+
 

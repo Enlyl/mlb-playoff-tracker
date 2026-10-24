@@ -20,6 +20,7 @@ import {
   Download,
   Shield,
   Check,
+  TrendingUp,
 } from 'lucide-react';
 import { downloadGameIcs, downloadTeamScheduleIcs } from '../utils/calendarExport';
 
@@ -263,107 +264,262 @@ export const MyTeamTracker: React.FC<MyTeamTrackerProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Streak */}
-        <div className="glass-shell glass-card" style={{ padding: '1px' }}>
-          <div className="glass-core p-4 sm:p-5 rounded-[calc(1.5rem-1px)]">
-            <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono uppercase tracking-wider mb-2">
-              <span>Серия матчей</span>
-              <Flame className={`w-3.5 h-3.5 ${isHotStreak ? 'text-amber-400' : 'text-blue-400'}`} />
+        <div className="glass-shell glass-card h-full" style={{ padding: '1px' }}>
+          <div className="glass-core p-4 sm:p-5 rounded-[calc(1.5rem-1px)] h-full flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono uppercase tracking-wider mb-2">
+                <span>Серия матчей</span>
+                <Flame className={`w-3.5 h-3.5 ${isHotStreak ? 'text-amber-400' : 'text-blue-400'}`} />
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span
+                  className={`text-2xl sm:text-3xl font-black font-mono tabular-nums ${
+                    isHotStreak ? 'text-amber-400' : 'text-blue-400'
+                  }`}
+                >
+                  {streakCode}
+                </span>
+                <span className="text-xs text-slate-300 font-medium">
+                  {isHotStreak ? 'Победная серия' : 'Серия поражений'}
+                </span>
+              </div>
+
+              {/* Segmented Momentum Bar */}
+              {(() => {
+                const streakNum = Math.min(Math.max(parseInt(streakCode.replace(/\D/g, '') || '1', 10), 1), 6);
+                const steps = [1, 2, 3, 4, 5, 6];
+                return (
+                  <div className="flex items-center gap-1.5 mt-2.5">
+                    {steps.map((step) => {
+                      const isActive = step <= streakNum;
+                      return (
+                        <div
+                          key={step}
+                          className="flex-1 h-6 rounded-md flex items-center justify-center font-mono font-black text-[10px] transition-all"
+                          style={{
+                            background: isActive
+                              ? isHotStreak
+                                ? 'rgba(245, 158, 11, 0.9)'
+                                : 'rgba(59, 130, 246, 0.9)'
+                              : 'rgba(255, 255, 255, 0.04)',
+                            color: isActive ? (isHotStreak ? '#0f172a' : '#ffffff') : '#64748b',
+                            boxShadow: isActive
+                              ? isHotStreak
+                                ? '0 0 8px rgba(245, 158, 11, 0.35)'
+                                : '0 0 8px rgba(59, 130, 246, 0.35)'
+                              : 'none',
+                          }}
+                          title={`Матч ${step} в серии`}
+                        >
+                          {step === 6 ? `${step}+` : step}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
-            <div className="flex items-baseline gap-2">
-              <span
-                className={`text-2xl sm:text-3xl font-black font-mono tabular-nums ${
-                  isHotStreak ? 'text-amber-400' : 'text-blue-400'
-                }`}
-              >
-                {streakCode}
-              </span>
-              <span className="text-xs text-slate-300 font-medium">
-                {isHotStreak ? 'Победная серия' : 'Серия поражений'}
-              </span>
-            </div>
-            <p className="text-[10px] text-slate-500 mt-2">
+
+            <p className="text-[10px] text-slate-500 mt-2.5 pt-2 border-t border-white/[0.04]">
               {isHotStreak
-                ? 'Команда на победном ходу в последних играх'
-                : 'Необходимо прервать серию в следующем матче'}
+                ? 'Высокий темп: команда на победном ходу'
+                : 'Спад серии: необходимо прервать в следующей игре'}
             </p>
           </div>
         </div>
 
         {/* Division Rank */}
-        <div className="glass-shell glass-card" style={{ padding: '1px' }}>
-          <div className="glass-core p-4 sm:p-5 rounded-[calc(1.5rem-1px)]">
-            <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono uppercase tracking-wider mb-2">
-              <span>Место в дивизионе</span>
-              <Trophy className="w-3.5 h-3.5 text-emerald-400" />
+        <div className="glass-shell glass-card h-full" style={{ padding: '1px' }}>
+          <div className="glass-core p-4 sm:p-5 rounded-[calc(1.5rem-1px)] h-full flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono uppercase tracking-wider mb-2">
+                <span>Место в дивизионе</span>
+                <Trophy className="w-3.5 h-3.5 text-emerald-400" />
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-black font-mono text-emerald-400 tabular-nums">
+                  #{teamRecord?.divisionRank || '1'}
+                </span>
+                <span className="text-xs text-slate-300 font-medium">
+                  {teamRecord?.divisionRank === '1' ? 'Лидер дивизиона' : 'В зоне плей-офф'}
+                </span>
+              </div>
+
+              {/* 5-Spot Division Rank Bar */}
+              {(() => {
+                const rankNum = parseInt(teamRecord?.divisionRank || '1', 10) || 1;
+                const spots = [1, 2, 3, 4, 5];
+                return (
+                  <div className="flex items-center gap-1.5 mt-2.5">
+                    {spots.map((spot) => {
+                      const isCurrent = spot === rankNum;
+                      const isLeader = spot === 1;
+                      return (
+                        <div
+                          key={spot}
+                          className="flex-1 h-6 rounded-md flex items-center justify-center font-mono font-black text-[10px] transition-all"
+                          style={{
+                            background: isCurrent
+                              ? isLeader
+                                ? 'rgba(16, 185, 129, 0.95)'
+                                : 'rgba(59, 130, 246, 0.95)'
+                              : spot < rankNum
+                              ? 'rgba(255, 255, 255, 0.08)'
+                              : 'rgba(255, 255, 255, 0.03)',
+                            color: isCurrent
+                              ? isLeader
+                                ? '#022c22'
+                                : '#ffffff'
+                              : spot < rankNum
+                              ? '#94a3b8'
+                              : '#475569',
+                            boxShadow: isCurrent
+                              ? isLeader
+                                ? '0 0 10px rgba(16, 185, 129, 0.4)'
+                                : '0 0 10px rgba(59, 130, 246, 0.4)'
+                              : 'none',
+                          }}
+                          title={`Позиция #${spot} в дивизионе`}
+                        >
+                          #{spot}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-black font-mono text-emerald-400 tabular-nums">
-                #{teamRecord?.divisionRank || '1'}
-              </span>
-              <span className="text-xs text-slate-300 font-medium">
-                {teamRecord?.divisionRank === '1' ? 'Лидер дивизиона' : 'В зоне плей-офф'}
-              </span>
-            </div>
-            <p className="text-[10px] text-slate-500 mt-2">
+
+            <p className="text-[10px] text-slate-500 mt-2.5 pt-2 border-t border-white/[0.04]">
               Отрыв / отставание: {teamRecord?.gamesBack || '0'} GB
             </p>
           </div>
         </div>
 
         {/* Run Differential */}
-        <div className="glass-shell glass-card" style={{ padding: '1px' }}>
-          <div className="glass-core p-4 sm:p-5 rounded-[calc(1.5rem-1px)]">
-            <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono uppercase tracking-wider mb-2">
-              <span>Разница ранов (DIFF)</span>
-              <Activity className="w-3.5 h-3.5 text-purple-400" />
+        <div className="glass-shell glass-card h-full" style={{ padding: '1px' }}>
+          <div className="glass-core p-4 sm:p-5 rounded-[calc(1.5rem-1px)] h-full flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono uppercase tracking-wider mb-2">
+                <span>Разница ранов (DIFF)</span>
+                <Activity className="w-3.5 h-3.5 text-purple-400" />
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span
+                  className={`text-2xl sm:text-3xl font-black font-mono tabular-nums ${
+                    (teamRecord?.runDifferential || 0) > 0 ? 'text-emerald-400' : 'text-red-400'
+                  }`}
+                >
+                  {(teamRecord?.runDifferential || 0) > 0 ? '+' : ''}
+                  {teamRecord?.runDifferential || '0'}
+                </span>
+                <span className="text-xs text-slate-400 font-medium">ранов</span>
+              </div>
+
+              {/* Scored vs Allowed Dual Segment Bar */}
+              {(() => {
+                const rs = teamRecord?.runsScored || 0;
+                const ra = teamRecord?.runsAllowed || 0;
+                const total = rs + ra || 1;
+                const rsPct = Math.max(15, Math.min(85, Math.round((rs / total) * 100)));
+                const raPct = 100 - rsPct;
+                return (
+                  <div className="flex items-center gap-1.5 mt-2.5 h-6">
+                    <div
+                      className="h-6 rounded-md flex items-center justify-center font-mono font-black text-[10px] text-emerald-950 shadow-sm transition-all"
+                      style={{
+                        width: `${rsPct}%`,
+                        background: 'rgba(16, 185, 129, 0.95)',
+                        boxShadow: '0 0 8px rgba(16, 185, 129, 0.3)',
+                      }}
+                      title={`Забито: ${rs} (${rsPct}%)`}
+                    >
+                      +{rs} RS
+                    </div>
+                    <div
+                      className="h-6 rounded-md flex items-center justify-center font-mono font-black text-[10px] text-red-950 shadow-sm transition-all"
+                      style={{
+                        width: `${raPct}%`,
+                        background: 'rgba(239, 68, 68, 0.9)',
+                        boxShadow: '0 0 8px rgba(239, 68, 68, 0.25)',
+                      }}
+                      title={`Пропущено: ${ra} (${raPct}%)`}
+                    >
+                      -{ra} RA
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
-            <div className="flex items-baseline gap-2">
-              <span
-                className={`text-2xl sm:text-3xl font-black font-mono tabular-nums ${
-                  (teamRecord?.runDifferential || 0) > 0 ? 'text-emerald-400' : 'text-red-400'
-                }`}
-              >
-                {(teamRecord?.runDifferential || 0) > 0 ? '+' : ''}
-                {teamRecord?.runDifferential || '0'}
-              </span>
-              <span className="text-xs text-slate-400 font-medium">ранов</span>
-            </div>
-            <p className="text-[10px] text-slate-500 mt-2">
+
+            <p className="text-[10px] text-slate-500 mt-2.5 pt-2 border-t border-white/[0.04]">
               Забито: {teamRecord?.runsScored ?? '-'} • Пропущено: {teamRecord?.runsAllowed ?? '-'}
             </p>
           </div>
         </div>
 
         {/* Form Last 10 */}
-        <div className="glass-shell glass-card" style={{ padding: '1px' }}>
-          <div className="glass-core p-4 sm:p-5 rounded-[calc(1.5rem-1px)]">
-            <div className="text-[10px] text-slate-400 font-mono uppercase tracking-wider mb-2">
-              Форма: 10 последних игр
-            </div>
-            <div className="flex items-center gap-1 py-1">
-              {recentGames.map((g, idx) => {
+        <div className="glass-shell glass-card h-full" style={{ padding: '1px' }}>
+          <div className="glass-core p-4 sm:p-5 rounded-[calc(1.5rem-1px)] h-full flex flex-col justify-between">
+            {(() => {
+              const last10 = recentGames.slice(0, 10);
+              const winsCount = last10.filter((g) => {
                 const isAway = g.teams.away.team.id === currentTeam.id;
-                const teamScore = isAway ? g.teams.away.score || 0 : g.teams.home.score || 0;
+                const myScore = isAway ? g.teams.away.score || 0 : g.teams.home.score || 0;
                 const oppScore = isAway ? g.teams.home.score || 0 : g.teams.away.score || 0;
-                const isWin = teamScore > oppScore;
+                return myScore > oppScore;
+              }).length;
+              const lossesCount = last10.length - winsCount;
 
-                return (
-                  <div
-                    key={idx}
-                    title={`${isWin ? 'Победа' : 'Поражение'} ${teamScore}:${oppScore}`}
-                    className="w-5 h-5 rounded flex items-center justify-center font-mono font-bold text-[9px] text-white"
-                    style={{
-                      background: isWin ? 'rgba(16, 185, 129, 0.85)' : 'rgba(239, 68, 68, 0.85)',
-                    }}
-                  >
-                    {isWin ? 'W' : 'L'}
+              return (
+                <>
+                  <div>
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono uppercase tracking-wider mb-2">
+                      <span>Форма: L10</span>
+                      <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                    </div>
+
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl sm:text-3xl font-black font-mono text-white tabular-nums">
+                        {winsCount}-{lossesCount}
+                      </span>
+                      <span className="text-xs text-slate-400 font-medium">в 10 матчах</span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 mt-2.5">
+                      {last10.map((g, idx) => {
+                        const isAway = g.teams.away.team.id === currentTeam.id;
+                        const teamScore = isAway ? g.teams.away.score || 0 : g.teams.home.score || 0;
+                        const oppScore = isAway ? g.teams.home.score || 0 : g.teams.away.score || 0;
+                        const isWin = teamScore > oppScore;
+
+                        return (
+                          <div
+                            key={idx}
+                            title={`${isWin ? 'Победа' : 'Поражение'} ${teamScore}:${oppScore}`}
+                            className="flex-1 h-6 rounded-md flex items-center justify-center font-mono font-black text-[10px] text-white shadow-sm transition-transform hover:scale-110"
+                            style={{
+                              background: isWin ? 'rgba(16, 185, 129, 0.9)' : 'rgba(239, 68, 68, 0.85)',
+                              boxShadow: isWin ? '0 0 8px rgba(16, 185, 129, 0.3)' : '0 0 8px rgba(239, 68, 68, 0.2)',
+                            }}
+                          >
+                            {isWin ? 'W' : 'L'}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-            <p className="text-[10px] text-slate-500 mt-2">
-              W = Победа, L = Поражение
-            </p>
+
+                  <p className="text-[10px] text-slate-500 mt-2.5 pt-2 border-t border-white/[0.04]">
+                    {winsCount >= 7
+                      ? 'Отличный отрезок: высокий темп побед'
+                      : winsCount <= 3
+                      ? 'Спад формы: нужно улучшать игру'
+                      : 'Стабильный результат на дистанции'}
+                  </p>
+                </>
+              );
+            })()}
           </div>
         </div>
 
@@ -383,7 +539,7 @@ export const MyTeamTracker: React.FC<MyTeamTrackerProps> = ({
             </div>
 
             <div className="space-y-1.5 max-h-[380px] overflow-y-auto pr-1">
-              {recentGames.map((g) => {
+              {recentGames.map((g, idx) => {
                 const isAway = g.teams.away.team.id === currentTeam.id;
                 const myScore = isAway ? g.teams.away.score : g.teams.home.score;
                 const oppScore = isAway ? g.teams.home.score : g.teams.away.score;
@@ -391,33 +547,36 @@ export const MyTeamTracker: React.FC<MyTeamTrackerProps> = ({
 
                 return (
                   <div
-                    key={g.gamePk}
+                    key={`${g.gamePk}-${idx}`}
                     onClick={() => onSelectGame(g)}
-                    className="p-2.5 rounded-xl border transition-all duration-200 cursor-pointer flex items-center justify-between hover:bg-white/[0.03]"
-                    style={{ background: 'rgba(255, 255, 255, 0.02)', borderColor: 'rgba(255, 255, 255, 0.05)' }}
+                    className="p-2.5 rounded-xl border border-slate-200 dark:border-white/5 bg-slate-50/80 dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-all duration-200 cursor-pointer flex items-center justify-between shadow-sm"
                   >
                     <div className="flex items-center gap-2.5">
                       <span
-                        className="w-6 h-6 rounded-lg flex items-center justify-center font-bold text-[10px] font-mono text-white"
+                        className="w-6 h-6 rounded-lg flex items-center justify-center font-black text-[10px] font-mono text-white shadow-sm shrink-0"
                         style={{ background: isWin ? '#10b981' : '#ef4444' }}
                       >
                         {isWin ? 'W' : 'L'}
                       </span>
                       <div>
-                        <span className="text-[10px] text-slate-500 font-mono block">
+                        <span className="text-[10px] text-slate-700 dark:text-slate-300 font-mono font-semibold block">
                           {new Date(g.gameDate).toLocaleDateString('ru-RU')}
                         </span>
-                        <div className="font-semibold text-xs text-white">
+                        <div className="font-bold text-xs text-slate-900 dark:text-white">
                           {g.teams.away.team.name} vs {g.teams.home.team.name}
                         </div>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-xs text-white bg-white/[0.04] px-2 py-0.5 rounded tabular-nums">
+                      <span className={`font-mono font-black text-xs px-2.5 py-0.5 rounded-md tabular-nums border ${
+                        isWin
+                          ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 border-emerald-500/30'
+                          : 'text-rose-700 dark:text-rose-300 bg-rose-500/15 border-rose-500/30'
+                      }`}>
                         {g.teams.away.score} : {g.teams.home.score}
                       </span>
-                      <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
+                      <ArrowRight className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                     </div>
                   </div>
                 );
@@ -442,24 +601,23 @@ export const MyTeamTracker: React.FC<MyTeamTrackerProps> = ({
                   Матчи текущей серии завершены. Ожидание расписания следующего раунда.
                 </p>
               ) : (
-                upcomingGames.map((g) => (
+                upcomingGames.map((g, idx) => (
                   <div
-                    key={g.gamePk}
-                    className="p-2.5 rounded-xl border transition-all duration-200 flex items-center justify-between hover:bg-white/[0.03]"
-                    style={{ background: 'rgba(255, 255, 255, 0.02)', borderColor: 'rgba(255, 255, 255, 0.05)' }}
+                    key={`${g.gamePk}-${idx}`}
+                    className="p-2.5 rounded-xl border border-slate-200 dark:border-white/5 bg-slate-50/80 dark:bg-white/[0.03] hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-all duration-200 flex items-center justify-between shadow-sm"
                   >
                     <div
                       onClick={() => onSelectGame(g)}
                       className="cursor-pointer flex-1"
                     >
-                      <span className="text-[10px] text-amber-400 font-mono font-bold block">
+                      <span className="text-[10px] text-amber-600 dark:text-amber-400 font-mono font-bold block">
                         {new Date(g.gameDate).toLocaleDateString('ru-RU', {
                           weekday: 'short',
                           month: 'short',
                           day: 'numeric',
                         })}
                       </span>
-                      <div className="font-semibold text-xs text-white mt-0.5">
+                      <div className="font-bold text-xs text-slate-900 dark:text-white mt-0.5">
                         {g.teams.away.team.name} @ {g.teams.home.team.name}
                       </div>
                     </div>
@@ -471,14 +629,14 @@ export const MyTeamTracker: React.FC<MyTeamTrackerProps> = ({
                           downloadGameIcs(g);
                         }}
                         title="Скачать .ics"
-                        className="p-1 rounded-lg bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06] transition"
+                        className="p-1 rounded-lg bg-blue-500/10 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 hover:bg-blue-500/20 border border-blue-500/20 transition"
                       >
                         <Download className="w-3 h-3" />
                       </button>
 
                       <button
                         onClick={() => onSelectGame(g)}
-                        className="text-[10px] px-2 py-0.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-slate-300 font-mono hover:text-white"
+                        className="text-[10px] px-2.5 py-0.5 rounded-lg bg-blue-500/10 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/25 font-mono font-bold hover:bg-blue-500/25 transition cursor-pointer"
                       >
                         {g.status?.detailedState || 'Анонс'}
                       </button>

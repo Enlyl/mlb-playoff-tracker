@@ -455,7 +455,7 @@ export const TeamProfileModal: React.FC<TeamProfileModalProps> = ({
 
                         return (
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            {upcoming.map((g) => {
+                            {upcoming.map((g, idx) => {
                               const isHome = g.teams.home.team.id === teamId;
                               const oppTeam = isHome ? g.teams.away.team : g.teams.home.team;
                               const countdown = getCountdownText(g.gameDate);
@@ -463,7 +463,7 @@ export const TeamProfileModal: React.FC<TeamProfileModalProps> = ({
 
                               return (
                                 <div
-                                  key={g.gamePk}
+                                  key={`${g.gamePk}-${idx}`}
                                   onClick={() => onSelectGame && onSelectGame(g)}
                                   className="bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800 hover:border-slate-700 p-3.5 rounded-2xl transition cursor-pointer flex flex-col justify-between group shadow-sm"
                                 >
@@ -847,10 +847,10 @@ export const TeamProfileModal: React.FC<TeamProfileModalProps> = ({
                           <button
                             key={s}
                             onClick={() => setGamesSeason(s)}
-                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition ${
+                            className={`px-3 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
                               gamesSeason === s
-                                ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
-                                : 'bg-slate-800 text-slate-400 hover:text-white'
+                                ? 'bg-amber-400/20 text-amber-700 dark:text-amber-300 border border-amber-500/40 shadow-sm'
+                                : 'bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/5'
                             }`}
                           >
                             {s}
@@ -860,7 +860,7 @@ export const TeamProfileModal: React.FC<TeamProfileModalProps> = ({
                     </div>
 
                     <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
-                      {schedule.slice(0, 30).map((g) => {
+                      {schedule.slice(0, 30).map((g, idx) => {
                         const isHome = g.teams.home.team.id === teamId;
                         const myTeamData = isHome ? g.teams.home : g.teams.away;
                         const oppTeamData = isHome ? g.teams.away : g.teams.home;
@@ -869,27 +869,27 @@ export const TeamProfileModal: React.FC<TeamProfileModalProps> = ({
 
                         return (
                           <div
-                            key={g.gamePk}
+                            key={`${g.gamePk}-${idx}`}
                             onClick={() => onSelectGame && onSelectGame(g)}
-                            className="flex items-center justify-between p-3 rounded-xl bg-slate-900/50 hover:bg-slate-800/80 border border-slate-800/80 hover:border-slate-700 cursor-pointer transition"
+                            className="flex items-center justify-between p-3 rounded-xl bg-slate-100/70 dark:bg-slate-900/60 hover:bg-slate-200/70 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800/80 cursor-pointer transition shadow-sm"
                           >
                             <div className="flex items-center gap-3">
                               <span
                                 className={`text-[10px] font-black px-2 py-0.5 rounded ${
                                   !isFinal
-                                    ? 'bg-slate-800 text-slate-400'
+                                    ? 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/25'
                                     : won
-                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                    : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                                    ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30'
+                                    : 'bg-rose-500/20 text-rose-800 dark:text-rose-300 border border-rose-500/30'
                                 }`}
                               >
-                                {!isFinal ? 'ПРЕД' : won ? 'ПОБEDA' : 'ПОРАЖЕНИЕ'}
+                                {!isFinal ? 'ПРЕД' : won ? 'ПОБЕДА' : 'ПОРАЖЕНИЕ'}
                               </span>
                               <div className="text-xs">
-                                <span className="text-slate-400 font-mono text-[11px] mr-2">
+                                <span className="text-slate-700 dark:text-slate-300 font-mono font-semibold text-[11px] mr-2">
                                   {new Date(g.gameDate).toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' })}
                                 </span>
-                                <span className="font-semibold text-white">
+                                <span className="font-bold text-slate-900 dark:text-white">
                                   {isHome ? 'vs' : '@'} {oppTeamData.team.name}
                                 </span>
                               </div>
@@ -897,13 +897,19 @@ export const TeamProfileModal: React.FC<TeamProfileModalProps> = ({
 
                             <div className="flex items-center gap-3">
                               {isFinal ? (
-                                <span className="font-mono font-black text-sm text-white">
+                                <span className={`font-mono font-black text-sm px-2.5 py-0.5 rounded-md tabular-nums border ${
+                                  won
+                                    ? 'text-emerald-800 dark:text-emerald-300 bg-emerald-500/15 border-emerald-500/30'
+                                    : 'text-rose-800 dark:text-rose-300 bg-rose-500/15 border-rose-500/30'
+                                }`}>
                                   {myTeamData.score} : {oppTeamData.score}
                                 </span>
                               ) : (
-                                <span className="text-[11px] text-slate-500 font-medium">Запланирован</span>
+                                <span className="text-[11px] text-blue-700 dark:text-blue-300 font-bold bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+                                  Запланирован
+                                </span>
                               )}
-                              <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                              <ChevronRight className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                             </div>
                           </div>
                         );
