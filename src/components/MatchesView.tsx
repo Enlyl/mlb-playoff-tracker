@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { downloadGameIcs, getGoogleCalendarUrl } from '../utils/calendarExport';
 import { formatKyivGameTime, getCountdownText } from '../utils/dateUtils';
+import { calculateGameExcitement } from '../utils/gameExcitement';
 import { CelebrationOverlay, CelebrationData } from './CelebrationOverlay';
 import { GamePicksWidget } from './GamePicksWidget';
 import { sounds } from '../services/soundEffects';
@@ -203,6 +204,18 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
       setPastLoading(false);
     }
   };
+
+  // Top 3 Must-Watch thriller games based on sabermetric excitement index
+  const topMustWatchGames = React.useMemo(() => {
+    if (!pastGames.length) return [];
+    const scored = pastGames.map((g) => ({
+      game: g,
+      rating: calculateGameExcitement(g),
+    }));
+    // Sort descending by excitement rating score
+    scored.sort((a, b) => b.rating.score - a.rating.score);
+    return scored.slice(0, 3);
+  }, [pastGames]);
 
   const filteredGames = games.filter((g) => {
     if (onlyMyTeam && favoriteTeamId) {
@@ -706,41 +719,169 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
               <div className="glass-core p-10 text-center text-slate-400">Нет данных о прошедших матчах</div>
             </div>
           ) : (
-            <div className="space-y-2">
-              <p className="text-[11px] text-slate-700 dark:text-slate-300 font-mono px-1 font-semibold">
-                Найдено матчей: {pastGames.length} — отсортировано от новых к старым
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                {pastGames.map((game, idx) => {
-                  const isFavGame =
-                    favoriteTeamId &&
-                    (game.teams.away.team.id === favoriteTeamId || game.teams.home.team.id === favoriteTeamId);
-                  const awayScore = game.teams.away.score;
-                  const homeScore = game.teams.home.score;
-                  const awayWon = typeof awayScore === 'number' && typeof homeScore === 'number' && awayScore > homeScore;
-                  const homeWon = typeof awayScore === 'number' && typeof homeScore === 'number' && homeScore > awayScore;
-                  const gameDate = new Date(game.gameDate);
-                  const dateLbl = gameDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
-                  return (
-                    <div
-                      key={`${game.gamePk}-${idx}`}
-                      onClick={() => onSelectGame(game)}
-                      className="cursor-pointer glass-shell glass-card hover:-translate-y-0.5 transition-all duration-200"
-                      style={{
-                        padding: '1px',
-                        borderColor: isFavGame ? 'rgba(245,158,11,0.45)' : undefined,
-                      }}
-                    >
-                      <div className="glass-core p-4 rounded-[calc(1.5rem-1px)] space-y-3">
-                        {/* Date + Series Header */}
-                        <div className="flex items-center justify-between gap-2 text-[10px] font-mono">
-                          <span className="bg-blue-500/10 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/25 px-2.5 py-0.5 rounded-md font-bold tracking-tight">
-                            {dateLbl}
+            <div className="space-y-4">
+              {/* ── TOP 3 MUST-WATCH MATCHES SHOWCASE ── */}
+              {topMustWatchGames.length > 0 && (
+                <div className="rounded-2xl bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-rose-500/10 border border-amber-500/35 p-4 sm:p-5 shadow-xl space-y-3.5">
+                  <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-amber-500/20">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 shadow-xs">
+                        <Flame className="w-5 h-5 text-amber-500 animate-pulse" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm sm:text-base font-black text-slate-950 dark:text-white flex items-center gap-2">
+                          <span>Топ-3 матча, которые стоит посмотреть</span>
+                          <span className="text-[10px] font-mono font-black px-2 py-0.5 rounded-full bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/35 uppercase tracking-wider">
+                            Must-Watch
                           </span>
-                          <span className="truncate max-w-[150px] text-right font-semibold text-slate-900 dark:text-slate-200">
-                            {game.seriesDescription || 'MLB Регулярка'}
-                          </span>
+                        </h3>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                          Саберометрический индекс зрелищности: минимальная разница, экстра-иннинги, перестрелки и драма концовок
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                    {topMustWatchGames.map(({ game, rating }, idx) => {
+                      const awayScore = game.teams.away.score;
+                      const homeScore = game.teams.home.score;
+                      const awayWon = typeof awayScore === 'number' && typeof homeScore === 'number' && awayScore > homeScore;
+                      const homeWon = typeof awayScore === 'number' && typeof homeScore === 'number' && homeScore > awayScore;
+                      const gameDate = new Date(game.gameDate);
+                      const dateLbl = gameDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+
+                      return (
+                        <div
+                          key={`must-watch-${game.gamePk}`}
+                          onClick={() => onSelectGame(game)}
+                          className="group relative cursor-pointer rounded-2xl bg-white/95 dark:bg-slate-900/90 border border-amber-500/40 p-3.5 shadow-md hover:shadow-xl hover:border-amber-400 hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between"
+                        >
+                          {/* Top Rank Badge & Rating */}
+                          <div className="flex items-center justify-between gap-2 mb-2">
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 font-black text-[11px] flex items-center justify-center font-mono shadow-xs">
+                                #{idx + 1}
+                              </span>
+                              <span className="text-[11px] font-black text-slate-900 dark:text-white truncate">
+                                {dateLbl}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 dark:bg-amber-400/15 border border-amber-500/35 text-amber-700 dark:text-amber-300 font-mono text-[11px] font-black">
+                              <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                              <span>{rating.score}</span>
+                              <span className="text-[9px] text-amber-600/70 dark:text-amber-400/70">/10</span>
+                            </div>
+                          </div>
+
+                          {/* Score and Teams */}
+                          <div className="space-y-1.5 py-1">
+                            {/* Away */}
+                            <div className={`flex items-center justify-between p-2 rounded-xl transition ${
+                              awayWon
+                                ? 'bg-emerald-500/15 border border-emerald-500/30'
+                                : 'bg-slate-100 dark:bg-slate-800/60'
+                            }`}>
+                              <div className="flex items-center gap-2 truncate">
+                                <img src={getTeamLogoUrl(game.teams.away.team.id)} alt="" className="w-5 h-5 object-contain shrink-0" />
+                                <span className={`text-xs truncate ${awayWon ? 'font-black text-slate-950 dark:text-white' : 'font-bold text-slate-700 dark:text-slate-300'}`}>
+                                  {game.teams.away.team.name}
+                                </span>
+                              </div>
+                              <span className={`text-sm font-mono font-black ${awayWon ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400'}`}>
+                                {awayScore ?? '—'}
+                              </span>
+                            </div>
+
+                            {/* Home */}
+                            <div className={`flex items-center justify-between p-2 rounded-xl transition ${
+                              homeWon
+                                ? 'bg-emerald-500/15 border border-emerald-500/30'
+                                : 'bg-slate-100 dark:bg-slate-800/60'
+                            }`}>
+                              <div className="flex items-center gap-2 truncate">
+                                <img src={getTeamLogoUrl(game.teams.home.team.id)} alt="" className="w-5 h-5 object-contain shrink-0" />
+                                <span className={`text-xs truncate ${homeWon ? 'font-black text-slate-950 dark:text-white' : 'font-bold text-slate-700 dark:text-slate-300'}`}>
+                                  {game.teams.home.team.name}
+                                </span>
+                              </div>
+                              <span className={`text-sm font-mono font-black ${homeWon ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400'}`}>
+                                {homeScore ?? '—'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Reasons & CTA */}
+                          <div className="mt-2.5 pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-1">
+                            <div className="flex items-center gap-1 flex-wrap">
+                              {rating.badges.map((b, bi) => (
+                                <span
+                                  key={bi}
+                                  className="text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700"
+                                >
+                                  {b}
+                                </span>
+                              ))}
+                            </div>
+                            <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 flex items-center gap-0.5 shrink-0 group-hover:translate-x-0.5 transition-transform">
+                              <span>Обзор</span>
+                              <ChevronRight className="w-3.5 h-3.5" />
+                            </span>
+                          </div>
                         </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* ── ALL PAST GAMES LIST ── */}
+              <div className="space-y-2">
+                <p className="text-[11px] text-slate-700 dark:text-slate-300 font-mono px-1 font-semibold">
+                  Все прошедшие матчи: {pastGames.length} — отсортировано от новых к старым
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                  {pastGames.map((game, idx) => {
+                    const rating = calculateGameExcitement(game);
+                    const isFavGame =
+                      favoriteTeamId &&
+                      (game.teams.away.team.id === favoriteTeamId || game.teams.home.team.id === favoriteTeamId);
+                    const awayScore = game.teams.away.score;
+                    const homeScore = game.teams.home.score;
+                    const awayWon = typeof awayScore === 'number' && typeof homeScore === 'number' && awayScore > homeScore;
+                    const homeWon = typeof awayScore === 'number' && typeof homeScore === 'number' && homeScore > awayScore;
+                    const gameDate = new Date(game.gameDate);
+                    const dateLbl = gameDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+                    return (
+                      <div
+                        key={`${game.gamePk}-${idx}`}
+                        onClick={() => onSelectGame(game)}
+                        className="cursor-pointer glass-shell glass-card hover:-translate-y-0.5 transition-all duration-200"
+                        style={{
+                          padding: '1px',
+                          borderColor: isFavGame ? 'rgba(245,158,11,0.45)' : undefined,
+                        }}
+                      >
+                        <div className="glass-core p-4 rounded-[calc(1.5rem-1px)] space-y-3">
+                          {/* Date + Rating + Series Header */}
+                          <div className="flex items-center justify-between gap-2 text-[10px] font-mono">
+                            <div className="flex items-center gap-1.5">
+                              <span className="bg-blue-500/10 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/25 px-2.5 py-0.5 rounded-md font-bold tracking-tight">
+                                {dateLbl}
+                              </span>
+                              <span
+                                className="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-amber-500/10 dark:bg-amber-400/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 font-bold"
+                                title={`Рейтинг зрелищности матча: ${rating.score}/10 (${rating.label})`}
+                              >
+                                <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
+                                <span>{rating.score}</span>
+                              </span>
+                            </div>
+                            <span className="truncate max-w-[140px] text-right font-semibold text-slate-900 dark:text-slate-200">
+                              {game.seriesDescription || 'MLB Регулярка'}
+                            </span>
+                          </div>
 
                         {/* Teams + Score */}
                         <div className="space-y-2 py-0.5">
@@ -819,6 +960,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                   );
                 })}
               </div>
+            </div>
             </div>
           )}
         </>
