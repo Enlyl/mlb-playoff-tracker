@@ -3,6 +3,8 @@ import {
   MLBGame,
   getSchedule,
   getUpcoming24HoursGames,
+  getUpcoming48HoursGames,
+  getSeasonPastGames,
   getLiveGameFeed,
   getTeamLogoUrl,
   LiveGameFeed,
@@ -54,17 +56,21 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
   const [selectedDate, setSelectedDate] = useState<string>(todayISO);
   const [games, setGames] = useState<MLBGame[]>([]);
   const [upcoming24h, setUpcoming24h] = useState<MLBGame[]>([]);
+  const [upcoming48h, setUpcoming48h] = useState<MLBGame[]>([]);
+  const [pastGames, setPastGames] = useState<MLBGame[]>([]);
+  const [pastLoading, setPastLoading] = useState(false);
+  const [showPastGames, setShowPastGames] = useState(false);
   const [liveHeroGame, setLiveHeroGame] = useState<MLBGame | null>(null);
   const [liveHeroFeed, setLiveHeroFeed] = useState<LiveGameFeed | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [onlyMyTeam, setOnlyMyTeam] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
-    const [celebration, setCelebration] = useState<CelebrationData | null>(null);
+  const [celebration, setCelebration] = useState<CelebrationData | null>(null);
 
   const prevScoreRef = useRef<{ away?: number; home?: number }>({});
   const dateInputRef = useRef<HTMLInputElement>(null);
   const [showDateFallback, setShowDateFallback] = useState(false);
-  const isCustomDate = ![yesterdayISO, todayISO, tomorrowISO, dayAfterISO].includes(selectedDate);
+  const isCustomDate = ![todayISO, tomorrowISO, dayAfterISO].includes(selectedDate) && !showPastGames;
 
   const handleOpenCalendar = () => {
     if (dateInputRef.current) {
@@ -100,7 +106,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
     };
   }, [selectedDate]);
 
-  // 2. Load upcoming 24h games and live game
+  // 2. Load upcoming 24h games, 48h upcoming, and live game
   const refresh24h = async () => {
     try {
       const res = await getUpcoming24HoursGames();
@@ -116,8 +122,19 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
     }
   };
 
+  // Load upcoming 48h games for main page widget
+  const refreshUpcoming48h = async () => {
+    try {
+      const games48 = await getUpcoming48HoursGames();
+      setUpcoming48h(games48);
+    } catch (e) {
+      console.error('Error loading 48h upcoming:', e);
+    }
+  };
+
   useEffect(() => {
     refresh24h();
+    refreshUpcoming48h();
     const interval24 = setInterval(refresh24h, 30000);
     return () => clearInterval(interval24);
   }, []);
@@ -172,6 +189,20 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
       clearInterval(liveInterval);
     };
   }, [liveHeroGame?.gamePk, liveHeroGame?.status?.abstractGameState, favoriteTeamId]);
+
+  // Load past season games lazily when user opens the "Прошедшие" tab
+  const loadPastGames = async () => {
+    if (pastGames.length > 0) return; // already loaded
+    setPastLoading(true);
+    try {
+      const data = await getSeasonPastGames(2026, 600);
+      setPastGames(data);
+    } catch (e) {
+      console.error('Error loading past games:', e);
+    } finally {
+      setPastLoading(false);
+    }
+  };
 
   const filteredGames = games.filter((g) => {
     if (onlyMyTeam && favoriteTeamId) {
@@ -420,7 +451,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════
-          2. UPCOMING IN NEXT 24 HOURS SECTION
+          2. UPCOMING IN NEXT 48 HOURS SECTION (2 days widget on homepage)
          ══════════════════════════════════════════════════════════════════════ */}
       {upcoming24h.length > 0 && (
         <div className="glass-shell glass-card" style={{ padding: '1px' }}>
@@ -431,11 +462,11 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                   <Clock className="w-4 h-4" />
                 </span>
                 <h3 className="text-sm font-black text-white">
-                  Матчи в ближайшие 24 часа ({upcoming24h.length})
+                  Ближайшие матчи — 2 суток ({upcoming24h.length})
                 </h3>
               </div>
               <span className="text-[11px] text-slate-400 font-mono">
-                Живой таймер обратного отсчета
+                Обновляется каждые 30 сек
               </span>
             </div>
 
@@ -523,31 +554,46 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                 </span>
               </div>
               <h2 className="text-display text-white" style={{ fontSize: 'clamp(1.1rem, 3vw, 1.5rem)' }}>
-                Расписание и результаты
+                {showPastGames ? 'Прошедшие матчи сезона' : 'Расписание и результаты'}
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Выбранная дата:{' '}
-                {new Date(selectedDate).toLocaleDateString('ru-RU', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}
+                {showPastGames
+                  ? `Все завершённые матчи MLB 2026 — от новых к старым`
+                  : `Выбранная дата: ${new Date(selectedDate).toLocaleDateString('ru-RU', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}`}
               </p>
             </div>
 
             {/* Dynamic Date Pills + Calendar Picker */}
             <div className="flex flex-wrap items-center gap-2">
+              {/* Прошедшие tab */}
+              <button
+                onClick={() => {
+                  setShowPastGames(true);
+                  loadPastGames();
+                }}
+                className="px-3 py-1.5 rounded-full text-[11px] font-bold transition-all"
+                style={{
+                  background: showPastGames ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.04)',
+                  border: `1px solid ${showPastGames ? 'rgba(139,92,246,0.45)' : 'rgba(255,255,255,0.07)'}`,
+                  color: showPastGames ? '#c4b5fd' : 'rgba(148,163,184,0.8)',
+                }}
+              >
+                📋 Прошедшие
+              </button>
               {[
-                { date: yesterdayISO, label: 'Вчера', short: 'Вчера' },
                 { date: todayISO, label: 'Сегодня', short: 'Сегодня' },
                 { date: tomorrowISO, label: 'Завтра', short: 'Завтра' },
                 { date: dayAfterISO, label: 'Послезавтра', short: 'Послезавтра' },
               ].map(({ date, label }) => {
-                const isSelected = selectedDate === date;
+                const isSelected = !showPastGames && selectedDate === date;
                 return (
                   <button
                     key={date}
-                    onClick={() => setSelectedDate(date)}
+                    onClick={() => { setSelectedDate(date); setShowPastGames(false); }}
                     className="px-3 py-1.5 rounded-full text-[11px] font-bold transition-all"
                     style={{
                       background: isSelected ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.04)',
@@ -569,6 +615,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                   onChange={(e) => {
                     if (e.target.value) {
                       setSelectedDate(e.target.value);
+                      setShowPastGames(false);
                       setShowDateFallback(false);
                     }
                   }}
@@ -639,12 +686,102 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
       {/* ══════════════════════════════════════════════════════════════════════
           4. WHAT TO WATCH WIDGET (SPECTACLE ALGORITHM PICKS)
          ══════════════════════════════════════════════════════════════════════ */}
-      <GamePicksWidget games={games} onSelectGame={onSelectGame} />
+      {!showPastGames && <GamePicksWidget games={games} onSelectGame={onSelectGame} />}
 
       {/* ══════════════════════════════════════════════════════════════════════
-          5. MAIN MATCHES LIST FOR SELECTED DATE
+          5a. PAST SEASON GAMES (when showPastGames is active)
          ══════════════════════════════════════════════════════════════════════ */}
-      {loading ? (
+      {showPastGames && (
+        <>
+          {pastLoading ? (
+            <div className="text-center py-20 text-slate-500 font-medium text-sm flex items-center justify-center gap-2">
+              <RefreshCw className="w-4 h-4 animate-spin text-slate-400" />
+              <span>Загрузка прошедших матчей сезона 2026...</span>
+            </div>
+          ) : pastGames.length === 0 ? (
+            <div className="glass-shell p-[1px]">
+              <div className="glass-core p-10 text-center text-slate-400">Нет данных о прошедших матчах</div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-[11px] text-slate-500 font-mono px-1">
+                Найдено матчей: {pastGames.length} — отсортировано от новых к старым
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                {pastGames.map((game) => {
+                  const isFavGame =
+                    favoriteTeamId &&
+                    (game.teams.away.team.id === favoriteTeamId || game.teams.home.team.id === favoriteTeamId);
+                  const awayScore = game.teams.away.score;
+                  const homeScore = game.teams.home.score;
+                  const awayWon = typeof awayScore === 'number' && typeof homeScore === 'number' && awayScore > homeScore;
+                  const homeWon = typeof awayScore === 'number' && typeof homeScore === 'number' && homeScore > awayScore;
+                  const gameDate = new Date(game.gameDate);
+                  const dateLbl = gameDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+                  return (
+                    <div
+                      key={game.gamePk}
+                      onClick={() => onSelectGame(game)}
+                      className="cursor-pointer glass-shell glass-card hover:-translate-y-0.5 transition-all duration-200"
+                      style={{
+                        padding: '1px',
+                        borderColor: isFavGame ? 'rgba(245,158,11,0.35)' : undefined,
+                      }}
+                    >
+                      <div className="glass-core p-3.5 rounded-[calc(1.5rem-1px)] space-y-2">
+                        {/* Date + Series */}
+                        <div className="flex items-center justify-between text-[10px] font-mono text-slate-500">
+                          <span className="bg-slate-800 px-2 py-0.5 rounded font-bold text-slate-300">{dateLbl}</span>
+                          <span className="truncate max-w-[140px] text-right">{game.seriesDescription || 'MLB 2026'}</span>
+                        </div>
+
+                        {/* Teams + Score */}
+                        <div className="space-y-1.5">
+                          {/* Away */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 truncate">
+                              <img src={getTeamLogoUrl(game.teams.away.team.id)} alt="" className="w-5 h-5 object-contain shrink-0" />
+                              <span className={`text-xs font-bold truncate ${awayWon ? 'text-white' : 'text-slate-400'} ${favoriteTeamId === game.teams.away.team.id ? 'text-amber-300' : ''}`}>
+                                {game.teams.away.team.name}
+                              </span>
+                            </div>
+                            <span className={`font-mono font-black text-base tabular-nums ml-2 ${awayWon ? 'text-white' : 'text-slate-500'}`}>
+                              {awayScore ?? '—'}
+                            </span>
+                          </div>
+                          {/* Home */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 truncate">
+                              <img src={getTeamLogoUrl(game.teams.home.team.id)} alt="" className="w-5 h-5 object-contain shrink-0" />
+                              <span className={`text-xs font-bold truncate ${homeWon ? 'text-white' : 'text-slate-400'} ${favoriteTeamId === game.teams.home.team.id ? 'text-amber-300' : ''}`}>
+                                {game.teams.home.team.name}
+                              </span>
+                            </div>
+                            <span className={`font-mono font-black text-base tabular-nums ml-2 ${homeWon ? 'text-white' : 'text-slate-500'}`}>
+                              {homeScore ?? '—'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Final label */}
+                        <div className="pt-1.5 border-t border-white/5 flex items-center justify-between text-[10px] text-slate-500">
+                          <span className="bg-slate-800 text-slate-300 font-mono font-bold px-1.5 py-0.5 rounded">ФИНАЛ</span>
+                          {isFavGame && <span className="text-amber-400 font-bold flex items-center gap-1"><Star className="w-3 h-3 fill-amber-400" />МОЯ</span>}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          5b. MAIN MATCHES LIST FOR SELECTED DATE
+         ══════════════════════════════════════════════════════════════════════ */}
+      {!showPastGames && (loading ? (
         <div className="text-center py-20 text-slate-500 font-medium text-sm flex items-center justify-center gap-2">
           <RefreshCw className="w-4 h-4 animate-spin text-slate-400" />
           <span>Загрузка матчей на {selectedDate}...</span>
@@ -912,7 +1049,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
             );
           })}
         </div>
-      )}
+      ))}
 
       
     </div>

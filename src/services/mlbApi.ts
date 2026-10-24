@@ -402,15 +402,65 @@ export async function getSchedule(dateStr: string): Promise<MLBGame[]> {
 }
 
 /**
- * Fetch games taking place in the next 24 hours + any currently active Live game
+ * Fetch all past games of the 2026 season (from season start up to yesterday), newest first.
+ * Uses pagination — returns up to 500 most recent games.
+ */
+export async function getSeasonPastGames(season = 2026, limit = 500): Promise<MLBGame[]> {
+  try {
+    const today = new Date();
+    const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+    const isoEnd = yesterday.toISOString().slice(0, 10);
+    const isoStart = `${season}-03-01`;
+
+    const url = `${BASE_URL}/v1/schedule?sportId=1&season=${season}&gameType=R,F,D,L,W&startDate=${isoStart}&endDate=${isoEnd}&hydrate=team,linescore,seriesStatus(useOverride=true)`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+
+    const allGames: MLBGame[] = (data.dates || []).flatMap((d: any) => d.games || []);
+    // Sort newest first
+    allGames.sort((a, b) => new Date(b.gameDate).getTime() - new Date(a.gameDate).getTime());
+    return allGames.slice(0, limit);
+  } catch (err) {
+    console.error('Failed to fetch past season games:', err);
+    return [];
+  }
+}
+
+/**
+ * Fetch upcoming games within next 48 hours (2 days) — for homepage widget
+ */
+export async function getUpcoming48HoursGames(): Promise<MLBGame[]> {
+  try {
+    const now = new Date();
+    const in2days = new Date(now.getTime() + 52 * 60 * 60 * 1000); // 52h to cover full day+2
+    const isoStart = now.toISOString().slice(0, 10);
+    const isoEnd = in2days.toISOString().slice(0, 10);
+
+    const url = `${BASE_URL}/v1/schedule?sportId=1&season=2026&gameType=R,F,D,L,W&startDate=${isoStart}&endDate=${isoEnd}&hydrate=team,linescore,probablePitcher,seriesStatus(useOverride=true)`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    const allGames: MLBGame[] = (data.dates || []).flatMap((d: any) => d.games || []);
+    return allGames.filter((g) => {
+      const gTime = new Date(g.gameDate).getTime();
+      return g.status?.abstractGameState !== 'Final' && gTime >= now.getTime() - 2 * 3600 * 1000;
+    });
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Fetch games in the next 48 hours (2 days) + any currently active Live game
  */
 export async function getUpcoming24HoursGames(): Promise<{ liveGame: MLBGame | null; next24HoursGames: MLBGame[] }> {
   try {
     const now = new Date();
-    const tomorrow = new Date(now.getTime() + 32 * 60 * 60 * 1000);
+    const in48h = new Date(now.getTime() + 52 * 60 * 60 * 1000); // 52h to cover full day+2
     const yesterday = new Date(now.getTime() - 6 * 60 * 60 * 1000);
     const isoStart = yesterday.toISOString().slice(0, 10);
-    const isoEnd = tomorrow.toISOString().slice(0, 10);
+    const isoEnd = in48h.toISOString().slice(0, 10);
 
     const url = `${BASE_URL}/v1/schedule?sportId=1&season=2026&gameType=R,F,D,L,W&startDate=${isoStart}&endDate=${isoEnd}&hydrate=team,linescore,probablePitcher,broadcasts,seriesStatus(useOverride=true)`;
     const res = await fetch(url);
@@ -420,21 +470,21 @@ export async function getUpcoming24HoursGames(): Promise<{ liveGame: MLBGame | n
 
     const live = allGames.find((g) => g.status?.abstractGameState === 'Live') || null;
     const nowMs = now.getTime();
-    const end24h = nowMs + 24 * 60 * 60 * 1000;
+    const end48h = nowMs + 48 * 60 * 60 * 1000;
 
     const upcoming = allGames
       .filter((g) => {
         const gTime = new Date(g.gameDate).getTime();
         return (
           g.status?.abstractGameState !== 'Final' &&
-          (g.status?.abstractGameState === 'Live' || (gTime >= nowMs - 2 * 60 * 60 * 1000 && gTime <= end24h + 4 * 60 * 60 * 1000))
+          (g.status?.abstractGameState === 'Live' || (gTime >= nowMs - 2 * 60 * 60 * 1000 && gTime <= end48h + 4 * 60 * 60 * 1000))
         );
       })
       .sort((a, b) => new Date(a.gameDate).getTime() - new Date(b.gameDate).getTime());
 
     return { liveGame: live, next24HoursGames: upcoming };
   } catch (err) {
-    console.error('Error fetching next 24h games:', err);
+    console.error('Error fetching next 48h games:', err);
     return { liveGame: null, next24HoursGames: [] };
   }
 }
