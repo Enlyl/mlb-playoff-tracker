@@ -421,7 +421,7 @@ export function App() {
           style={{ borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '1.25rem' }}
         >
           <div className="flex items-center gap-2">
-            <img src="/favicon.svg" className="w-3.5 h-3.5 opacity-40" alt="" />
+            <img src={`${import.meta.env.BASE_URL}favicon.svg`} className="w-3.5 h-3.5 opacity-40" alt="" />
             <span>MLB Playoff Tracker • Сезон 2026</span>
           </div>
           <div className="flex items-center gap-4">

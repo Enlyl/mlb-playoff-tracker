@@ -109,7 +109,7 @@ export const Header: React.FC<HeaderProps> = ({
                     boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.1), 0 0 20px rgba(239,68,68,0.2)',
                   }}
                 >
-                  <img src="/favicon.svg" alt="⚾" className="w-5 h-5 object-contain" />
+                  <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="⚾" className="w-5 h-5 object-contain" />
                 </div>
               </div>
 
