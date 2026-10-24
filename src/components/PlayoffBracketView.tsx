@@ -726,6 +726,31 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
                         </div>
                       </div>
                     )}
+
+                    {/* Series In Progress Badge */}
+                    {!championTeam && slots.ws && !slots.ws.isOver && (
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[116px] sm:w-[126px] p-2 rounded-xl bg-amber-500/15 dark:bg-amber-400/10 border border-amber-500/40 text-center shadow-lg backdrop-blur-md">
+                        <div className="flex items-center justify-center gap-1.5 mb-0.5">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" />
+                          </span>
+                          <span className="text-[8px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                            {slots.ws.playedGames > 0 ? 'Финал идёт' : 'Старт серии'}
+                          </span>
+                        </div>
+                        {slots.ws.playedGames > 0 && (
+                          <div className="text-[11px] font-mono font-black text-slate-900 dark:text-white">
+                            {slots.ws.awayWins} : {slots.ws.homeWins}
+                          </div>
+                        )}
+                        <div className="text-[8px] font-mono text-slate-600 dark:text-slate-400 mt-0.5">
+                          {slots.ws.playedGames > 0
+                            ? `До 4 побед • Игра ${slots.ws.playedGames + 1}`
+                            : 'Серия до 4 побед'}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* 8. CONNECTOR: WORLD SERIES -> NLCS (Gap 4: 20px) */}
@@ -857,6 +882,44 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
                       Финал года • Серия до 4 побед
                     </p>
                   </div>
+
+                  {/* Mobile: Series in progress banner */}
+                  {slots.ws && !slots.ws.isOver && (
+                    <div className="w-full max-w-[220px] px-3 py-2 rounded-xl bg-amber-500/15 dark:bg-amber-400/10 border border-amber-500/40 shadow-lg backdrop-blur-md">
+                      <div className="flex items-center justify-center gap-2 mb-1">
+                        <span className="relative flex h-2.5 w-2.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500" />
+                        </span>
+                        <span className="text-[10px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                          {slots.ws.playedGames > 0 ? 'Серия продолжается' : 'Финалисты определены'}
+                        </span>
+                      </div>
+                      {slots.ws.playedGames > 0 && (
+                        <div className="text-sm font-mono font-black text-slate-900 dark:text-white text-center">
+                          {slots.ws.awayTeam.name} {slots.ws.awayWins} : {slots.ws.homeWins} {slots.ws.homeTeam.name}
+                        </div>
+                      )}
+                      <div className="text-[9px] font-mono text-slate-600 dark:text-slate-400 text-center mt-0.5">
+                        {slots.ws.playedGames > 0
+                          ? `Игра ${slots.ws.playedGames + 1} впереди`
+                          : 'Ожидание первой игры'}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Mobile: Champion banner */}
+                  {championTeam && (
+                    <div className="w-full max-w-[220px] px-3 py-2 rounded-xl bg-amber-400/20 border border-amber-400/40 text-center shadow-lg">
+                      <div className="text-amber-600 dark:text-amber-300 font-black text-[10px] uppercase">
+                        🏆 ЧЕМПИОН {season}!
+                      </div>
+                      <div className="text-slate-900 dark:text-white font-extrabold text-sm truncate">
+                        {championTeam.name}
+                      </div>
+                    </div>
+                  )}
+
                   {renderCard(slots.ws, 'ws')}
                 </div>
               )}

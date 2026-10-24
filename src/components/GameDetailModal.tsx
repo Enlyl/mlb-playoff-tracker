@@ -27,6 +27,8 @@ import {
   Crosshair,
   ArrowLeft,
   Home,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import {
   MLBGame,
@@ -43,6 +45,7 @@ import { WinProbabilityChart } from './WinProbabilityChart';
 import { sounds } from '../services/soundEffects';
 import { notifications } from '../services/notifications';
 import { downloadGameIcs, getGoogleCalendarUrl } from '../utils/calendarExport';
+import { translateBaseballPlay, fetchOnlineTranslation, translatePitchType } from '../utils/baseballTranslator';
 import { Match3DReplay } from './Match3DReplay';
 import { CelebrationOverlay, CelebrationData } from './CelebrationOverlay';
 import { StrikeZoneWidget } from './StrikeZoneWidget';
@@ -96,6 +99,21 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
   const [translations, setTranslations] = useState<Record<string, string>>({});
 
   const prevScoreRef = useRef<{ away?: number; home?: number }>({});
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+
+  const scrollTabs = (direction: 'left' | 'right') => {
+    if (tabsContainerRef.current) {
+      const scrollAmount = 260;
+      tabsContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      });
+    }
+  };
+
+  const isGameLive = game.status?.abstractGameState === 'Live';
+  const isGameFinal = game.status?.abstractGameState === 'Final';
+  const isGamePreview = !isGameLive && !isGameFinal;
 
 
   // Initial load of live feed and win probability
@@ -316,7 +334,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
         } else {
           setIsSimulating(false);
         }
-      }, Math.round(2200 / simSpeed));
+      }, Math.round((allPlays[simPlayIndex + 1]?.result?.eventType === 'home_run' || allPlays[simPlayIndex + 1]?.result?.rbi ? 4500 : 3500) / simSpeed));
     }
     return () => clearTimeout(timer);
   }, [isSimulating, simPlayIndex, allPlays, game, isFavoriteTeam, simSpeed]);
@@ -391,40 +409,37 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
     return isHr || isBigRbi || isLateInningTie;
   });
 
-  // Free Google Translate (no API key needed)
-  async function translateText(text: string): Promise<string> {
-    if (!text) return text;
-    try {
-      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(text)}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      const translated = (data[0] as [string, string][]).map((seg) => seg[0]).join('');
-      return translated || text;
-    } catch {
-      return text;
-    }
-  }
-
-  // Batch-translate visible plays when translate is on
+  // Asynchronous background translation enhancer (Google / MyMemory)
   React.useEffect(() => {
     if (!translateEnabled || allPlays.length === 0) return;
-    const visiblePlays = allPlays.slice(0, simPlayIndex + 1);
-    const untranslated = visiblePlays.filter(
-      (p) => p.result?.description && !translations[p.result.description]
-    );
+
+    const candidatePlays = allPlays.slice(0, simPlayIndex + 1);
+    const ordered = playSortAsc ? candidatePlays : [...candidatePlays].reverse();
+    const untranslated = ordered
+      .map((p) => p.result?.description || '')
+      .filter((desc) => desc && !/[а-яё]/i.test(desc) && !translations[desc]);
+
     if (untranslated.length === 0) return;
-    const translateBatch = async () => {
-      for (const play of untranslated.slice(0, 25)) {
-        const orig = play.result?.description || '';
-        if (!orig || translations[orig]) continue;
-        const t = await translateText(orig);
-        setTranslations((prev) => ({ ...prev, [orig]: t }));
-        await new Promise((r) => setTimeout(r, 100));
+
+    let isCancelled = false;
+    const runBatch = async () => {
+      // Process in small batches with priority to on-screen items
+      for (const text of untranslated.slice(0, 30)) {
+        if (isCancelled) break;
+        const online = await fetchOnlineTranslation(text);
+        if (isCancelled) break;
+        if (online && online !== text) {
+          setTranslations((prev) => ({ ...prev, [text]: online }));
+        }
+        await new Promise((r) => setTimeout(r, 60));
       }
     };
-    translateBatch();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [translateEnabled, simPlayIndex, allPlays.length]);
+    runBatch();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [translateEnabled, simPlayIndex, playSortAsc, allPlays.length]);
 
   return (
     <>
@@ -461,29 +476,33 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Live simulation toggle button */}
-            <button
-              onClick={() => {
-                if (!isSimulating && simPlayIndex >= allPlays.length - 1) {
-                  setSimPlayIndex(0);
-                }
-                setIsSimulating(!isSimulating);
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all shadow-md active:scale-95"
-              style={{
-                background: isSimulating
-                  ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
-                  : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                color: '#fff',
-                boxShadow: isSimulating
-                  ? '0 4px 16px rgba(245, 158, 11, 0.35)'
-                  : '0 4px 16px rgba(16, 185, 129, 0.35)',
-              }}
-            >
-              {isSimulating ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-              <span>{isSimulating ? 'Пауза' : 'Симуляция'}</span>
-            </button>
-            {isDemoMode && (
+            {/* Live simulation toggle button — hidden for scheduled (Preview) games */}
+            {!isGamePreview && (
+              <button
+                onClick={() => {
+                  if (!isSimulating && simPlayIndex >= allPlays.length - 1) {
+                    setSimPlayIndex(0);
+                  }
+                  setIsSimulating(!isSimulating);
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all shadow-md active:scale-95 ${
+                  isSimulating ? 'animate-pulse ring-2 ring-amber-400/50' : ''
+                }`}
+                style={{
+                  background: isSimulating
+                    ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
+                    : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  color: '#fff',
+                  boxShadow: isSimulating
+                    ? '0 4px 20px rgba(245, 158, 11, 0.45)'
+                    : '0 4px 16px rgba(16, 185, 129, 0.35)',
+                }}
+              >
+                {isSimulating ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                <span>{isSimulating ? 'Пауза' : 'Симуляция'}</span>
+              </button>
+            )}
+            {isDemoMode && !isGamePreview && (
               <span
                 className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono uppercase tracking-wider"
                 style={{
@@ -496,12 +515,24 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                 DEMO
               </span>
             )}
+            {isGamePreview && (
+              <span
+                className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono uppercase tracking-wider"
+                style={{
+                  background: 'rgba(100, 116, 139, 0.15)',
+                  border: '1px solid rgba(100, 116, 139, 0.35)',
+                  color: '#94a3b8',
+                }}
+              >
+                ОЖИДАНИЕ
+              </span>
+            )}
 
             {/* Calendar Export */}
             <button
               onClick={() => downloadGameIcs(game)}
               title="Скачать .ics для календаря"
-              className="p-1.5 rounded-full bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.08] transition"
+              className="card-action-btn p-1.5"
             >
               <Download className="w-3.5 h-3.5" />
             </button>
@@ -511,7 +542,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
               target="_blank"
               rel="noopener noreferrer"
               title="Добавить в Google Календарь"
-              className="p-1.5 rounded-full bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.08] transition"
+              className="card-action-btn p-1.5"
             >
               <Calendar className="w-3.5 h-3.5" />
             </a>
@@ -537,7 +568,9 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
           const isHomeFav = Boolean(favoriteTeamId && game.teams.home.team.id === favoriteTeamId);
 
           return (
-            <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 px-4 sm:px-8 py-5 border-b border-slate-800">
+            <div className={`bg-slate-50 dark:bg-gradient-to-r dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 px-4 sm:px-8 py-5 border-b border-slate-200 dark:border-slate-800 transition-all duration-500 ${
+              isSimulating ? 'ring-1 ring-amber-400/40 sim-active-glow' : ''
+            }`}>
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                 
                 {/* Away Team */}
@@ -554,7 +587,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className={`font-black text-lg sm:text-xl leading-tight ${isAwayFav ? 'text-amber-300' : 'text-white'}`}>
+                        <h3 className={`font-black text-lg sm:text-xl leading-tight ${isAwayFav ? 'text-amber-600 dark:text-amber-300' : 'text-slate-950 dark:text-white'}`}>
                           {game.teams.away.team.name}
                         </h3>
                         {isAwayFav && (
@@ -564,7 +597,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-400 font-mono">
+                      <p className="text-xs text-slate-600 dark:text-slate-400 font-mono">
                         {game.teams.away.leagueRecord
                           ? `${game.teams.away.leagueRecord.wins}-${game.teams.away.leagueRecord.losses}`
                           : 'Гости'}
@@ -576,7 +609,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                   <div
                     key={`away-${animatedScoreKey}`}
                     className={`text-3xl sm:text-5xl font-black font-mono animate-score-change sm:ml-auto ${
-                      isAwayFav ? 'text-amber-300' : 'text-white'
+                      isAwayFav ? 'text-amber-600 dark:text-amber-300' : 'text-slate-950 dark:text-white'
                     }`}
                   >
                     {currentAwayScore}
@@ -584,14 +617,14 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                 </div>
 
                 {/* Inning / Game Status Center Box */}
-                <div className="md:col-span-2 text-center py-2 px-3 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col items-center justify-center">
-                  <span className="text-xs text-red-400 font-bold uppercase tracking-wider">
+                <div className="md:col-span-2 text-center py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center">
+                  <span className="text-xs text-red-500 dark:text-red-400 font-bold uppercase tracking-wider">
                     {isTopInning ? '▲ Верх' : '▼ Низ'} {currentInning} иннинга
                   </span>
-                  <div className="text-xs font-semibold text-slate-400 mt-1">
+                  <div className="text-xs font-semibold text-slate-700 dark:text-slate-400 mt-1">
                     {currentOuts} {currentOuts === 1 ? 'аут' : currentOuts === 2 ? 'аута' : 'аутов'}
                   </div>
-                  <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                  <div className="text-[10px] text-slate-600 dark:text-slate-400 font-mono mt-0.5">
                     Счет: {currentBalls}B - {currentStrikes}S
                   </div>
                 </div>
@@ -604,7 +637,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                   <div
                     key={`home-${animatedScoreKey}`}
                     className={`text-3xl sm:text-5xl font-black font-mono animate-score-change sm:mr-auto ${
-                      isHomeFav ? 'text-amber-300' : 'text-white'
+                      isHomeFav ? 'text-amber-600 dark:text-amber-300' : 'text-slate-950 dark:text-white'
                     }`}
                   >
                     {currentHomeScore}
@@ -619,11 +652,11 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                             МОЯ
                           </span>
                         )}
-                        <h3 className={`font-black text-lg sm:text-xl leading-tight ${isHomeFav ? 'text-amber-300' : 'text-white'}`}>
+                        <h3 className={`font-black text-lg sm:text-xl leading-tight ${isHomeFav ? 'text-amber-600 dark:text-amber-300' : 'text-slate-950 dark:text-white'}`}>
                           {game.teams.home.team.name}
                         </h3>
                       </div>
-                      <p className="text-xs text-slate-400 font-mono">
+                      <p className="text-xs text-slate-600 dark:text-slate-400 font-mono">
                         {game.teams.home.leagueRecord
                           ? `${game.teams.home.leagueRecord.wins}-${game.teams.home.leagueRecord.losses}`
                           : 'Хозяева'}
@@ -713,128 +746,159 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
         })()}
 
         {/* Navigation Tabs */}
-        <div className="bg-slate-950 px-4 sm:px-6 border-b border-slate-800 flex items-center gap-1 overflow-x-auto scrollbar-none whitespace-nowrap">
+        <div className="relative bg-slate-100 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 px-2 sm:px-4 flex items-center gap-1.5 py-1">
+          {/* Scroll Left Button */}
           <button
-            onClick={() => setActiveTab('live')}
-            className={`py-3 px-3 text-xs font-bold border-b-2 flex items-center gap-1.5 transition shrink-0 ${
-              activeTab === 'live'
-                ? 'border-red-500 text-white'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
+            onClick={() => scrollTabs('left')}
+            className="p-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 shadow-sm transition shrink-0 z-20 cursor-pointer active:scale-95"
+            title="Прокрутить вкладки влево"
           >
-            <Radio className="w-3.5 h-3.5 text-red-500" />
-            <span>Live & Розыгрыши</span>
+            <ChevronLeft className="w-4 h-4" />
           </button>
 
-          <button
-            onClick={() => setActiveTab('replay3d')}
-            className={`py-3 px-3 text-xs font-bold border-b-2 flex items-center gap-1.5 transition shrink-0 ${
-              activeTab === 'replay3d'
-                ? 'border-emerald-500 text-white shadow-[0_0_12px_rgba(16,185,129,0.3)]'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
+          {/* Scrollable Tabs Track */}
+          <div
+            ref={tabsContainerRef}
+            onWheel={(e) => {
+              if (e.deltaY !== 0 && tabsContainerRef.current) {
+                tabsContainerRef.current.scrollLeft += e.deltaY;
+              }
+            }}
+            className="tabs-scroll-track px-1 py-1.5 flex items-center gap-2 overflow-x-auto whitespace-nowrap scroll-smooth flex-1"
           >
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-            <span>3D Повтор матча</span>
-            <span className="px-1 py-0.2 rounded text-[9px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-              3D
-            </span>
-          </button>
+            <button
+              onClick={() => setActiveTab('live')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shrink-0 cursor-pointer select-none active:scale-95 ${
+                activeTab === 'live'
+                  ? 'bg-red-600 text-white shadow-md shadow-red-600/30 ring-2 ring-red-400 scale-[1.02]'
+                  : 'bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 dark:bg-slate-900/90 dark:hover:bg-slate-800 dark:text-slate-200 dark:border-slate-700/80 shadow-xs'
+              }`}
+            >
+              <Radio className={`w-3.5 h-3.5 ${activeTab === 'live' ? 'text-white' : 'text-red-500'}`} />
+              <span>Live & Розыгрыши</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('boxscore')}
-            className={`py-3 px-3 text-xs font-bold border-b-2 flex items-center gap-1.5 transition shrink-0 ${
-              activeTab === 'boxscore'
-                ? 'border-blue-500 text-white'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Table className="w-3.5 h-3.5 text-blue-400" />
-            <span>Бокс-скор</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('replay3d')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shrink-0 cursor-pointer select-none active:scale-95 ${
+                activeTab === 'replay3d'
+                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30 ring-2 ring-emerald-400 scale-[1.02]'
+                  : 'bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 dark:bg-slate-900/90 dark:hover:bg-slate-800 dark:text-slate-200 dark:border-slate-700/80 shadow-xs'
+              }`}
+            >
+              <Sparkles className={`w-3.5 h-3.5 ${activeTab === 'replay3d' ? 'text-white' : 'text-emerald-500'}`} />
+              <span>3D Повтор</span>
+              <span className={`px-1 py-0.2 rounded text-[9px] font-black ${
+                activeTab === 'replay3d' ? 'bg-white/20 text-white' : 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30'
+              }`}>
+                3D
+              </span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('strikezone')}
-            className={`py-3 px-3 text-xs font-bold border-b-2 flex items-center gap-1.5 transition shrink-0 ${
-              activeTab === 'strikezone'
-                ? 'border-amber-500 text-white'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Target className="w-3.5 h-3.5 text-amber-400" />
-            <span>Зона страйка</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('boxscore')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shrink-0 cursor-pointer select-none active:scale-95 ${
+                activeTab === 'boxscore'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 ring-2 ring-blue-400 scale-[1.02]'
+                  : 'bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 dark:bg-slate-900/90 dark:hover:bg-slate-800 dark:text-slate-200 dark:border-slate-700/80 shadow-xs'
+              }`}
+            >
+              <Table className={`w-3.5 h-3.5 ${activeTab === 'boxscore' ? 'text-white' : 'text-blue-500'}`} />
+              <span>Бокс-скор</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('spraychart')}
-            className={`py-3 px-3 text-xs font-bold border-b-2 flex items-center gap-1.5 transition shrink-0 ${
-              activeTab === 'spraychart'
-                ? 'border-emerald-500 text-white'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Crosshair className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Спрей-чарт</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('strikezone')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shrink-0 cursor-pointer select-none active:scale-95 ${
+                activeTab === 'strikezone'
+                  ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30 ring-2 ring-amber-400 scale-[1.02]'
+                  : 'bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 dark:bg-slate-900/90 dark:hover:bg-slate-800 dark:text-slate-200 dark:border-slate-700/80 shadow-xs'
+              }`}
+            >
+              <Target className={`w-3.5 h-3.5 ${activeTab === 'strikezone' ? 'text-white' : 'text-amber-500'}`} />
+              <span>Страйк-зона</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('highlights')}
-            className={`py-3 px-3 text-xs font-bold border-b-2 flex items-center gap-1.5 transition shrink-0 ${
-              activeTab === 'highlights'
-                ? 'border-cyan-500 text-white'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Film className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Видео-хайлайты</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('spraychart')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shrink-0 cursor-pointer select-none active:scale-95 ${
+                activeTab === 'spraychart'
+                  ? 'bg-teal-600 text-white shadow-md shadow-teal-600/30 ring-2 ring-teal-400 scale-[1.02]'
+                  : 'bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 dark:bg-slate-900/90 dark:hover:bg-slate-800 dark:text-slate-200 dark:border-slate-700/80 shadow-xs'
+              }`}
+            >
+              <Crosshair className={`w-3.5 h-3.5 ${activeTab === 'spraychart' ? 'text-white' : 'text-teal-500'}`} />
+              <span>Спрей-чарт</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('venue')}
-            className={`py-3 px-3 text-xs font-bold border-b-2 flex items-center gap-1.5 transition shrink-0 ${
-              activeTab === 'venue'
-                ? 'border-indigo-500 text-white'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Compass className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Стадион</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('highlights')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shrink-0 cursor-pointer select-none active:scale-95 ${
+                activeTab === 'highlights'
+                  ? 'bg-cyan-600 text-white shadow-md shadow-cyan-600/30 ring-2 ring-cyan-400 scale-[1.02]'
+                  : 'bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 dark:bg-slate-900/90 dark:hover:bg-slate-800 dark:text-slate-200 dark:border-slate-700/80 shadow-xs'
+              }`}
+            >
+              <Film className={`w-3.5 h-3.5 ${activeTab === 'highlights' ? 'text-white' : 'text-cyan-500'}`} />
+              <span>Хайлайты</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('winprob')}
-            className={`py-3 px-3 text-xs font-bold border-b-2 flex items-center gap-1.5 transition shrink-0 ${
-              activeTab === 'winprob'
-                ? 'border-emerald-500 text-white'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <TrendingUp className="w-3.5 h-3.5" />
-            <span>Вероятность победы</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('venue')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shrink-0 cursor-pointer select-none active:scale-95 ${
+                activeTab === 'venue'
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 ring-2 ring-indigo-400 scale-[1.02]'
+                  : 'bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 dark:bg-slate-900/90 dark:hover:bg-slate-800 dark:text-slate-200 dark:border-slate-700/80 shadow-xs'
+              }`}
+            >
+              <Compass className={`w-3.5 h-3.5 ${activeTab === 'venue' ? 'text-white' : 'text-indigo-500'}`} />
+              <span>Стадион</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('lineups')}
-            className={`py-3 px-3 text-xs font-bold border-b-2 flex items-center gap-1.5 transition shrink-0 ${
-              activeTab === 'lineups'
-                ? 'border-blue-500 text-white'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Users className="w-3.5 h-3.5" />
-            <span>Составы</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('winprob')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shrink-0 cursor-pointer select-none active:scale-95 ${
+                activeTab === 'winprob'
+                  ? 'bg-emerald-700 text-white shadow-md shadow-emerald-700/30 ring-2 ring-emerald-500 scale-[1.02]'
+                  : 'bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 dark:bg-slate-900/90 dark:hover:bg-slate-800 dark:text-slate-200 dark:border-slate-700/80 shadow-xs'
+              }`}
+            >
+              <TrendingUp className={`w-3.5 h-3.5 ${activeTab === 'winprob' ? 'text-white' : 'text-emerald-500'}`} />
+              <span>Win Prob</span>
+            </button>
 
+            <button
+              onClick={() => setActiveTab('lineups')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shrink-0 cursor-pointer select-none active:scale-95 ${
+                activeTab === 'lineups'
+                  ? 'bg-violet-600 text-white shadow-md shadow-violet-600/30 ring-2 ring-violet-400 scale-[1.02]'
+                  : 'bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 dark:bg-slate-900/90 dark:hover:bg-slate-800 dark:text-slate-200 dark:border-slate-700/80 shadow-xs'
+              }`}
+            >
+              <Users className={`w-3.5 h-3.5 ${activeTab === 'lineups' ? 'text-white' : 'text-violet-500'}`} />
+              <span>Составы</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('h2h')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shrink-0 cursor-pointer select-none active:scale-95 ${
+                activeTab === 'h2h'
+                  ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30 ring-2 ring-purple-400 scale-[1.02]'
+                  : 'bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 dark:bg-slate-900/90 dark:hover:bg-slate-800 dark:text-slate-200 dark:border-slate-700/80 shadow-xs'
+              }`}
+            >
+              <History className={`w-3.5 h-3.5 ${activeTab === 'h2h' ? 'text-white' : 'text-purple-500'}`} />
+              <span>H2H ({h2hGames.length})</span>
+            </button>
+          </div>
+
+          {/* Scroll Right Button */}
           <button
-            onClick={() => setActiveTab('h2h')}
-            className={`py-3 px-3 text-xs font-bold border-b-2 flex items-center gap-1.5 transition shrink-0 ${
-              activeTab === 'h2h'
-                ? 'border-purple-500 text-white'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
-            }`}
+            onClick={() => scrollTabs('right')}
+            className="p-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 shadow-sm transition shrink-0 z-20 cursor-pointer active:scale-95"
+            title="Прокрутить вкладки вправо"
           >
-            <History className="w-3.5 h-3.5" />
-            <span>H2H ({h2hGames.length})</span>
+            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
 
@@ -1025,8 +1089,8 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                   </div>
                 </div>
 
-                {/* Simulation Scrubber & Controls */}
-                {allPlays.length > 0 && (
+                {/* Simulation Scrubber & Controls — hidden for Preview games */}
+                {allPlays.length > 0 && !isGamePreview && (
                   <div className="space-y-3 pt-3 border-t border-slate-800">
                     <div className="flex items-center justify-between text-xs text-slate-300">
                       <span className="font-bold flex items-center gap-1.5">
@@ -1097,12 +1161,17 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                           }
                           setIsSimulating(!isSimulating);
                         }}
-                        className="px-3 py-1.5 rounded-lg font-bold text-xs transition flex items-center gap-1.5 shadow-md"
+                        className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all flex items-center gap-1.5 shadow-md ${
+                          isSimulating ? 'animate-pulse ring-2 ring-amber-400/50' : ''
+                        }`}
                         style={{
                           background: isSimulating
                             ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
                             : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                           color: '#fff',
+                          boxShadow: isSimulating
+                            ? '0 4px 20px rgba(245, 158, 11, 0.45)'
+                            : undefined,
                         }}
                       >
                         {isSimulating ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
@@ -1137,7 +1206,9 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
               </div>
 
               {/* Right Column: Live Play-by-Play Text Feed (7 cols) */}
-              <div className="lg:col-span-7 bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3">
+              <div className={`lg:col-span-7 bg-slate-950 border rounded-xl p-4 space-y-3 transition-all duration-500 ${
+                isSimulating ? 'border-amber-500/30 sim-active-glow' : 'border-slate-800'
+              }`}>
                 <div className="flex items-center justify-between border-b border-slate-800 pb-2 gap-2 flex-wrap">
                   <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                     <Radio className="w-3.5 h-3.5 text-red-500" />
@@ -1151,84 +1222,82 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                         setBeginnerMode(next);
                         localStorage.setItem('mlb_beginner_mode', next ? '1' : '0');
                       }}
-                      className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[10.5px] font-bold transition-all ${
-                        beginnerMode
-                          ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
-                          : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:text-white'
+                      className={`pbp-control-btn ${
+                        beginnerMode ? 'active-amber' : 'inactive'
                       }`}
                       title="Включить пояснения бейсбольных терминов для новичков"
                     >
-                      <GraduationCap className="w-3.5 h-3.5" />
+                      <GraduationCap className="w-3.5 h-3.5 shrink-0" />
                       <span>🎓 Новичкам</span>
                     </button>
 
                     {/* Sort Order toggle */}
                     <button
                       onClick={() => setPlaySortAsc((v) => !v)}
-                      className="flex items-center gap-1 px-2 py-1 rounded-lg border border-slate-700 bg-slate-800/80 text-slate-300 text-[10.5px] font-bold hover:text-white transition-all"
+                      className={`pbp-control-btn ${
+                        !playSortAsc ? 'active-indigo' : 'inactive'
+                      }`}
                       title="Переключить порядок розыгрышей"
                     >
-                      <ArrowUpDown className="w-3 h-3 text-slate-400" />
+                      <ArrowUpDown className="w-3 h-3 shrink-0" />
                       <span>{playSortAsc ? 'По порядку' : 'Свежие сверху'}</span>
                     </button>
 
                     {/* Translate toggle */}
                     <button
                       onClick={() => setTranslateEnabled((v) => !v)}
-                      className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[10.5px] font-bold transition-all ${
-                        translateEnabled
-                          ? 'bg-blue-600/20 border-blue-500/50 text-blue-300'
-                          : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:text-white'
+                      className={`pbp-control-btn ${
+                        translateEnabled ? 'active-blue' : 'inactive'
                       }`}
                       title="Переключить язык трансляции: EN / RU (Google Translate)"
                     >
-                      {translateEnabled ? '🇷🇺 RU' : '🇺🇸 EN'}
+                      <span>{translateEnabled ? '🇷🇺 RU' : '🇺🇸 EN'}</span>
                     </button>
                   </div>
                 </div>
 
                 {/* Filter Chips Bar */}
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-                  <span className="text-[11px] text-slate-500 flex items-center gap-1 shrink-0">
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold flex items-center gap-1 shrink-0">
                     <Filter className="w-3 h-3" />
                     Фильтр:
                   </span>
                   <button
                     onClick={() => setPlayFilter('all')}
-                    className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all shrink-0 ${
+                    className={`pbp-filter-chip ${
                       playFilter === 'all'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white/5 text-slate-400 hover:text-white'
+                        ? 'bg-blue-600 text-white border-blue-500 shadow-xs'
+                        : 'inactive'
                     }`}
                   >
                     Все ({allPlays.length})
                   </button>
                   <button
                     onClick={() => setPlayFilter('scoring')}
-                    className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all shrink-0 ${
+                    className={`pbp-filter-chip ${
                       playFilter === 'scoring'
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-white/5 text-slate-400 hover:text-white'
+                        ? 'bg-emerald-600 text-white border-emerald-500 shadow-xs'
+                        : 'inactive'
                     }`}
                   >
                     Очки / RBI
                   </button>
                   <button
                     onClick={() => setPlayFilter('hr')}
-                    className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all shrink-0 ${
+                    className={`pbp-filter-chip ${
                       playFilter === 'hr'
-                        ? 'bg-red-600 text-white'
-                        : 'bg-white/5 text-slate-400 hover:text-white'
+                        ? 'bg-red-600 text-white border-red-500 shadow-xs'
+                        : 'inactive'
                     }`}
                   >
                     Хоум-раны
                   </button>
                   <button
                     onClick={() => setPlayFilter('k')}
-                    className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all shrink-0 ${
+                    className={`pbp-filter-chip ${
                       playFilter === 'k'
-                        ? 'bg-amber-600 text-white'
-                        : 'bg-white/5 text-slate-400 hover:text-white'
+                        ? 'bg-amber-600 text-white border-amber-500 shadow-xs'
+                        : 'inactive'
                     }`}
                   >
                     Страйкауты
@@ -1303,15 +1372,14 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
 
                           {(() => {
                             const orig = play.result?.description || 'Розыгрыш на бите';
-                            const translated = translateEnabled && translations[orig];
+                            const displayText = translateEnabled
+                              ? translations[orig] || translateBaseballPlay(orig)
+                              : orig;
                             return (
                               <div>
                                 <p className="text-slate-200 font-medium leading-relaxed">
-                                  {translated || orig}
+                                  {displayText}
                                 </p>
-                                {translateEnabled && !translated && (
-                                  <p className="text-slate-500 text-[10px] italic mt-0.5">переводится...</p>
-                                )}
                               </div>
                             );
                           })()}
@@ -1333,7 +1401,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                                     key={pNum}
                                     className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400"
                                   >
-                                    #{pNum + 1}: {pitch.pitchData?.type?.description || 'Pitch'}{' '}
+                                    #{pNum + 1}: {translateEnabled ? translatePitchType(pitch.pitchData?.type?.description) : (pitch.pitchData?.type?.description || 'Pitch')}{' '}
                                     {pitch.pitchData?.startSpeed?.toFixed(0)} mph
                                   </span>
                                 ))}
@@ -1443,7 +1511,11 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                           <span className="text-amber-400 font-bold mr-2">
                             {p.about?.isTopInning ? '▲ Верх' : '▼ Низ'} {p.about?.inning}:
                           </span>
-                          <span className="text-slate-200">{p.result?.description}</span>
+                          <span className="text-slate-200">
+                            {translateEnabled
+                              ? translations[p.result?.description || ''] || translateBaseballPlay(p.result?.description || '')
+                              : p.result?.description}
+                          </span>
                         </div>
                         <span className="font-mono text-slate-400 shrink-0">
                           {p.result?.awayScore} - {p.result?.homeScore}

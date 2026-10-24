@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 @import "./components/iso/iso.css";
 
 /* ═══════════════════════════════════════
@@ -120,6 +121,9 @@ body::before {
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
 
+.scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
 /* ═══════════════════════════════════════
    KEYFRAMES
    ═══════════════════════════════════════ */
@@ -135,6 +139,12 @@ body::before {
   100% { transform: scale(1); }
 }
 .animate-score-change { animation: score-flip 0.7s cubic-bezier(0.34,1.56,0.64,1); }
+
+@keyframes sim-glow {
+  0%, 100% { box-shadow: 0 0 12px rgba(245,158,11,0.08); }
+  50%      { box-shadow: 0 0 28px rgba(245,158,11,0.18); }
+}
+.sim-active-glow { animation: sim-glow 2.5s ease-in-out infinite; }
 
 @keyframes slide-up {
   from { opacity: 0; transform: translateY(24px); }
@@ -322,8 +332,26 @@ html.light body,
   color: #334155;
 }
 
-.light .text-white {
+.light .text-white,
+.light .dark\:text-white,
+.light [class*="dark:text-white"],
+.light [class*="dark:text-slate-100"],
+.light [class*="dark:text-slate-200"],
+.light [class*="dark:text-slate-300"] {
   color: #0f172a !important;
+}
+
+/* Explicit rule for team names on all cards in light mode */
+.light [class*="group/team"] span,
+.light [class*="group/team"] h2,
+.light [class*="group/team"] h3,
+.light .glass-core [class*="group/team"] span,
+.light .glass-card [class*="group/team"] span,
+.light .match-card-team,
+.light .match-card-team-name,
+.light .bracket-team-name {
+  color: #020617 !important;
+  font-weight: 800 !important;
 }
 
 .light .text-slate-100,
@@ -348,33 +376,155 @@ html.light body,
   color: #334155 !important;
 }
 
-/* 6. CRITICAL: Preserve crisp WHITE text on dark buttons and accent badges */
-.light button[class*="bg-blue-"],
-.light button[class*="bg-emerald-"],
-.light button[class*="bg-red-"],
-.light button[class*="bg-indigo-"],
-.light button[class*="bg-purple-"],
-.light [class*="bg-blue-600"],
-.light [class*="bg-blue-500"],
-.light [class*="bg-emerald-600"],
-.light [class*="bg-emerald-500"],
-.light [class*="bg-red-600"],
-.light [class*="bg-red-500"],
-.light [class*="bg-indigo-600"],
-.light [class*="bg-purple-600"],
-.light [class*="bg-rose-600"] {
+/* 6. CRITICAL: Preserve crisp WHITE text on solid saturated buttons only (NOT translucent tints /10, /20) */
+.light button[class*="bg-blue-600"],
+.light button[class*="bg-blue-700"],
+.light button[class*="bg-emerald-600"],
+.light button[class*="bg-emerald-700"],
+.light button[class*="bg-red-600"],
+.light button[class*="bg-red-700"],
+.light button[class*="bg-indigo-600"],
+.light button[class*="bg-purple-600"],
+.light button[class*="bg-rose-600"],
+.light button.bg-blue-600,
+.light button.bg-emerald-600,
+.light button.bg-red-600 {
   color: #ffffff !important;
 }
 
-.light button[class*="bg-blue-"] *,
-.light button[class*="bg-emerald-"] *,
-.light button[class*="bg-red-"] *,
-.light [class*="bg-blue-600"] *,
-.light [class*="bg-blue-500"] *,
-.light [class*="bg-emerald-600"] *,
-.light [class*="bg-emerald-500"] *,
-.light [class*="bg-red-600"] * {
+.light button[class*="bg-blue-600"] *,
+.light button[class*="bg-blue-700"] *,
+.light button[class*="bg-emerald-600"] *,
+.light button[class*="bg-emerald-700"] *,
+.light button[class*="bg-red-600"] *,
+.light button[class*="bg-red-700"] *,
+.light button[class*="bg-indigo-600"] *,
+.light button[class*="bg-purple-600"] *,
+.light button[class*="bg-rose-600"] * {
   color: #ffffff !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   CARD ACTION BUTTONS (Calendar export, ICS download, modal quick actions)
+   ══════════════════════════════════════════════════════════════════════ */
+.card-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.625rem;
+  transition: all 180ms cubic-bezier(0.2, 0, 0, 1);
+  cursor: pointer;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #93c5fd;
+}
+.card-action-btn svg {
+  color: inherit;
+  transition: transform 180ms cubic-bezier(0.2, 0, 0, 1);
+}
+.card-action-btn:hover {
+  background: rgba(59, 130, 246, 0.25);
+  border-color: rgba(59, 130, 246, 0.55);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+.card-action-btn:hover svg {
+  transform: scale(1.08);
+}
+.card-action-btn:active {
+  transform: translateY(0) scale(0.94);
+  background: rgba(59, 130, 246, 0.35);
+}
+
+/* Light Theme High-Contrast Mode for card action buttons */
+.light .card-action-btn {
+  background-color: #eff6ff !important;
+  border: 1.5px solid #93c5fd !important;
+  color: #1d4ed8 !important;
+  box-shadow: 0 1px 3px rgba(29, 78, 216, 0.1) !important;
+}
+.light .card-action-btn svg,
+.light .card-action-btn * {
+  color: #1d4ed8 !important;
+  stroke: #1d4ed8 !important;
+}
+.light .card-action-btn:hover {
+  background-color: #dbeafe !important;
+  border-color: #2563eb !important;
+  color: #1e40af !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 10px rgba(29, 78, 216, 0.2) !important;
+}
+.light .card-action-btn:hover svg,
+.light .card-action-btn:hover * {
+  color: #1e40af !important;
+  stroke: #1e40af !important;
+}
+.light .card-action-btn:active {
+  background-color: #bfdbfe !important;
+  border-color: #1d4ed8 !important;
+  color: #172554 !important;
+  transform: translateY(0) scale(0.94) !important;
+  box-shadow: 0 1px 2px rgba(29, 78, 216, 0.15) !important;
+}
+.light .card-action-btn:active svg,
+.light .card-action-btn:active * {
+  color: #172554 !important;
+  stroke: #172554 !important;
+}
+
+/* Catch-all for any calendar or download buttons in light mode */
+.light button[title*="календарь" i],
+.light button[title*="calendar" i],
+.light button[title*=".ics" i],
+.light a[title*="календарь" i],
+.light a[title*="calendar" i] {
+  background-color: #eff6ff !important;
+  border: 1.5px solid #93c5fd !important;
+  color: #1d4ed8 !important;
+}
+.light button[title*="календарь" i] svg,
+.light button[title*="calendar" i] svg,
+.light button[title*=".ics" i] svg,
+.light a[title*="календарь" i] svg,
+.light a[title*="calendar" i] svg {
+  color: #1d4ed8 !important;
+  stroke: #1d4ed8 !important;
+}
+.light button[title*="календарь" i]:hover,
+.light button[title*="calendar" i]:hover,
+.light button[title*=".ics" i]:hover,
+.light a[title*="календарь" i]:hover,
+.light a[title*="calendar" i]:hover {
+  background-color: #dbeafe !important;
+  border-color: #2563eb !important;
+  color: #1e40af !important;
+}
+.light button[title*="календарь" i]:hover svg,
+.light button[title*="calendar" i]:hover svg,
+.light button[title*=".ics" i]:hover svg,
+.light a[title*="календарь" i]:hover svg,
+.light a[title*="calendar" i]:hover svg {
+  color: #1e40af !important;
+  stroke: #1e40af !important;
+}
+.light button[title*="календарь" i]:active,
+.light button[title*="calendar" i]:active,
+.light button[title*=".ics" i]:active,
+.light a[title*="календарь" i]:active,
+.light a[title*="calendar" i]:active {
+  background-color: #bfdbfe !important;
+  border-color: #1d4ed8 !important;
+  color: #172554 !important;
+}
+.light button[title*="календарь" i]:active svg,
+.light button[title*="calendar" i]:active svg,
+.light button[title*=".ics" i]:active svg,
+.light a[title*="календарь" i]:active svg,
+.light a[title*="calendar" i]:active svg {
+  color: #172554 !important;
+  stroke: #172554 !important;
 }
 
 /* Yellow / amber buttons always get bold black text */
@@ -905,6 +1055,125 @@ html.light body,
 .light [style*="226, 232, 240"],
 .light [style*="226,232,240"] {
   color: #1e293b !important;
+}
+
+/* 30. GameDetailModal: Play-by-Play control buttons & tabs */
+.pbp-control-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.5rem;
+  font-size: 0.6875rem; /* 11px */
+  font-weight: 800;
+  line-height: 1;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  border-width: 1px;
+  border-style: solid;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* Inactive control button in light mode */
+.light .pbp-control-btn.inactive {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.light .pbp-control-btn.inactive:hover {
+  background-color: #e2e8f0 !important;
+  border-color: #94a3b8 !important;
+  color: #020617 !important;
+}
+
+/* Inactive control button in dark mode */
+.dark .pbp-control-btn.inactive,
+:not(.light) .pbp-control-btn.inactive {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+.dark .pbp-control-btn.inactive:hover,
+:not(.light) .pbp-control-btn.inactive:hover {
+  background-color: #334155 !important;
+  border-color: #475569 !important;
+  color: #ffffff !important;
+}
+
+/* Active control button variants */
+.pbp-control-btn.active-amber {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  border-color: #b45309 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.35) !important;
+}
+.pbp-control-btn.active-indigo {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+  border-color: #4338ca !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.35) !important;
+}
+.pbp-control-btn.active-blue {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border-color: #1e40af !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35) !important;
+}
+
+/* Filter chips */
+.pbp-filter-chip {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  border-width: 1px;
+  border-style: solid;
+}
+.light .pbp-filter-chip.inactive {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+.light .pbp-filter-chip.inactive:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+.dark .pbp-filter-chip.inactive,
+:not(.light) .pbp-filter-chip.inactive {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #e2e8f0 !important;
+}
+.dark .pbp-filter-chip.inactive:hover,
+:not(.light) .pbp-filter-chip.inactive:hover {
+  background-color: rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
+}
+
+/* Horizontal scroll styling for modal tabs */
+.tabs-scroll-track::-webkit-scrollbar {
+  height: 5px;
+}
+.tabs-scroll-track::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 9999px;
+}
+.dark .tabs-scroll-track::-webkit-scrollbar-track,
+:not(.light) .tabs-scroll-track::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+.tabs-scroll-track::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.5);
+  border-radius: 9999px;
+}
+.tabs-scroll-track::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.8);
 }
 
 

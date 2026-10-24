@@ -219,6 +219,8 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
   });
 
   const isHeroLive = liveHeroGame?.status?.abstractGameState === 'Live';
+  const isHeroFinal = liveHeroGame?.status?.abstractGameState === 'Final';
+  const isHeroPreview = !isHeroLive && !isHeroFinal;
   const heroLinescore = liveHeroFeed?.liveData?.linescore || liveHeroGame?.linescore;
 
   return (
@@ -291,15 +293,14 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
               {/* Main Teams & Score Display (Gigantic 56px) */}
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center my-2">
                 {/* Away Team */}
-                <div className="md:col-span-5 flex items-center justify-between sm:justify-start gap-4 p-3 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
+                <div className="md:col-span-5 flex items-center justify-between sm:justify-start gap-4 p-3 rounded-2xl bg-slate-100/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.04]">
                   <div className="flex items-center gap-3.5 truncate">
                     <div
                       onClick={(e) => {
                         e.stopPropagation();
-                        onSelectTeam?.(liveHeroGame.teams.away.team.id, liveHeroGame.teams.away.team.name,
-                        );
+                        onSelectTeam?.(liveHeroGame.teams.away.team.id, liveHeroGame.teams.away.team.name);
                       }}
-                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-black/40 border border-white/10 p-2 flex items-center justify-center shrink-0 hover:scale-105 transition shadow-lg"
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-200/80 dark:bg-black/40 border border-slate-300 dark:border-white/10 p-2 flex items-center justify-center shrink-0 hover:scale-105 transition shadow-lg"
                       title="Открыть страницу клуба"
                     >
                       <img
@@ -310,7 +311,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                     </div>
                     <div className="truncate">
                       <div className="flex items-center gap-2">
-                        <h2 className="font-black text-xl sm:text-2xl text-white tracking-tight truncate">
+                        <h2 className="font-black text-xl sm:text-2xl text-slate-950 dark:text-white tracking-tight truncate">
                           {liveHeroGame.teams.away.team.name}
                         </h2>
                         {favoriteTeamId === liveHeroGame.teams.away.team.id && (
@@ -320,13 +321,13 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-400 font-mono mt-0.5">
+                      <p className="text-xs text-slate-700 dark:text-slate-400 font-mono mt-0.5">
                         Гости • {liveHeroGame.teams.away.leagueRecord?.wins ?? 0}-{liveHeroGame.teams.away.leagueRecord?.losses ?? 0}
                       </p>
                     </div>
                   </div>
 
-                  <div className="text-4xl sm:text-6xl font-black font-mono text-white tabular-nums sm:ml-auto">
+                  <div className="text-4xl sm:text-6xl font-black font-mono text-slate-950 dark:text-white tabular-nums sm:ml-auto">
                     {liveHeroGame.teams.away.score ?? (isHeroLive ? 0 : '—')}
                   </div>
                 </div>
@@ -362,16 +363,16 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                           }`}
                         />
                       </div>
-                      <span className="text-[10px] font-black text-red-400 uppercase tracking-widest">
+                      <span className="text-[10px] font-black text-red-500 dark:text-red-400 uppercase tracking-widest">
                         В ИГРЕ
                       </span>
                     </div>
                   ) : (
                     <div className="space-y-1">
-                      <span className="text-sm font-black text-amber-400 font-mono uppercase tracking-widest block">
+                      <span className="text-sm font-black text-amber-600 dark:text-amber-400 font-mono uppercase tracking-widest block">
                         VS
                       </span>
-                      <span className="text-[10px] text-slate-400 font-mono">
+                      <span className="text-[10px] text-slate-700 dark:text-slate-400 font-mono font-medium">
                         {liveHeroGame.seriesDescription || 'Серия 2026'}
                       </span>
                     </div>
@@ -379,8 +380,8 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                 </div>
 
                 {/* Home Team */}
-                <div className="md:col-span-5 flex items-center justify-between sm:justify-end gap-4 p-3 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
-                  <div className="text-4xl sm:text-6xl font-black font-mono text-white tabular-nums sm:mr-auto">
+                <div className="md:col-span-5 flex items-center justify-between sm:justify-end gap-4 p-3 rounded-2xl bg-slate-100/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.04]">
+                  <div className="text-4xl sm:text-6xl font-black font-mono text-slate-950 dark:text-white tabular-nums sm:mr-auto">
                     {liveHeroGame.teams.home.score ?? (isHeroLive ? 0 : '—')}
                   </div>
 
@@ -393,11 +394,11 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                             МОЯ
                           </span>
                         )}
-                        <h2 className="font-black text-xl sm:text-2xl text-white tracking-tight truncate">
+                        <h2 className="font-black text-xl sm:text-2xl text-slate-950 dark:text-white tracking-tight truncate">
                           {liveHeroGame.teams.home.team.name}
                         </h2>
                       </div>
-                      <p className="text-xs text-slate-400 font-mono mt-0.5">
+                      <p className="text-xs text-slate-700 dark:text-slate-400 font-mono mt-0.5">
                         Хозяева • {liveHeroGame.teams.home.leagueRecord?.wins ?? 0}-{liveHeroGame.teams.home.leagueRecord?.losses ?? 0}
                       </p>
                     </div>
@@ -405,10 +406,9 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                     <div
                       onClick={(e) => {
                         e.stopPropagation();
-                        onSelectTeam?.(liveHeroGame.teams.home.team.id, liveHeroGame.teams.home.team.name,
-                        );
+                        onSelectTeam?.(liveHeroGame.teams.home.team.id, liveHeroGame.teams.home.team.name);
                       }}
-                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-black/40 border border-white/10 p-2 flex items-center justify-center shrink-0 hover:scale-105 transition shadow-lg"
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-200/80 dark:bg-black/40 border border-slate-300 dark:border-white/10 p-2 flex items-center justify-center shrink-0 hover:scale-105 transition shadow-lg"
                       title="Открыть страницу клуба"
                     >
                       <img
@@ -422,27 +422,31 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
               </div>
 
               {/* Bottom Interactive CTA Bar */}
-              <div className="mt-6 pt-4 border-t border-white/[0.08] flex flex-wrap items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2 text-slate-300">
-                  <Play className="w-4 h-4 text-red-400 fill-current animate-pulse" />
+              <div className="mt-6 pt-4 border-t border-slate-200 dark:border-white/[0.08] flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2 text-slate-800 dark:text-slate-300">
+                  <Play className="w-4 h-4 text-red-500 fill-current animate-pulse" />
                   <span className="font-bold">
                     {isHeroLive
                       ? 'Нажмите для перехода в Live-Центр и отслеживания каждого броска (поллинг 3.5 сек)'
-                      : 'Нажмите, чтобы открыть интерактивную симуляцию, страйк-зону и спрей-чарт'}
+                      : isHeroFinal
+                      ? 'Нажмите, чтобы открыть полную статистику, страйк-зону и спрей-чарт'
+                      : 'Матч ещё не начался — вернитесь к началу игры'}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSelectGame(liveHeroGame);
-                    }}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs transition shadow-lg shadow-red-600/30"
-                  >
-                    <span>{isHeroLive ? 'Смотреть Live' : 'Запустить симуляцию'}</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
+                  {!isHeroPreview && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectGame(liveHeroGame);
+                      }}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs transition shadow-lg shadow-red-600/30"
+                    >
+                      <span>{isHeroLive ? 'Смотреть Live' : 'Статистика и обзор'}</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -519,10 +523,10 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                           e.stopPropagation();
                           downloadGameIcs(g);
                         }}
-                        className="p-1 rounded-lg bg-blue-500/10 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 hover:bg-blue-500/20 border border-blue-500/20 transition"
+                        className="card-action-btn p-1"
                         title="Добавить матч в календарь (.ics)"
                       >
-                        <Download className="w-3 h-3" />
+                        <Download className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
@@ -631,15 +635,14 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                   <button
                     type="button"
                     onClick={handleOpenCalendar}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition cursor-pointer active:scale-95 shadow-sm"
-                    style={{
-                      background: isCustomDate ? 'rgba(245,158,11,0.2)' : 'rgba(255,255,255,0.05)',
-                      border: `1px solid ${isCustomDate ? 'rgba(245,158,11,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                      color: isCustomDate ? '#fcd34d' : 'rgba(203,213,225,0.9)',
-                    }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition cursor-pointer active:scale-95 shadow-sm ${
+                      isCustomDate
+                        ? 'bg-amber-400/20 text-amber-800 dark:text-amber-300 border border-amber-500/40 shadow-sm'
+                        : 'bg-slate-100 dark:bg-white/[0.05] text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10'
+                    }`}
                     title="Выбрать любую дату в календаре"
                   >
-                    <Calendar className="w-3.5 h-3.5" />
+                    <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                     <span>{isCustomDate ? selectedDate : 'Календарь'}</span>
                   </button>
                 )}
@@ -946,7 +949,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                           downloadGameIcs(game);
                         }}
                         title="Экспорт матча в календарь (.ics)"
-                        className="p-1.5 rounded-lg bg-blue-500/10 dark:bg-blue-500/20 hover:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/25 transition"
+                        className="card-action-btn p-1.5"
                       >
                         <Download className="w-3.5 h-3.5" />
                       </button>
@@ -957,7 +960,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
                         title="Google Календарь"
-                        className="p-1.5 rounded-lg bg-blue-500/10 dark:bg-blue-500/20 hover:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/25 transition"
+                        className="card-action-btn p-1.5"
                       >
                         <Calendar className="w-3.5 h-3.5" />
                       </a>
@@ -990,7 +993,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                           />
                         </div>
                         <div>
-                          <span className="font-bold text-sm text-slate-900 dark:text-white group-hover/team:text-amber-500 transition-colors">
+                          <span className="match-card-team-name font-black text-sm text-slate-950 dark:text-white group-hover/team:text-amber-600 dark:group-hover/team:text-amber-400 transition-colors block">
                             {game.teams.away.team.name}
                           </span>
                           {game.teams.away.leagueRecord && (
@@ -1001,7 +1004,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                         </div>
                       </div>
 
-                      <div className="font-mono font-black text-2xl text-slate-900 dark:text-white">
+                      <div className="font-mono font-black text-2xl text-slate-950 dark:text-white tabular-nums">
                         {game.teams.away.score ?? (isLive ? 0 : '-')}
                       </div>
                     </div>
@@ -1030,7 +1033,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                           />
                         </div>
                         <div>
-                          <span className="font-bold text-sm text-slate-900 dark:text-white group-hover/team:text-amber-500 transition-colors">
+                          <span className="match-card-team-name font-black text-sm text-slate-950 dark:text-white group-hover/team:text-amber-600 dark:group-hover/team:text-amber-400 transition-colors block">
                             {game.teams.home.team.name}
                           </span>
                           {game.teams.home.leagueRecord && (
@@ -1041,7 +1044,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                         </div>
                       </div>
 
-                      <div className="font-mono font-black text-2xl text-slate-900 dark:text-white">
+                      <div className="font-mono font-black text-2xl text-slate-950 dark:text-white tabular-nums">
                         {game.teams.home.score ?? (isLive ? 0 : '-')}
                       </div>
                     </div>
@@ -1079,13 +1082,15 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                   </div>
 
                   {/* Footer link to live modal */}
-                  <div
-                    onClick={() => onSelectGame(game)}
-                    className="mt-3 pt-2 border-t border-slate-200 dark:border-slate-800/60 flex items-center justify-between text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 cursor-pointer transition-colors"
-                  >
-                    <span>{isLive ? 'Смотреть Live' : 'Статистика и Live-симуляция'}</span>
-                    <ChevronRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
-                  </div>
+                  {(isLive || isFinal) && (
+                    <div
+                      onClick={() => onSelectGame(game)}
+                      className="mt-3 pt-2 border-t border-slate-200 dark:border-slate-800/60 flex items-center justify-between text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 cursor-pointer transition-colors"
+                    >
+                      <span>{isLive ? 'Смотреть Live' : 'Статистика и обзор матча'}</span>
+                      <ChevronRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  )}
                 </div>
               </div>
             );

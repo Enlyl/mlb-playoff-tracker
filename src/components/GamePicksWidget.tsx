@@ -216,15 +216,15 @@ export const GamePicksWidget: React.FC<GamePicksWidgetProps> = ({ games, onSelec
                     alt=""
                     className="w-7 h-7 object-contain"
                   />
-                  <span className="text-sm font-bold text-white">
+                  <span className="text-sm font-black text-slate-950 dark:text-white">
                     {matchOfDay.g.teams.away.team.name}
                   </span>
                 </div>
-                <div className="font-mono font-black text-lg text-amber-300 px-3 py-1 rounded-xl bg-slate-950/80 border border-amber-400/20">
+                <div className="font-mono font-black text-lg text-amber-700 dark:text-amber-300 px-3 py-1 rounded-xl bg-amber-500/10 dark:bg-slate-950/80 border border-amber-500/30">
                   {matchOfDay.g.teams.away.score} : {matchOfDay.g.teams.home.score}
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <span className="text-sm font-bold text-white text-right">
+                  <span className="text-sm font-black text-slate-950 dark:text-white text-right">
                     {matchOfDay.g.teams.home.team.name}
                   </span>
                   <img
@@ -240,7 +240,7 @@ export const GamePicksWidget: React.FC<GamePicksWidgetProps> = ({ games, onSelec
                 {matchOfDay.sp.tags.map((tag, i) => (
                   <span
                     key={i}
-                    className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white/10 text-slate-200 border border-white/10"
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-200/80 dark:bg-white/10 text-slate-800 dark:text-slate-200 border border-slate-300/80 dark:border-white/10"
                   >
                     {tag}
                   </span>
@@ -297,15 +297,15 @@ export const GamePicksWidget: React.FC<GamePicksWidgetProps> = ({ games, onSelec
                     alt=""
                     className="w-7 h-7 object-contain"
                   />
-                  <span className="text-sm font-bold text-white">
+                  <span className="text-sm font-black text-slate-950 dark:text-white">
                     {matchOfWeek.g.teams.away.team.name}
                   </span>
                 </div>
-                <div className="font-mono font-black text-lg text-cyan-300 px-3 py-1 rounded-xl bg-slate-950/80 border border-cyan-400/20">
+                <div className="font-mono font-black text-lg text-cyan-700 dark:text-cyan-300 px-3 py-1 rounded-xl bg-cyan-500/10 dark:bg-slate-950/80 border border-cyan-500/30">
                   {matchOfWeek.g.teams.away.score} : {matchOfWeek.g.teams.home.score}
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <span className="text-sm font-bold text-white text-right">
+                  <span className="text-sm font-black text-slate-950 dark:text-white text-right">
                     {matchOfWeek.g.teams.home.team.name}
                   </span>
                   <img
@@ -321,7 +321,7 @@ export const GamePicksWidget: React.FC<GamePicksWidgetProps> = ({ games, onSelec
                 {matchOfWeek.sp.tags.map((tag, i) => (
                   <span
                     key={i}
-                    className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white/10 text-slate-200 border border-white/10"
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-200/80 dark:bg-white/10 text-slate-800 dark:text-slate-200 border border-slate-300/80 dark:border-white/10"
                   >
                     {tag}
                   </span>
@@ -367,26 +367,26 @@ export const GamePicksWidget: React.FC<GamePicksWidgetProps> = ({ games, onSelec
             </button>
 
             {showMore && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-800 animate-in fade-in duration-150">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-200 dark:border-slate-800 animate-in fade-in duration-150">
                 {otherMatches.map(({ g, sp }, idx) => (
                   <div
                     key={`${g.gamePk}-${idx}`}
                     onClick={() => onSelectGame(g)}
-                    className="p-2.5 rounded-xl bg-slate-900/50 hover:bg-slate-800/80 border border-slate-800 hover:border-slate-700 cursor-pointer transition flex items-center justify-between"
+                    className="p-2.5 rounded-xl bg-slate-100/80 dark:bg-slate-900/50 hover:bg-slate-200/80 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800 cursor-pointer transition flex items-center justify-between shadow-sm"
                   >
                     <div className="truncate pr-2">
-                      <div className="text-xs font-bold text-white truncate">
+                      <div className="text-xs font-black text-slate-950 dark:text-white truncate">
                         {g.teams.away.team.name} @ {g.teams.home.team.name}
                       </div>
                       <div className="flex gap-1 mt-1 truncate">
                         {sp.tags.slice(0, 2).map((t, idx) => (
-                          <span key={idx} className="text-[9px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded">
+                          <span key={idx} className="text-[9px] bg-blue-500/10 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/20 px-1.5 py-0.5 rounded font-semibold">
                             {t}
                           </span>
                         ))}
                       </div>
                     </div>
-                    <div className="font-mono font-bold text-xs text-amber-300 shrink-0">
+                    <div className="font-mono font-black text-xs text-amber-700 dark:text-amber-300 shrink-0">
                       {g.teams.away.score} : {g.teams.home.score}
                     </div>
                   </div>
