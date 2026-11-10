@@ -83,14 +83,15 @@ export function App() {
     saveSelectedSeason(s);
   }, []);
 
-  // Auto-detect current season on mount
+  // Auto-detect current season on mount and auto-switch to new season
   useEffect(() => {
     fetchCurrentSeason().then((apiSeason) => {
       setDetectedSeason(apiSeason);
-      // If user hasn't explicitly picked a season, auto-update
       const saved = localStorage.getItem('mlb_selected_season');
-      if (!saved) {
+      // If no saved season, or saved season is from previous year, auto-switch
+      if (!saved || Number(saved) < apiSeason) {
         setSeasonState(apiSeason);
+        saveSelectedSeason(apiSeason);
       }
     });
   }, []);

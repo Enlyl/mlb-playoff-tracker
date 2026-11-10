@@ -31,22 +31,36 @@ export function getCurrentSeasonSync(): number {
   const month = now.getMonth() + 1; // 1-based
   const year = now.getFullYear();
 
-  // MLB season typically runs March–November.
-  // If we're in Jan/Feb, the upcoming season hasn't started yet — show current year
-  // (API will have schedule data for the upcoming year)
+  // MLB season ends in late October (World Series).
+  // In November/December, the champion is crowned and league moves to upcoming year.
+  if (month >= 11) {
+    return year + 1;
+  }
   return year;
 }
 
 /**
  * Fetch current season from MLB API and cache it.
- * Returns the current season number (e.g. 2026).
+ * If current year postseason is finished (postSeasonEndDate has passed),
+ * automatically switches to upcoming season (2027).
  */
 export async function fetchCurrentSeason(): Promise<number> {
   try {
     const res = await fetch('https://statsapi.mlb.com/api/v1/seasons/current?sportId=1');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    const season = Number(data.seasons?.[0]?.seasonId);
+    const seasonInfo = data.seasons?.[0];
+    let season = Number(seasonInfo?.seasonId);
+
+    // If World Series is finished, automatically advance to next season
+    if (seasonInfo?.postSeasonEndDate) {
+      const postSeasonEnd = new Date(seasonInfo.postSeasonEndDate);
+      const now = new Date();
+      if (now.getTime() > postSeasonEnd.getTime()) {
+        season = season + 1;
+      }
+    }
+
     if (season && season > 2000) {
       localStorage.setItem(CACHE_KEY, JSON.stringify({ season, ts: Date.now() } as CachedSeason));
       return season;
