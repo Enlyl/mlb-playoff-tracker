@@ -23,6 +23,7 @@ import {
   getTeamLogoUrl,
 } from '../services/mlbApi';
 import { getCurrentSeasonSync, getAvailableSeasons } from '../utils/seasonUtils';
+import { getSeasonTheme } from '../utils/seasonThemes';
 
 interface PlayoffBracketViewProps {
   onSelectTeam?: (teamId: number, teamName: string) => void;
@@ -486,13 +487,26 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
     <div className="w-full max-w-6xl mx-auto px-2 sm:px-4 py-4 space-y-4">
       
       {/* ── TOP HERO HEADER ── */}
-      <div className="bracket-hero rounded-2xl p-4 sm:p-5 relative overflow-hidden border border-amber-500/30 shadow-lg">
+      <div
+        className="bracket-hero rounded-2xl p-4 sm:p-5 relative overflow-hidden border shadow-lg transition-all"
+        style={{
+          borderColor: getSeasonTheme(season).borderRgba,
+          boxShadow: `0 0 20px ${getSeasonTheme(season).glowRgba}`,
+        }}
+      >
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black tracking-wide uppercase bg-amber-400/20 text-amber-600 dark:text-amber-400 border border-amber-400/30">
-                <Trophy className="w-3 h-3 text-amber-500" />
-                {season === getCurrentSeasonSync() ? `MLB ${season} • Postseason` : `Сезон ${season}`}
+              <span
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-black tracking-wide uppercase border"
+                style={{
+                  backgroundColor: getSeasonTheme(season).badgeBg,
+                  borderColor: getSeasonTheme(season).borderRgba,
+                  color: getSeasonTheme(season).badgeText,
+                }}
+              >
+                <Trophy className="w-3 h-3" style={{ color: getSeasonTheme(season).primaryColor }} />
+                {getSeasonTheme(season).badgeLabel}
               </span>
               <span className="text-xs text-slate-500 font-mono">• 11 серий</span>
             </div>
@@ -500,7 +514,7 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
               Путь к Мировой Серии {season}
             </h2>
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-              Интерактивная турнирная сетка плей-офф MLB: от Wild Card до чемпиона Мировой Серии.
+              {getSeasonTheme(season).statusText}
             </p>
           </div>
 

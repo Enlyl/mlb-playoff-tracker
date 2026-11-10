@@ -87,6 +87,19 @@ export function getAvailableSeasons(currentSeason: number): number[] {
   return [...new Set(seasons)].sort((a, b) => b - a);
 }
 
+const MANUAL_SEASON_KEY = 'mlb_manual_season_selected';
+
+/**
+ * Check whether user has explicitly selected a season manually in the UI.
+ */
+export function isManualSeasonSelected(): boolean {
+  try {
+    return localStorage.getItem(MANUAL_SEASON_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Get user-selected season from localStorage.
  * Falls back to auto-detected current season.
@@ -104,7 +117,14 @@ export function getSelectedSeason(): number {
 
 /**
  * Persist user-selected season to localStorage.
+ * If isManual is true, flags that the choice was deliberately made by the user
+ * and should never be automatically overwritten on page reload.
  */
-export function saveSelectedSeason(season: number): void {
-  localStorage.setItem('mlb_selected_season', String(season));
+export function saveSelectedSeason(season: number, isManual = true): void {
+  try {
+    localStorage.setItem('mlb_selected_season', String(season));
+    if (isManual) {
+      localStorage.setItem(MANUAL_SEASON_KEY, 'true');
+    }
+  } catch { /* noop */ }
 }

@@ -16,7 +16,8 @@ import { ClassicsAndFinalsShowcase } from './components/ClassicsAndFinalsShowcas
 import { MLBGame, MLB_TEAMS } from './services/mlbApi';
 import { sounds } from './services/soundEffects';
 import { notifications } from './services/notifications';
-import { getSelectedSeason, saveSelectedSeason, fetchCurrentSeason, getAvailableSeasons, getCurrentSeasonSync } from './utils/seasonUtils';
+import { getSelectedSeason, saveSelectedSeason, fetchCurrentSeason, getAvailableSeasons, getCurrentSeasonSync, isManualSeasonSelected } from './utils/seasonUtils';
+import { getSeasonTheme } from './utils/seasonThemes';
 import {
   Radio,
   Trophy,
@@ -80,21 +81,24 @@ export function App() {
   /* ── SEASON STATE (global) ── */
   const [season, setSeasonState] = useState<number>(() => getSelectedSeason());
   const [detectedSeason, setDetectedSeason] = useState<number>(getCurrentSeasonSync());
+  const seasonTheme = getSeasonTheme(season);
 
   const setSeason = useCallback((s: number) => {
     setSeasonState(s);
-    saveSelectedSeason(s);
+    saveSelectedSeason(s, true);
   }, []);
 
-  // Auto-detect current season on mount and auto-switch to new season
+  // Auto-detect current season on mount and auto-switch to new season ONLY if user hasn't explicitly selected a season
   useEffect(() => {
     fetchCurrentSeason().then((apiSeason) => {
       setDetectedSeason(apiSeason);
+      const isManual = isManualSeasonSelected();
       const saved = localStorage.getItem('mlb_selected_season');
-      // If no saved season, or saved season is from previous year, auto-switch
-      if (!saved || Number(saved) < apiSeason) {
+
+      // If user never explicitly chose a season, or no season is saved, use detected season
+      if (!isManual || !saved) {
         setSeasonState(apiSeason);
-        saveSelectedSeason(apiSeason);
+        saveSelectedSeason(apiSeason, false);
       }
     });
   }, []);
@@ -233,8 +237,15 @@ export function App() {
       style={{
         '--team-color': favoriteTeam.color || '#3b82f6',
         '--team-accent': favoriteTeam.accentColor || '#60a5fa',
+        '--season-primary': seasonTheme.primaryColor,
+        '--season-secondary': seasonTheme.secondaryColor,
+        '--season-accent': seasonTheme.accentColor,
+        '--season-glow': seasonTheme.glowRgba,
+        '--season-border': seasonTheme.borderRgba,
+        '--season-badge-bg': seasonTheme.badgeBg,
+        '--season-badge-text': seasonTheme.badgeText,
       } as React.CSSProperties}
-      className="min-h-screen bg-mesh flex flex-col relative"
+      className={`min-h-screen bg-mesh flex flex-col relative ${seasonTheme.themeClass}`}
     >
       {/* ── HEADER ── */}
       <Header
@@ -253,6 +264,7 @@ export function App() {
         season={season}
         setSeason={setSeason}
         detectedSeason={detectedSeason}
+        seasonTheme={seasonTheme}
       />
 
       {/* ── MAIN CONTENT ── */}

@@ -57,9 +57,11 @@ body::before {
 .bg-mesh {
   background-color: #050508;
   background-image:
+    radial-gradient(ellipse 900px 650px at 50% 0%, var(--season-glow, rgba(245, 158, 11, 0.12)) 0%, transparent 70%),
     radial-gradient(ellipse 800px 600px at 20% 10%, rgba(220, 38, 38, 0.06) 0%, transparent 70%),
     radial-gradient(ellipse 600px 500px at 80% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 70%),
     radial-gradient(ellipse 500px 400px at 60% 20%, rgba(139, 92, 246, 0.04) 0%, transparent 70%);
+  transition: background-image 0.5s ease-in-out;
 }
 
 /* ═══════════════════════════════════════
@@ -257,6 +259,7 @@ html.light body,
 .light .bg-mesh {
   background-color: #f8fafc !important;
   background-image:
+    radial-gradient(ellipse 900px 650px at 50% 0%, var(--season-glow, rgba(245, 158, 11, 0.12)) 0%, transparent 70%),
     radial-gradient(ellipse 900px 650px at 15% 10%, rgba(239, 68, 68, 0.05) 0%, transparent 70%),
     radial-gradient(ellipse 750px 550px at 85% 85%, rgba(59, 130, 246, 0.06) 0%, transparent 70%),
     radial-gradient(ellipse 650px 450px at 50% 25%, rgba(139, 92, 246, 0.04) 0%, transparent 70%) !important;

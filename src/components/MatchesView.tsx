@@ -33,6 +33,7 @@ import { GamePicksWidget } from './GamePicksWidget';
 import { ClassicsAndFinalsShowcase } from './ClassicsAndFinalsShowcase';
 import { sounds } from '../services/soundEffects';
 import { notifications } from '../services/notifications';
+import { getSeasonTheme } from '../utils/seasonThemes';
 
 interface MatchesViewProps {
   onSelectTeam?: (teamId: number, teamName: string) => void;
@@ -49,6 +50,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
   season = 2026,
   onNavigateToClassics,
 }) => {
+  const seasonTheme = getSeasonTheme(season);
   // Dynamic current dates (NO hardcoded Sept 27 / 29)
   const todayObj = new Date();
   const formatISO = (d: Date) => d.toISOString().slice(0, 10);
@@ -579,13 +581,16 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
                 <span
                   className="eyebrow"
                   style={{
-                    background: 'rgba(239,68,68,0.12)',
-                    border: '1px solid rgba(239,68,68,0.2)',
-                    color: '#fca5a5',
+                    background: seasonTheme.badgeBg,
+                    border: `1px solid ${seasonTheme.borderRgba}`,
+                    color: seasonTheme.badgeText,
                   }}
                 >
-                  <span className="live-dot" style={{ width: 5, height: 5, minWidth: 5 }} />
-                  Календарь матчей • Сезон {season}
+                  <span
+                    className="w-1.5 h-1.5 rounded-full shrink-0"
+                    style={{ backgroundColor: seasonTheme.primaryColor }}
+                  />
+                  Календарь матчей • {seasonTheme.badgeLabel}
                 </span>
               </div>
               <h2 className="text-display text-white" style={{ fontSize: 'clamp(1.1rem, 3vw, 1.5rem)' }}>

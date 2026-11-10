@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { sounds } from '../services/soundEffects';
 import { getAvailableSeasons } from '../utils/seasonUtils';
+import { getSeasonTheme, SeasonTheme } from '../utils/seasonThemes';
 
 export type TabType = 'matches' | 'bracket' | 'classics' | 'standings' | 'rules' | 'myteam' | 'rankings' | 'settings';
 
@@ -37,6 +38,7 @@ interface HeaderProps {
   season: number;
   setSeason: (s: number) => void;
   detectedSeason: number;
+  seasonTheme?: SeasonTheme;
 }
 
 const TABS: {
@@ -68,10 +70,12 @@ export const Header: React.FC<HeaderProps> = ({
   season,
   setSeason,
   detectedSeason,
+  seasonTheme,
 }) => {
   const [scrolled, setScrolled] = useState(false);
   const [seasonOpen, setSeasonOpen] = useState(false);
   const seasonRef = useRef<HTMLDivElement>(null);
+  const activeSeasonTheme = seasonTheme || getSeasonTheme(season);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -108,6 +112,14 @@ export const Header: React.FC<HeaderProps> = ({
       className="sticky top-0 z-40 transition-all duration-500"
       style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}
     >
+      {/* Dynamic Seasonal Accent Line */}
+      <div
+        className="h-[2px] w-full transition-all duration-700"
+        style={{
+          background: activeSeasonTheme.gradient,
+          boxShadow: `0 0 12px ${activeSeasonTheme.glowRgba}`,
+        }}
+      />
       {/* Top bar: Logo + Season badge */}
       <div
         className={`transition-all duration-500 ${
@@ -223,54 +235,115 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 type="button"
                 onClick={() => setSeasonOpen(!seasonOpen)}
-                className="p-1.5 sm:px-2.5 sm:py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-amber-300 border border-white/10 cursor-pointer active:scale-95"
-                title="Выбрать сезон MLB"
+                className="px-2.5 sm:px-3 py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-sm"
+                style={{
+                  background: theme === 'light' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(15, 23, 42, 0.85)',
+                  borderColor: activeSeasonTheme.borderRgba,
+                  borderWidth: '1px',
+                  boxShadow: `0 0 10px ${activeSeasonTheme.glowRgba}`,
+                }}
+                title={`Выбран сезон ${season}: ${activeSeasonTheme.statusText}`}
               >
-                <span className="live-dot" />
-                <span className="font-mono">{season}</span>
-                <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${seasonOpen ? 'rotate-180' : ''}`} />
+                <span
+                  className="w-2 h-2 rounded-full shrink-0 animate-pulse"
+                  style={{
+                    backgroundColor: activeSeasonTheme.primaryColor,
+                    boxShadow: `0 0 6px ${activeSeasonTheme.primaryColor}`,
+                  }}
+                />
+                <span className="font-mono font-black text-slate-900 dark:text-white">{season}</span>
+                <span
+                  className="hidden sm:inline-block text-[10px] font-mono font-bold px-1.5 py-0.5 rounded"
+                  style={{
+                    backgroundColor: activeSeasonTheme.badgeBg,
+                    color: activeSeasonTheme.badgeText,
+                  }}
+                >
+                  {activeSeasonTheme.badgeLabel.split('•')[1]?.trim() || activeSeasonTheme.label}
+                </span>
+                <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${seasonOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {seasonOpen && (
                 <div
-                  className="absolute right-0 mt-1.5 w-36 rounded-xl shadow-2xl py-1 z-50 overflow-hidden border"
+                  className="absolute right-0 mt-1.5 w-72 sm:w-80 rounded-2xl shadow-2xl py-2 z-50 overflow-hidden border"
                   style={{
-                    background: theme === 'light' ? 'rgba(255, 255, 255, 0.98)' : 'rgba(15, 23, 42, 0.95)',
-                    borderColor: theme === 'light' ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.15)',
-                    backdropFilter: 'blur(16px)',
+                    background: theme === 'light' ? 'rgba(255, 255, 255, 0.98)' : 'rgba(11, 16, 27, 0.97)',
+                    borderColor: theme === 'light' ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.15)',
+                    backdropFilter: 'blur(20px)',
                   }}
                 >
-                  <div className="px-2.5 py-1 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                    Сезон MLB
+                  <div className="px-3.5 py-1.5 text-[10px] uppercase font-black text-slate-400 tracking-wider border-b border-black/5 dark:border-white/5 flex items-center justify-between">
+                    <span>Выбор сезона MLB</span>
+                    <span className="text-[9px] font-mono text-slate-500">Автосохранение</span>
                   </div>
-                  {getAvailableSeasons(detectedSeason).map((yr) => {
-                    const isSelected = yr === season;
-                    const isCurrent = yr === detectedSeason;
-                    return (
-                      <button
-                        key={yr}
-                        type="button"
-                        onClick={() => {
-                          setSeason(yr);
-                          setSeasonOpen(false);
-                        }}
-                        className={`w-full px-2.5 py-1.5 text-xs text-left font-medium flex items-center justify-between transition-colors ${
-                          isSelected
-                            ? 'bg-amber-500/20 text-amber-400 font-bold'
-                            : theme === 'light'
-                            ? 'text-slate-700 hover:bg-slate-100'
-                            : 'text-slate-300 hover:bg-white/5'
-                        }`}
-                      >
-                        <span className="font-mono">{yr}</span>
-                        {isCurrent && (
-                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400">
-                            Текущий
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
+                  <div className="p-1.5 space-y-1">
+                    {getAvailableSeasons(detectedSeason).map((yr) => {
+                      const itemTheme = getSeasonTheme(yr);
+                      const isSelected = yr === season;
+                      const isCurrent = yr === detectedSeason;
+                      return (
+                        <button
+                          key={yr}
+                          type="button"
+                          onClick={() => {
+                            setSeason(yr);
+                            setSeasonOpen(false);
+                          }}
+                          className={`w-full p-2.5 rounded-xl text-left transition-all flex items-start justify-between gap-2 cursor-pointer ${
+                            isSelected
+                              ? 'ring-1 ring-inset shadow-xs'
+                              : theme === 'light'
+                              ? 'hover:bg-slate-100'
+                              : 'hover:bg-white/[0.06]'
+                          }`}
+                          style={
+                            isSelected
+                              ? {
+                                  background: itemTheme.badgeBg,
+                                  borderColor: itemTheme.borderRgba,
+                                }
+                              : undefined
+                          }
+                        >
+                          <div className="flex items-start gap-2.5 min-w-0">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full mt-1 shrink-0"
+                              style={{
+                                backgroundColor: itemTheme.primaryColor,
+                                boxShadow: isSelected ? `0 0 8px ${itemTheme.primaryColor}` : undefined,
+                              }}
+                            />
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-mono font-black text-sm text-slate-900 dark:text-white">
+                                  {yr}
+                                </span>
+                                {itemTheme.champion && (
+                                  <span className="text-[10px] font-bold text-amber-500 dark:text-amber-400 flex items-center gap-0.5">
+                                    🏆 {itemTheme.champion}
+                                  </span>
+                                )}
+                                {isCurrent && (
+                                  <span className="text-[9px] font-bold font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                    Текущий
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                                {itemTheme.statusText}
+                              </p>
+                            </div>
+                          </div>
+                          {isSelected && (
+                            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-white/20 text-white shrink-0 mt-0.5">
+                              Выбран
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
