@@ -604,7 +604,7 @@ export const ClassicsAndFinalsShowcase: React.FC<ClassicsAndFinalsShowcaseProps>
 
                           return (
                             <div
-                              key={game.gamePk || gIdx}
+                              key={`series-${sIdx}-game-${game.gamePk || gIdx}-${gIdx}`}
                               onClick={() => onSelectGame(game)}
                               className="p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.07] hover:border-amber-400/50 transition-all cursor-pointer flex flex-col justify-between space-y-2 group shadow-sm active:scale-[0.98]"
                             >
