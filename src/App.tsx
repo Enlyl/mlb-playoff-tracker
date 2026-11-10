@@ -12,6 +12,7 @@ import { SettingsView } from './components/SettingsView';
 import { RankingsView } from './components/RankingsView';
 import { TeamProfilePage } from './components/TeamProfilePage';
 import { PlayerDetailModal } from './components/PlayerDetailModal';
+import { ClassicsAndFinalsShowcase } from './components/ClassicsAndFinalsShowcase';
 import { MLBGame, MLB_TEAMS } from './services/mlbApi';
 import { sounds } from './services/soundEffects';
 import { notifications } from './services/notifications';
@@ -26,6 +27,7 @@ import {
   TrendingUp,
   ArrowLeft,
   Home,
+  Flame,
 } from 'lucide-react';
 import './App.css';
 
@@ -46,13 +48,14 @@ const PAGE_VARIANTS = {
 };
 
 const MOBILE_NAV = [
-  { id: 'matches'   as TabType, label: 'Матчи',    icon: Radio,        color: '#ef4444' },
-  { id: 'bracket'   as TabType, label: 'Плей-офф', icon: Trophy,       color: '#f59e0b' },
-  { id: 'standings' as TabType, label: 'Таблицы',  icon: BarChart2,    color: '#3b82f6' },
-  { id: 'rankings'  as TabType, label: 'Рейтинги', icon: TrendingUp,   color: '#10b981' },
-  { id: 'rules'     as TabType, label: 'Правила',  icon: BookOpen,     color: '#06b6d4' },
-  { id: 'myteam'    as TabType, label: 'Команда',  icon: Star,         color: '#a855f7' },
-  { id: 'settings'  as TabType, label: 'Настройки',icon: Settings,     color: '#64748b' },
+  { id: 'matches'   as TabType, label: 'Матчи',     icon: Radio,        color: '#ef4444' },
+  { id: 'bracket'   as TabType, label: 'Плей-офф',  icon: Trophy,       color: '#f59e0b' },
+  { id: 'classics'  as TabType, label: 'Триллеры',  icon: Flame,        color: '#f97316' },
+  { id: 'standings' as TabType, label: 'Таблицы',   icon: BarChart2,    color: '#3b82f6' },
+  { id: 'rankings'  as TabType, label: 'Рейтинги',  icon: TrendingUp,   color: '#10b981' },
+  { id: 'rules'     as TabType, label: 'Правила',   icon: BookOpen,     color: '#06b6d4' },
+  { id: 'myteam'    as TabType, label: 'Команда',   icon: Star,         color: '#a855f7' },
+  { id: 'settings'  as TabType, label: 'Настройки', icon: Settings,     color: '#64748b' },
 ];
 
 export function App() {
@@ -290,6 +293,7 @@ export function App() {
                   favoriteTeamId={favoriteTeamId}
                   onSelectTeam={(id, name) => navigateToTeam(id, name)}
                   season={season}
+                  onNavigateToClassics={() => setActiveTab('classics')}
                 />
               </div>
             </motion.div>
@@ -304,6 +308,18 @@ export function App() {
                 season={season}
                 setSeason={setSeason}
               />
+            </motion.div>
+          )}
+
+          {activeTab === 'classics' && (
+            <motion.div key="classics" {...PAGE_VARIANTS}>
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 space-y-4">
+                <ClassicsAndFinalsShowcase
+                  onSelectGame={(g) => setSelectedGame(g)}
+                  favoriteTeamId={favoriteTeamId}
+                  season={season}
+                />
+              </div>
             </motion.div>
           )}
 

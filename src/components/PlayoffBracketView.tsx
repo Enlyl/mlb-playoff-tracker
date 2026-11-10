@@ -585,6 +585,32 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
         )}
       </div>
 
+      {/* Notice if current season has no postseason yet */}
+      {!loading && parsedSeriesList.length === 0 && (
+        <div className="rounded-2xl p-4 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-blue-500/15 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <Trophy className="w-4 h-4 text-amber-500" />
+              <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Плей-офф сезона {season} ещё не начался</span>
+            </div>
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              Сетка формируется в октябре по окончании регулярного чемпионата. Посмотрите сетки и результаты прошлых лет:
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+            {[2026, 2025, 2024, 2023].map((yr) => (
+              <button
+                key={yr}
+                onClick={() => setSeason(yr)}
+                className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-400/20 hover:bg-amber-400/30 text-amber-800 dark:text-amber-300 border border-amber-500/40 cursor-pointer active:scale-95 transition"
+              >
+                {yr} год
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="text-center py-20 text-slate-500 font-medium text-sm flex flex-col items-center gap-2">
           <div className="w-6 h-6 rounded-full border-2 border-amber-400 border-t-transparent animate-spin" />

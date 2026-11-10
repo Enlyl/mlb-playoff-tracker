@@ -39,9 +39,16 @@ interface MatchesViewProps {
   onSelectGame: (game: MLBGame) => void;
   favoriteTeamId: number | null;
   season?: number;
+  onNavigateToClassics?: () => void;
 }
 
-export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favoriteTeamId, onSelectTeam, season = 2026 }) => {
+export const MatchesView: React.FC<MatchesViewProps> = ({
+  onSelectGame,
+  favoriteTeamId,
+  onSelectTeam,
+  season = 2026,
+  onNavigateToClassics,
+}) => {
   // Dynamic current dates (NO hardcoded Sept 27 / 29)
   const todayObj = new Date();
   const formatISO = (d: Date) => d.toISOString().slice(0, 10);
@@ -597,19 +604,25 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
 
             {/* Dynamic Date Pills + Calendar Picker */}
             <div className="flex flex-wrap items-center gap-2">
-              {/* Прошедшие tab */}
+              {/* Прошедшие & Золотая коллекция button */}
               <button
                 onClick={() => {
-                  setShowPastGames(true);
-                  loadPastGames();
+                  if (onNavigateToClassics) {
+                    onNavigateToClassics();
+                  } else {
+                    setShowPastGames(true);
+                    loadPastGames();
+                  }
                 }}
-                className={`px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer active:scale-95 ${
+                className={`px-3 py-1.5 rounded-full text-[11px] font-black transition-all cursor-pointer active:scale-95 flex items-center gap-1.5 shadow-xs ${
                   showPastGames
-                    ? 'bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/40 shadow-xs'
-                    : 'bg-slate-100 dark:bg-white/[0.04] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/[0.07] hover:bg-slate-200 dark:hover:bg-white/10'
+                    ? 'bg-amber-500/25 text-amber-300 border border-amber-500/50'
+                    : 'bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-purple-500/15 text-amber-400 dark:text-amber-300 border border-amber-500/35 hover:border-amber-500/60 hover:bg-amber-500/25'
                 }`}
+                title="Все финалы World Series и легендарные триллеры"
               >
-                📋 Прошедшие
+                <Flame className="w-3.5 h-3.5 text-amber-400" />
+                <span>Финалы & Триллеры</span>
               </button>
               {[
                 { date: todayISO, label: 'Сегодня', short: 'Сегодня' },
@@ -1037,6 +1050,36 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                   Сбросить фильтры
                 </button>
               )}
+            </div>
+
+            {/* Promo banner for Golden Classics and Finals */}
+            <div className="mt-4 p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-purple-500/15 border border-amber-500/30 text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Flame className="w-5 h-5 text-amber-400" />
+                  <span className="text-sm font-bold text-white">Золотая коллекция: Финалы & Лучшие триллеры</span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 font-bold uppercase">
+                    2023–2026
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 max-w-xl">
+                  Пока матчи нового сезона не стартовали, смотрите все серии World Series, ALCS, NLCS и 7 легендарных матчей с walk-off хоумранами, экстра-иннингами и историческими камбэками!
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onNavigateToClassics) {
+                    onNavigateToClassics();
+                  } else {
+                    setShowPastGames(true);
+                    loadPastGames();
+                  }
+                }}
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs shrink-0 shadow-lg shadow-amber-500/20 cursor-pointer active:scale-95 transition"
+              >
+                Смотреть коллекцию →
+              </button>
             </div>
           </div>
         </div>

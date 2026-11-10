@@ -14,11 +14,12 @@ import {
   Volume2,
   VolumeX,
   ChevronDown,
+  Flame,
 } from 'lucide-react';
 import { sounds } from '../services/soundEffects';
 import { getAvailableSeasons } from '../utils/seasonUtils';
 
-export type TabType = 'matches' | 'bracket' | 'standings' | 'rules' | 'myteam' | 'rankings' | 'settings';
+export type TabType = 'matches' | 'bracket' | 'classics' | 'standings' | 'rules' | 'myteam' | 'rankings' | 'settings';
 
 interface HeaderProps {
   activeTab: TabType;
@@ -45,13 +46,14 @@ const TABS: {
   icon: React.ReactNode;
   color: string;
 }[] = [
-  { id: 'matches',   label: 'Матчи & Live',    short: 'Матчи',    icon: <Calendar  className="w-3.5 h-3.5" />, color: '#ef4444' },
-  { id: 'bracket',   label: 'Путь к финалу',   short: 'Плей-офф', icon: <Trophy    className="w-3.5 h-3.5" />, color: '#f59e0b' },
-  { id: 'standings', label: 'Таблицы',         short: 'Таблицы',  icon: <BarChart2 className="w-3.5 h-3.5" />, color: '#3b82f6' },
-  { id: 'rankings',  label: 'Рейтинги',        short: 'Рейтинги', icon: <TrendingUp className="w-3.5 h-3.5" />, color: '#10b981' },
-  { id: 'rules',     label: 'Правила',         short: 'Правила',  icon: <BookOpen  className="w-3.5 h-3.5" />, color: '#06b6d4' },
-  { id: 'myteam',    label: 'Моя команда',     short: 'Команда',  icon: <Star      className="w-3.5 h-3.5" />, color: '#a855f7' },
-  { id: 'settings',  label: 'Настройки',       short: 'Настройки',icon: <Settings  className="w-3.5 h-3.5" />, color: '#64748b' },
+  { id: 'matches',   label: 'Матчи & Live',      short: 'Матчи',      icon: <Calendar  className="w-3.5 h-3.5" />, color: '#ef4444' },
+  { id: 'bracket',   label: 'Путь к финалу',     short: 'Плей-офф',   icon: <Trophy    className="w-3.5 h-3.5" />, color: '#f59e0b' },
+  { id: 'classics',  label: 'Золотая коллекция', short: 'Триллеры',   icon: <Flame     className="w-3.5 h-3.5" />, color: '#f97316' },
+  { id: 'standings', label: 'Таблицы',           short: 'Таблицы',    icon: <BarChart2 className="w-3.5 h-3.5" />, color: '#3b82f6' },
+  { id: 'rankings',  label: 'Рейтинги',          short: 'Рейтинги',   icon: <TrendingUp className="w-3.5 h-3.5" />, color: '#10b981' },
+  { id: 'rules',     label: 'Правила',           short: 'Правила',    icon: <BookOpen  className="w-3.5 h-3.5" />, color: '#06b6d4' },
+  { id: 'myteam',    label: 'Моя команда',       short: 'Команда',    icon: <Star      className="w-3.5 h-3.5" />, color: '#a855f7' },
+  { id: 'settings',  label: 'Настройки',         short: 'Настройки',  icon: <Settings  className="w-3.5 h-3.5" />, color: '#64748b' },
 ];
 
 export const Header: React.FC<HeaderProps> = ({
