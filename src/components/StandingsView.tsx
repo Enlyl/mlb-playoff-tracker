@@ -146,18 +146,23 @@ export const StandingsView: React.FC<StandingsViewProps> = ({
                 </button>
               </div>
 
-              {/* Season Selector */}
-              <select
-                value={season}
-                onChange={(e) => setSeason(Number(e.target.value))}
-                className="bg-white/[0.04] border border-white/[0.08] text-[11px] font-bold text-slate-300 px-3 py-1.5 rounded-full outline-none cursor-pointer"
-              >
+              {/* Season Selector Pills */}
+              <div className="flex items-center gap-1 p-0.5 rounded-full bg-slate-200/80 dark:bg-white/[0.04] border border-slate-300 dark:border-white/[0.08]">
                 {getAvailableSeasons(getCurrentSeasonSync()).map((yr) => (
-                  <option key={yr} value={yr} className="bg-slate-900 text-slate-200">
-                    {yr} {yr === getCurrentSeasonSync() ? '(Текущий)' : ''}
-                  </option>
+                  <button
+                    key={yr}
+                    type="button"
+                    onClick={() => setSeason(yr)}
+                    className={`px-2.5 py-1 rounded-full text-xs font-black transition-all cursor-pointer ${
+                      season === yr
+                        ? 'bg-amber-400 text-slate-950 shadow-sm'
+                        : 'text-slate-700 dark:text-slate-400 hover:text-black dark:hover:text-white'
+                    }`}
+                  >
+                    {yr}
+                  </button>
                 ))}
-              </select>
+              </div>
             </div>
           </div>
         </div>
@@ -211,12 +216,12 @@ export const StandingsView: React.FC<StandingsViewProps> = ({
                       <thead>
                         <tr className="text-slate-500 font-mono text-[10px] border-b border-white/[0.05]">
                           <th className="py-2 px-3 font-sans"># Команда</th>
-                          <th className="py-2 px-2 text-center">W</th>
-                          <th className="py-2 px-2 text-center">L</th>
-                          <th className="py-2 px-2 text-center">PCT</th>
-                          <th className="py-2 px-2 text-center">GB</th>
-                          <th className="py-2 px-2 text-center">STRK</th>
-                          <th className="py-2 px-2 text-center">DIFF</th>
+                          <th className="py-2 px-2 text-center" title="Победы (Wins)">W</th>
+                          <th className="py-2 px-2 text-center" title="Поражения (Losses)">L</th>
+                          <th className="py-2 px-2 text-center" title="Процент побед (Winning Percentage = W / (W+L))">PCT</th>
+                          <th className="py-2 px-2 text-center" title="Отставание от лидера дивизиона в матчах (Games Behind)">GB</th>
+                          <th className="py-2 px-2 text-center" title="Текущая серия побед (W) или поражений (L)">STRK</th>
+                          <th className="py-2 px-2 text-center" title="Разница набранных и пропущенных очков (Run Differential)">DIFF</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -236,10 +241,10 @@ export const StandingsView: React.FC<StandingsViewProps> = ({
                               }`}
                               style={{
                                 background: isFavorite
-                                  ? 'linear-gradient(90deg, rgba(245, 158, 11, 0.26) 0%, rgba(245, 158, 11, 0.08) 100%)'
+                                  ? 'linear-gradient(90deg, rgba(245, 158, 11, 0.22) 0%, rgba(245, 158, 11, 0.06) 100%)'
                                   : undefined,
                                 boxShadow: isFavorite
-                                  ? 'inset 4px 0 0 #f59e0b, 0 0 25px rgba(245, 158, 11, 0.2)'
+                                  ? '0 0 0 1px rgba(245, 158, 11, 0.4), 0 0 20px rgba(245, 158, 11, 0.15)'
                                   : undefined,
                               }}
                             >
@@ -381,12 +386,12 @@ export const StandingsView: React.FC<StandingsViewProps> = ({
                         <thead>
                           <tr className="text-slate-500 font-mono text-[10px] border-b border-white/[0.05]">
                             <th className="py-2 px-3 font-sans"># Команда</th>
-                            <th className="py-2 px-2 text-center">W</th>
-                            <th className="py-2 px-2 text-center">L</th>
-                            <th className="py-2 px-2 text-center">PCT</th>
-                            <th className="py-2 px-2 text-center text-amber-400 font-bold">WCGB</th>
-                            <th className="py-2 px-2 text-center">STRK</th>
-                            <th className="py-2 px-2 text-center">DIFF</th>
+                            <th className="py-2 px-2 text-center" title="Победы (Wins)">W</th>
+                            <th className="py-2 px-2 text-center" title="Поражения (Losses)">L</th>
+                            <th className="py-2 px-2 text-center" title="Процент побед (Winning Percentage = W / (W+L))">PCT</th>
+                            <th className="py-2 px-2 text-center text-amber-400 font-bold" title="Отставание от зоны прохода в Wild Card (Wild Card Games Behind)">WCGB</th>
+                            <th className="py-2 px-2 text-center" title="Текущая серия побед (W) или поражений (L)">STRK</th>
+                            <th className="py-2 px-2 text-center" title="Разница набранных и пропущенных очков (Run Differential)">DIFF</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -407,10 +412,10 @@ export const StandingsView: React.FC<StandingsViewProps> = ({
                                   }`}
                                   style={{
                                     background: isFavorite
-                                      ? 'linear-gradient(90deg, rgba(245, 158, 11, 0.26) 0%, rgba(245, 158, 11, 0.08) 100%)'
+                                      ? 'linear-gradient(90deg, rgba(245, 158, 11, 0.22) 0%, rgba(245, 158, 11, 0.06) 100%)'
                                       : undefined,
                                     boxShadow: isFavorite
-                                      ? 'inset 4px 0 0 #f59e0b, 0 0 25px rgba(245, 158, 11, 0.2)'
+                                      ? '0 0 0 1px rgba(245, 158, 11, 0.4), 0 0 20px rgba(245, 158, 11, 0.15)'
                                       : undefined,
                                     opacity: isFavorite ? 1 : isQualified ? 1 : 0.7,
                                   }}
@@ -524,6 +529,45 @@ export const StandingsView: React.FC<StandingsViewProps> = ({
       )}
 
       
+
+      {/* ── GLOSSARY & NOVICE EXPLAINER ── */}
+      <div className="glass-shell glass-card" style={{ padding: '1px' }}>
+        <div className="glass-core p-4 sm:p-5 rounded-[calc(1.5rem-1px)] space-y-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
+            <Info className="w-4 h-4 text-blue-400" />
+            <span>Как читать турнирную таблицу: обозначения и правила</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-[11px]">
+            <div className="bg-white/[0.03] p-2.5 rounded-xl border border-white/[0.05]">
+              <span className="font-mono font-bold text-amber-400 block mb-0.5">W / L</span>
+              <span className="text-slate-400">Wins / Losses — победы и поражения команды.</span>
+            </div>
+            <div className="bg-white/[0.03] p-2.5 rounded-xl border border-white/[0.05]">
+              <span className="font-mono font-bold text-emerald-400 block mb-0.5">PCT</span>
+              <span className="text-slate-400">Winning % — доля побед (W ÷ все сыгранные матчи).</span>
+            </div>
+            <div className="bg-white/[0.03] p-2.5 rounded-xl border border-white/[0.05]">
+              <span className="font-mono font-bold text-sky-400 block mb-0.5">GB</span>
+              <span className="text-slate-400">Games Behind — отставание от 1-го места в дивизионе.</span>
+            </div>
+            <div className="bg-white/[0.03] p-2.5 rounded-xl border border-white/[0.05]">
+              <span className="font-mono font-bold text-amber-300 block mb-0.5">WCGB</span>
+              <span className="text-slate-400">Wild Card GB — отставание от заветной зоны Wild Card.</span>
+            </div>
+            <div className="bg-white/[0.03] p-2.5 rounded-xl border border-white/[0.05]">
+              <span className="font-mono font-bold text-purple-400 block mb-0.5">STRK</span>
+              <span className="text-slate-400">Streak — серия: W3 (3 победы подряд), L2 (2 поражения).</span>
+            </div>
+            <div className="bg-white/[0.03] p-2.5 rounded-xl border border-white/[0.05]">
+              <span className="font-mono font-bold text-cyan-400 block mb-0.5">DIFF</span>
+              <span className="text-slate-400">Run Diff — разница набранных и пропущенных ранов.</span>
+            </div>
+          </div>
+          <p className="text-[10px] text-slate-500 pt-1 border-t border-white/[0.05]">
+            💡 <strong>Структура плей-офф:</strong> 6 победителей дивизионов (по 3 в AL и NL) + 6 команд Wild Card (по 3 в каждой лиге) = 12 команд. Две лучшие команды каждой лиги пропускают 1-й раунд и сразу играют в серии дивизиона (ALDS/NLDS).
+          </p>
+        </div>
+      </div>
 
       {/* ── PLAYER DETAIL MODAL ── */}
       {selectedPlayerModal && (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   MLB_TEAMS,
   MLBGame,
@@ -21,6 +21,8 @@ import {
   Shield,
   Check,
   TrendingUp,
+  ChevronDown,
+  Search,
 } from 'lucide-react';
 import { downloadGameIcs, downloadTeamScheduleIcs } from '../utils/calendarExport';
 
@@ -48,6 +50,21 @@ export const MyTeamTracker: React.FC<MyTeamTrackerProps> = ({
   const [teamRecord, setTeamRecord] = useState<StandingsTeamRecord | null>(null);
   const [downloadingIcs, setDownloadingIcs] = useState<boolean>(false);
   const [downloadSuccess, setDownloadSuccess] = useState<boolean>(false);
+  const [teamPickerOpen, setTeamPickerOpen] = useState<boolean>(false);
+  const [teamSearch, setTeamSearch] = useState<string>('');
+  const pickerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleOutside = (e: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setTeamPickerOpen(false);
+      }
+    };
+    if (teamPickerOpen) {
+      document.addEventListener('mousedown', handleOutside);
+      return () => document.removeEventListener('mousedown', handleOutside);
+    }
+  }, [teamPickerOpen]);
 
   const handleDownloadCalendar = async () => {
     setDownloadingIcs(true);
@@ -194,17 +211,71 @@ export const MyTeamTracker: React.FC<MyTeamTrackerProps> = ({
 
             {/* Quick Switcher & Action */}
             <div className="flex flex-wrap items-center gap-2">
-              <select
-                value={currentTeam.id}
-                onChange={(e) => setFavoriteTeamId(Number(e.target.value))}
-                className="bg-white/[0.04] border border-white/[0.08] text-xs font-bold text-slate-200 px-3.5 py-2 rounded-full outline-none cursor-pointer hover:border-white/[0.16] transition"
-              >
-                {MLB_TEAMS.map((t) => (
-                  <option key={t.id} value={t.id} className="bg-slate-900 text-slate-200">
-                    {t.name} ({t.division})
-                  </option>
-                ))}
-              </select>
+              {/* Custom Team Dropdown */}
+              <div className="relative" ref={pickerRef}>
+                <button
+                  type="button"
+                  onClick={() => setTeamPickerOpen(!teamPickerOpen)}
+                  className="bg-white/[0.04] border border-white/[0.12] hover:border-amber-400/50 text-xs font-bold text-slate-200 px-3.5 py-2 rounded-full outline-none cursor-pointer flex items-center gap-2 transition active:scale-95 shadow-sm"
+                  title="Выбрать другую команду MLB"
+                >
+                  <img src={getTeamLogoUrl(currentTeam.id)} className="w-4 h-4 object-contain" alt="" />
+                  <span>{currentTeam.name}</span>
+                  <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${teamPickerOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {teamPickerOpen && (
+                  <div
+                    className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-72 max-h-80 rounded-2xl shadow-2xl p-2 z-50 overflow-hidden border border-white/15 flex flex-col"
+                    style={{
+                      background: 'rgba(15, 23, 42, 0.98)',
+                      backdropFilter: 'blur(20px)',
+                    }}
+                  >
+                    <div className="relative mb-1.5">
+                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={teamSearch}
+                        onChange={(e) => setTeamSearch(e.target.value)}
+                        placeholder="Поиск команды..."
+                        className="w-full bg-white/[0.06] border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-400 outline-none focus:border-amber-400/50"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="overflow-y-auto space-y-0.5 flex-1 pr-1 scrollbar-none">
+                      {MLB_TEAMS.filter((t) =>
+                        t.name.toLowerCase().includes(teamSearch.toLowerCase()) ||
+                        t.division.toLowerCase().includes(teamSearch.toLowerCase())
+                      ).map((t) => {
+                        const isSelected = t.id === currentTeam.id;
+                        return (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => {
+                              setFavoriteTeamId(t.id);
+                              setTeamPickerOpen(false);
+                              setTeamSearch('');
+                            }}
+                            className={`w-full px-2.5 py-2 rounded-xl text-left text-xs font-medium flex items-center justify-between transition-colors ${
+                              isSelected
+                                ? 'bg-amber-400/20 text-amber-300 font-bold border border-amber-400/30'
+                                : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <img src={getTeamLogoUrl(t.id)} className="w-4 h-4 object-contain" alt="" />
+                              <span>{t.name}</span>
+                            </div>
+                            <span className="text-[10px] text-slate-500 font-mono">{t.division}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Club Profile & Roster Button */}
               <button

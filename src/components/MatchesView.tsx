@@ -602,12 +602,11 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                   setShowPastGames(true);
                   loadPastGames();
                 }}
-                className="px-3 py-1.5 rounded-full text-[11px] font-bold transition-all"
-                style={{
-                  background: showPastGames ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.04)',
-                  border: `1px solid ${showPastGames ? 'rgba(139,92,246,0.45)' : 'rgba(255,255,255,0.07)'}`,
-                  color: showPastGames ? '#c4b5fd' : 'rgba(148,163,184,0.8)',
-                }}
+                className={`px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer active:scale-95 ${
+                  showPastGames
+                    ? 'bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/40 shadow-xs'
+                    : 'bg-slate-100 dark:bg-white/[0.04] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/[0.07] hover:bg-slate-200 dark:hover:bg-white/10'
+                }`}
               >
                 📋 Прошедшие
               </button>
@@ -621,12 +620,11 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                   <button
                     key={date}
                     onClick={() => { setSelectedDate(date); setShowPastGames(false); }}
-                    className="px-3 py-1.5 rounded-full text-[11px] font-bold transition-all"
-                    style={{
-                      background: isSelected ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${isSelected ? 'rgba(239,68,68,0.45)' : 'rgba(255,255,255,0.07)'}`,
-                      color: isSelected ? '#fca5a5' : 'rgba(148,163,184,0.8)',
-                    }}
+                    className={`px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer active:scale-95 ${
+                      isSelected
+                        ? 'bg-red-500/20 text-red-700 dark:text-red-300 border border-red-500/40 shadow-xs'
+                        : 'bg-slate-100 dark:bg-white/[0.04] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/[0.07] hover:bg-slate-200 dark:hover:bg-white/10'
+                    }`}
                   >
                     {label}
                   </button>
@@ -674,14 +672,13 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
               {/* Fav team filter */}
               <button
                 onClick={() => setOnlyMyTeam(!onlyMyTeam)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all"
-                style={{
-                  background: onlyMyTeam ? 'rgba(245,158,11,0.18)' : 'rgba(255,255,255,0.04)',
-                  border: `1px solid ${onlyMyTeam ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.07)'}`,
-                  color: onlyMyTeam ? '#fcd34d' : 'rgba(148,163,184,0.8)',
-                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer active:scale-95 ${
+                  onlyMyTeam
+                    ? 'bg-amber-400/20 text-amber-800 dark:text-amber-300 border border-amber-500/40 shadow-xs'
+                    : 'bg-slate-100 dark:bg-white/[0.04] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/[0.07] hover:bg-slate-200 dark:hover:bg-white/10'
+                }`}
               >
-                <Star className={`w-3 h-3 ${onlyMyTeam ? 'fill-amber-400' : ''}`} />
+                <Star className={`w-3 h-3 ${onlyMyTeam ? 'fill-amber-500 text-amber-500' : 'text-slate-400'}`} />
                 <span>Моя команда</span>
               </button>
 
@@ -693,12 +690,13 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Поиск: Padres, Dodgers..."
-                  className="w-full bg-slate-900/80 border border-slate-800 rounded-full pl-8 pr-3 py-1.5 text-[11px] text-white placeholder-slate-500 focus:outline-none focus:border-amber-400/50 transition"
+                  className="w-full bg-slate-100 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-800 rounded-full pl-8 pr-7 py-1.5 text-[11px] text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:border-amber-400/50 transition shadow-inner"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-2 text-slate-500 hover:text-white text-xs px-1"
+                    className="absolute right-2.5 text-slate-400 hover:text-slate-700 dark:hover:text-white text-xs px-1 cursor-pointer"
+                    title="Очистить поиск"
                   >
                     ×
                   </button>

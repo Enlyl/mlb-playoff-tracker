@@ -682,18 +682,18 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                       <tr className="text-slate-400 border-b border-slate-800">
                         <th className="text-left font-sans py-1 px-2">Команда</th>
                         {linescore.innings.map((inn) => (
-                          <th key={inn.num} className="w-7 py-1 px-1">
+                          <th key={inn.num} className="w-7 py-1 px-1" title={`Иннинг ${inn.num}`}>
                             {inn.num}
                           </th>
                         ))}
-                        <th className="w-8 py-1 px-1 text-white font-bold">R</th>
-                        <th className="w-8 py-1 px-1 text-slate-400">H</th>
-                        <th className="w-8 py-1 px-1 text-slate-400">E</th>
+                        <th className="w-8 py-1 px-1 text-white font-bold" title="Раны — очки в матче (Runs)">R</th>
+                        <th className="w-8 py-1 px-1 text-slate-400" title="Хиты — результативные удары (Hits)">H</th>
+                        <th className="w-8 py-1 px-1 text-slate-400" title="Ошибки полевых игроков (Errors)">E</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr className={`border-b border-slate-800/50 ${
-                        isAwayFav ? 'bg-amber-500/15 text-amber-300 font-bold border-l-4 border-l-amber-400' : 'text-slate-200'
+                        isAwayFav ? 'bg-amber-500/15 text-amber-300 font-bold ring-1 ring-inset ring-amber-400/30' : 'text-slate-200'
                       }`}>
                         <td className="text-left font-sans font-semibold py-1.5 px-2 flex items-center gap-1.5">
                           <img src={getTeamLogoUrl(game.teams.away.team.id)} className="w-3.5 h-3.5" alt="" />
@@ -716,7 +716,7 @@ export const GameDetailModal: React.FC<GameDetailModalProps> = ({
                         </td>
                       </tr>
 
-                      <tr className={isHomeFav ? 'bg-amber-500/15 text-amber-300 font-bold border-l-4 border-l-amber-400' : 'text-slate-200'}>
+                      <tr className={isHomeFav ? 'bg-amber-500/15 text-amber-300 font-bold ring-1 ring-inset ring-amber-400/30' : 'text-slate-200'}>
                         <td className="text-left font-sans font-semibold py-1.5 px-2 flex items-center gap-1.5">
                           <img src={getTeamLogoUrl(game.teams.home.team.id)} className="w-3.5 h-3.5" alt="" />
                           <span>{game.teams.home.team.abbreviation}</span>

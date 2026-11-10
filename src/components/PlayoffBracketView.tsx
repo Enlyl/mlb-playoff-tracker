@@ -946,6 +946,15 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
         </div>
       ) : (
         /* ── ALTERNATIVE: COMPACT LIST VIEW ── */
+        parsedSeriesList.length === 0 ? (
+          <div className="glass-shell p-[1px]">
+            <div className="glass-core p-8 text-center text-slate-400 space-y-2 rounded-2xl">
+              <Trophy className="w-8 h-8 mx-auto text-amber-400/50" />
+              <p className="font-bold text-white">Плей-офф сезона {season} ещё не начался</p>
+              <p className="text-xs text-slate-400">Сетка и серии сформируются по итогам регулярного чемпионата.</p>
+            </div>
+          </div>
+        ) : (
         <div className="space-y-3">
           {parsedSeriesList.map((series) => {
             const isAwayWinner = series.isOver && series.winnerId === series.awayTeam.id;
@@ -1047,7 +1056,56 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
             );
           })}
         </div>
+        )
       )}
+
+      {/* ── PLAYOFF STRUCTURE EXPLAINER ── */}
+      <div className="glass-shell glass-card" style={{ padding: '1px' }}>
+        <div className="glass-core p-4 sm:p-5 rounded-[calc(1.5rem-1px)] space-y-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
+            <Info className="w-4 h-4 text-amber-400" />
+            <span>Формат и регламент плей-офф MLB (12 команд, 4 раунда)</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-[11px]">
+            <div className="bg-white/[0.03] p-3 rounded-xl border border-white/[0.05] space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-blue-400 uppercase tracking-wider text-[10px]">1. Wild Card Series</span>
+                <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono text-[9px]">До 2 побед</span>
+              </div>
+              <p className="text-slate-400 text-[10.5px] leading-relaxed">
+                Сеяные #3 vs #6 и #4 vs #5. Победители выходят в дивизионы. Сеяные #1 и #2 отдыхают (Bye).
+              </p>
+            </div>
+            <div className="bg-white/[0.03] p-3 rounded-xl border border-white/[0.05] space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-emerald-400 uppercase tracking-wider text-[10px]">2. Division Series</span>
+                <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[9px]">До 3 побед</span>
+              </div>
+              <p className="text-slate-400 text-[10.5px] leading-relaxed">
+                ALDS и NLDS. Топ-посевы #1 и #2 вступают в борьбу. Максимум 5 игр (Best-of-5).
+              </p>
+            </div>
+            <div className="bg-white/[0.03] p-3 rounded-xl border border-white/[0.05] space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-purple-400 uppercase tracking-wider text-[10px]">3. Championship Series</span>
+                <span className="px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono text-[9px]">До 4 побед</span>
+              </div>
+              <p className="text-slate-400 text-[10.5px] leading-relaxed">
+                Финалы Американской (ALCS) и Национальной (NLCS) лиг. Победители получают титул чемпиона лиги (Pennant).
+              </p>
+            </div>
+            <div className="bg-white/[0.03] p-3 rounded-xl border border-white/[0.05] space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-amber-400 uppercase tracking-wider text-[10px]">4. World Series</span>
+                <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[9px]">До 4 побед</span>
+              </div>
+              <p className="text-slate-400 text-[10.5px] leading-relaxed">
+                Главный финал года за Кубок Комиссара (Commissioner's Trophy) между чемпионами AL и NL.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* ── SERIES DETAIL DRAWER / MODAL ── */}
       {selectedSeries && (

@@ -107,14 +107,14 @@ export const WinsToFinalBanner: React.FC<WinsToFinalBannerProps> = ({
               <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
                 {isTopSeedBye ? (
                   <span>
-                    Выход напрямую в Дивизионный раунд (Bye): <strong className="text-slate-200">3 победы</strong> в ALDS/NLDS + <strong className="text-slate-200">4 победы</strong> в Чемпионской серии
+                    Выход напрямую в Дивизионный раунд (<strong>Bye</strong> — пропуск 1-го раунда Wild Card): <strong className="text-slate-200">3 победы</strong> в серии дивизиона + <strong className="text-slate-200">4 победы</strong> в финале лиги до Мировой Серии.
                   </span>
                 ) : isWildCardTeam ? (
                   <span>
-                    Путь через Wild Card: <strong className="text-slate-200">2 победы</strong> в WC + <strong className="text-slate-200">3 победы</strong> в серии дивизиона + <strong className="text-slate-200">4</strong> в финале лиги
+                    Путь через раунд Wild Card: <strong className="text-slate-200">2 победы</strong> в WC + <strong className="text-slate-200">3 победы</strong> в серии дивизиона + <strong className="text-slate-200">4 победы</strong> в финале лиги.
                   </span>
                 ) : (
-                  <span>В решающем туре определяется путевка в зону Wild Card</span>
+                  <span>В матчах регулярки определяется путевка в зону Wild Card (топ-3 команды лиги).</span>
                 )}
               </p>
             </div>
