@@ -5,11 +5,13 @@ import { MLB_TEAMS, getTeamLogoUrl } from '../services/mlbApi';
 interface WinsToFinalBannerProps {
   favoriteTeamId: number | null;
   onOpenBracket?: () => void;
+  season?: number;
 }
 
 export const WinsToFinalBanner: React.FC<WinsToFinalBannerProps> = ({
   favoriteTeamId,
   onOpenBracket,
+  season = 2026,
 }) => {
   const team = MLB_TEAMS.find((t) => t.id === favoriteTeamId) || MLB_TEAMS[0];
 
@@ -80,7 +82,7 @@ export const WinsToFinalBanner: React.FC<WinsToFinalBannerProps> = ({
                   }}
                 >
                   <Flame className="w-2.5 h-2.5 text-amber-400" />
-                  Плей-офф 2026
+                  Плей-офф {season}
                 </span>
                 <span className="text-xs font-semibold text-slate-300">
                   {team.name}
@@ -98,7 +100,7 @@ export const WinsToFinalBanner: React.FC<WinsToFinalBannerProps> = ({
                 </div>
               ) : (
                 <div className="text-sm font-bold text-slate-300">
-                  Борьба за путёвку в плей-офф 2026
+                  Борьба за путёвку в плей-офф {season}
                 </div>
               )}
 

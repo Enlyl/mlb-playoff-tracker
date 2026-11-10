@@ -15,6 +15,7 @@ import { PlayerDetailModal } from './components/PlayerDetailModal';
 import { MLBGame, MLB_TEAMS } from './services/mlbApi';
 import { sounds } from './services/soundEffects';
 import { notifications } from './services/notifications';
+import { getSelectedSeason, saveSelectedSeason, fetchCurrentSeason, getAvailableSeasons, getCurrentSeasonSync } from './utils/seasonUtils';
 import {
   Radio,
   Trophy,
@@ -72,6 +73,27 @@ export function App() {
     if (saved === 'light' || saved === 'dark') return saved;
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
   });
+
+  /* ── SEASON STATE (global) ── */
+  const [season, setSeasonState] = useState<number>(() => getSelectedSeason());
+  const [detectedSeason, setDetectedSeason] = useState<number>(getCurrentSeasonSync());
+
+  const setSeason = useCallback((s: number) => {
+    setSeasonState(s);
+    saveSelectedSeason(s);
+  }, []);
+
+  // Auto-detect current season on mount
+  useEffect(() => {
+    fetchCurrentSeason().then((apiSeason) => {
+      setDetectedSeason(apiSeason);
+      // If user hasn't explicitly picked a season, auto-update
+      const saved = localStorage.getItem('mlb_selected_season');
+      if (!saved) {
+        setSeasonState(apiSeason);
+      }
+    });
+  }, []);
 
   const setTheme = useCallback((t: 'dark' | 'light') => {
     setThemeState(t);
@@ -224,6 +246,9 @@ export function App() {
         setIsMuted={setIsMuted}
         notificationsEnabled={notificationsEnabled}
         setNotificationsEnabled={setNotificationsEnabled}
+        season={season}
+        setSeason={setSeason}
+        detectedSeason={detectedSeason}
       />
 
       {/* ── MAIN CONTENT ── */}
@@ -244,6 +269,7 @@ export function App() {
                 onSelectTeam={(id, name) => navigateToTeam(id, name)}
                 isFavorite={favoriteTeamId === selectedTeamProfile.id}
                 onToggleFavorite={(id, _name) => setFavoriteTeamId(id)}
+                season={season}
               />
             </motion.div>
           ) : (
@@ -255,12 +281,14 @@ export function App() {
                   <WinsToFinalBanner
                     favoriteTeamId={favoriteTeamId}
                     onOpenBracket={() => setActiveTab('bracket')}
+                    season={season}
                   />
                 </div>
                 <MatchesView
                   onSelectGame={(g) => setSelectedGame(g)}
                   favoriteTeamId={favoriteTeamId}
                   onSelectTeam={(id, name) => navigateToTeam(id, name)}
+                  season={season}
                 />
               </div>
             </motion.div>
@@ -272,6 +300,8 @@ export function App() {
                 onSelectGame={(g) => setSelectedGame(g)}
                 favoriteTeamId={favoriteTeamId}
                 onSelectTeam={(id, name) => navigateToTeam(id, name)}
+                season={season}
+                setSeason={setSeason}
               />
             </motion.div>
           )}
@@ -284,6 +314,8 @@ export function App() {
                   setFavoriteTeamId(id);
                 }}
                 onSelectTeam={(id, name) => navigateToTeam(id, name || '')}
+                season={season}
+                setSeason={setSeason}
               />
             </motion.div>
           )}
@@ -304,6 +336,7 @@ export function App() {
                 notificationsEnabled={notificationsEnabled}
                 setNotificationsEnabled={setNotificationsEnabled}
                 onSelectTeam={(id, name) => navigateToTeam(id, name)}
+                season={season}
               />
             </motion.div>
           )}
@@ -313,6 +346,8 @@ export function App() {
               <RankingsView
                 favoriteTeamId={favoriteTeamId}
                 onSelectTeam={(id, name) => navigateToTeam(id, name)}
+                season={season}
+                setSeason={setSeason}
               />
             </motion.div>
           )}
@@ -328,6 +363,7 @@ export function App() {
                 setNotificationsEnabled={setNotificationsEnabled}
                 theme={theme}
                 setTheme={setTheme}
+                season={season}
               />
             </motion.div>
           )}
@@ -364,6 +400,7 @@ export function App() {
             setSelectedPlayer(null);
             navigateToTeam(id, name);
           }}
+          season={season}
         />
       )}
 
@@ -424,7 +461,7 @@ export function App() {
         >
           <div className="flex items-center gap-2">
             <img src={`${import.meta.env.BASE_URL}favicon.svg`} className="w-3.5 h-3.5 opacity-40" alt="" />
-            <span>MLB Playoff Tracker • Сезон 2026</span>
+            <span>MLB Playoff Tracker • Сезон {season}</span>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-slate-700">statsapi.mlb.com</span>
@@ -432,7 +469,7 @@ export function App() {
               Правила
             </button>
             <button onClick={() => handleSelectTab('bracket')} className="hover:text-slate-400 transition-colors">
-              Bracket 2026
+              Bracket {season}
             </button>
           </div>
         </div>

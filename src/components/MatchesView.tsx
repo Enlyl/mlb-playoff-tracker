@@ -37,9 +37,10 @@ interface MatchesViewProps {
   onSelectTeam?: (teamId: number, teamName: string) => void;
   onSelectGame: (game: MLBGame) => void;
   favoriteTeamId: number | null;
+  season?: number;
 }
 
-export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favoriteTeamId, onSelectTeam }) => {
+export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favoriteTeamId, onSelectTeam, season = 2026 }) => {
   // Dynamic current dates (NO hardcoded Sept 27 / 29)
   const todayObj = new Date();
   const formatISO = (d: Date) => d.toISOString().slice(0, 10);
@@ -192,11 +193,11 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
   }, [liveHeroGame?.gamePk, liveHeroGame?.status?.abstractGameState, favoriteTeamId]);
 
   // Load past season games lazily when user opens the "Прошедшие" tab
-  const loadPastGames = async () => {
-    if (pastGames.length > 0) return; // already loaded
+  const loadPastGames = async (forceSeason?: number) => {
+    const s = forceSeason ?? season;
     setPastLoading(true);
     try {
-      const data = await getSeasonPastGames(2026, 600);
+      const data = await getSeasonPastGames(s, 600);
       setPastGames(data);
     } catch (e) {
       console.error('Error loading past games:', e);
@@ -204,6 +205,15 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
       setPastLoading(false);
     }
   };
+
+  // Reload past games if season changes while viewing past tab
+  useEffect(() => {
+    if (showPastGames) {
+      loadPastGames(season);
+    } else {
+      setPastGames([]);
+    }
+  }, [season, showPastGames]);
 
   // Top 3 Must-Watch thriller games based on sabermetric excitement index
   const topMustWatchGames = React.useMemo(() => {
@@ -386,7 +396,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                         VS
                       </span>
                       <span className="text-[10px] text-slate-700 dark:text-slate-400 font-mono font-medium">
-                        {liveHeroGame.seriesDescription || 'Серия 2026'}
+                        {liveHeroGame.seriesDescription || `Серия ${season}`}
                       </span>
                     </div>
                   )}
@@ -567,7 +577,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
                   }}
                 >
                   <span className="live-dot" style={{ width: 5, height: 5, minWidth: 5 }} />
-                  Календарь матчей • Сезон 2026
+                  Календарь матчей • Сезон {season}
                 </span>
               </div>
               <h2 className="text-display text-white" style={{ fontSize: 'clamp(1.1rem, 3vw, 1.5rem)' }}>
@@ -575,7 +585,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 {showPastGames
-                  ? `Все завершённые матчи MLB 2026 — от новых к старым`
+                  ? `Все завершённые матчи MLB ${season} — от новых к старым`
                   : `Выбранная дата: ${new Date(selectedDate).toLocaleDateString('ru-RU', {
                       day: 'numeric',
                       month: 'long',
@@ -712,7 +722,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
           {pastLoading ? (
             <div className="text-center py-20 text-slate-500 font-medium text-sm flex items-center justify-center gap-2">
               <RefreshCw className="w-4 h-4 animate-spin text-slate-400" />
-              <span>Загрузка прошедших матчей сезона 2026...</span>
+              <span>Загрузка прошедших матчей сезона {season}...</span>
             </div>
           ) : pastGames.length === 0 ? (
             <div className="glass-shell p-[1px]">

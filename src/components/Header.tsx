@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Calendar,
   Trophy,
@@ -13,8 +13,10 @@ import {
   Moon,
   Volume2,
   VolumeX,
+  ChevronDown,
 } from 'lucide-react';
 import { sounds } from '../services/soundEffects';
+import { getAvailableSeasons } from '../utils/seasonUtils';
 
 export type TabType = 'matches' | 'bracket' | 'standings' | 'rules' | 'myteam' | 'rankings' | 'settings';
 
@@ -31,6 +33,9 @@ interface HeaderProps {
   setIsMuted: (muted: boolean) => void;
   notificationsEnabled: boolean;
   setNotificationsEnabled: (enabled: boolean) => void;
+  season: number;
+  setSeason: (s: number) => void;
+  detectedSeason: number;
 }
 
 const TABS: {
@@ -58,14 +63,32 @@ export const Header: React.FC<HeaderProps> = ({
   toggleTheme,
   isMuted,
   setIsMuted,
+  season,
+  setSeason,
+  detectedSeason,
 }) => {
   const [scrolled, setScrolled] = useState(false);
+  const [seasonOpen, setSeasonOpen] = useState(false);
+  const seasonRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Close season dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (seasonRef.current && !seasonRef.current.contains(e.target as Node)) {
+        setSeasonOpen(false);
+      }
+    };
+    if (seasonOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [seasonOpen]);
 
   const handleReturnHome = () => {
     if (onGoHome) {
@@ -129,7 +152,7 @@ export const Header: React.FC<HeaderProps> = ({
                       color: '#fca5a5',
                     }}
                   >
-                    2026
+                    {season}
                   </span>
                 </div>
                 <span className="text-[10px] text-slate-500 mt-0.5 hidden sm:block">
@@ -193,10 +216,61 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </button>
 
-            {/* Season indicator dot / right side */}
-            <div className="flex items-center gap-2 text-[11px] text-slate-500 font-mono font-medium hidden lg:flex ml-1">
-              <span className="live-dot" />
-              <span>СЕЗОН 2026</span>
+            {/* Season Switcher Dropdown */}
+            <div className="relative" ref={seasonRef}>
+              <button
+                type="button"
+                onClick={() => setSeasonOpen(!seasonOpen)}
+                className="p-1.5 sm:px-2.5 sm:py-1 rounded-full text-xs font-bold transition flex items-center gap-1.5 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-amber-300 border border-white/10 cursor-pointer active:scale-95"
+                title="Выбрать сезон MLB"
+              >
+                <span className="live-dot" />
+                <span className="font-mono">{season}</span>
+                <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${seasonOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {seasonOpen && (
+                <div
+                  className="absolute right-0 mt-1.5 w-36 rounded-xl shadow-2xl py-1 z-50 overflow-hidden border"
+                  style={{
+                    background: theme === 'light' ? 'rgba(255, 255, 255, 0.98)' : 'rgba(15, 23, 42, 0.95)',
+                    borderColor: theme === 'light' ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.15)',
+                    backdropFilter: 'blur(16px)',
+                  }}
+                >
+                  <div className="px-2.5 py-1 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                    Сезон MLB
+                  </div>
+                  {getAvailableSeasons(detectedSeason).map((yr) => {
+                    const isSelected = yr === season;
+                    const isCurrent = yr === detectedSeason;
+                    return (
+                      <button
+                        key={yr}
+                        type="button"
+                        onClick={() => {
+                          setSeason(yr);
+                          setSeasonOpen(false);
+                        }}
+                        className={`w-full px-2.5 py-1.5 text-xs text-left font-medium flex items-center justify-between transition-colors ${
+                          isSelected
+                            ? 'bg-amber-500/20 text-amber-400 font-bold'
+                            : theme === 'light'
+                            ? 'text-slate-700 hover:bg-slate-100'
+                            : 'text-slate-300 hover:bg-white/5'
+                        }`}
+                      >
+                        <span className="font-mono">{yr}</span>
+                        {isCurrent && (
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400">
+                            Текущий
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>

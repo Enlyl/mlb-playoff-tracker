@@ -25,11 +25,13 @@ import {
   MLBGame,
 } from '../services/mlbApi';
 import { PlayerDetailModal } from './PlayerDetailModal';
+import { getCurrentSeasonSync, getAvailableSeasons } from '../utils/seasonUtils';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const SEASONS = [2026, 2025, 2024, 2023] as const;
-type Season = (typeof SEASONS)[number];
+const CURRENT_YEAR = getCurrentSeasonSync();
+const SEASONS: number[] = getAvailableSeasons(CURRENT_YEAR);
+type Season = number;
 
 type MainTab = 'teams' | 'batting' | 'pitching';
 type TeamSortKey = 'pct' | 'wins' | 'runsScored' | 'runsAllowed';
@@ -74,7 +76,7 @@ function SeasonPills({
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
       {SEASONS.map((s) => {
-        const isCurrent = s === 2026;
+        const isCurrent = s === CURRENT_YEAR;
         const isActive = s === active;
         return (
           <button
@@ -685,12 +687,26 @@ function PitchingLeadersTable({
 interface RankingsViewProps {
   onSelectTeam?: (teamId: number, teamName: string) => void;
   favoriteTeamId?: number;
+  season?: number;
+  setSeason?: (s: number) => void;
 }
 
 export const RankingsView: React.FC<RankingsViewProps> = ({
-  onSelectTeam, favoriteTeamId }) => {
+  onSelectTeam,
+  favoriteTeamId,
+  season: propSeason,
+  setSeason: propSetSeason,
+}) => {
   const [mainTab, setMainTab] = useState<MainTab>('teams');
-  const [season, setSeason] = useState<Season>(2026);
+  const [localSeason, setLocalSeason] = useState<Season>(() => propSeason ?? CURRENT_YEAR);
+  const season = propSeason ?? localSeason;
+  const setSeason = (s: Season) => {
+    if (propSetSeason) {
+      propSetSeason(s);
+    } else {
+      setLocalSeason(s);
+    }
+  };
 
   // Modal state
     const [selectedPlayerModal, setSelectedPlayerModal] = useState<{ id: number; name: string } | null>(null);
@@ -745,7 +761,7 @@ export const RankingsView: React.FC<RankingsViewProps> = ({
             <h2 className="text-sm font-black text-white uppercase tracking-widest">Рейтинги</h2>
           </div>
           <p className="text-xs text-slate-500 leading-relaxed max-w-lg">
-            Статистика команд и игроков за 2023–2026 · данные MLB Stats API
+            Статистика команд и игроков · данные MLB Stats API
           </p>
         </div>
 

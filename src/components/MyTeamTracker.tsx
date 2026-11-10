@@ -32,6 +32,7 @@ interface MyTeamTrackerProps {
   onOpenBracket?: () => void;
   notificationsEnabled: boolean;
   setNotificationsEnabled: (enabled: boolean) => void;
+  season?: number;
 }
 
 export const MyTeamTracker: React.FC<MyTeamTrackerProps> = ({
@@ -41,6 +42,7 @@ export const MyTeamTracker: React.FC<MyTeamTrackerProps> = ({
   onSelectGame,
   onOpenBracket,
   setNotificationsEnabled,
+  season = 2026,
 }) => {
   const [teamGames, setTeamGames] = useState<MLBGame[]>([]);
   const [teamRecord, setTeamRecord] = useState<StandingsTeamRecord | null>(null);
@@ -68,7 +70,7 @@ export const MyTeamTracker: React.FC<MyTeamTrackerProps> = ({
     let isMounted = true;
     async function loadTeamData() {
       try {
-        const standings = await getStandings(2026);
+        const standings = await getStandings(season);
         for (const div of standings) {
           const rec = div.teamRecords.find((r) => r.team.id === currentTeam.id);
           if (rec && isMounted) {
@@ -77,7 +79,7 @@ export const MyTeamTracker: React.FC<MyTeamTrackerProps> = ({
           }
         }
 
-        const url = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&season=2026&teamId=${currentTeam.id}&hydrate=team,linescore,probablePitcher,seriesStatus(useOverride=true)`;
+        const url = `https://statsapi.mlb.com/api/v1/schedule?sportId=1&season=${season}&teamId=${currentTeam.id}&hydrate=team,linescore,probablePitcher,seriesStatus(useOverride=true)`;
         const res = await fetch(url);
         if (res.ok) {
           const data = await res.json();
@@ -184,8 +186,8 @@ export const MyTeamTracker: React.FC<MyTeamTrackerProps> = ({
                 </h2>
                 <p className="text-xs text-slate-400 mt-0.5">
                   {teamRecord
-                    ? `Сезон 2026: ${teamRecord.wins} побед — ${teamRecord.losses} поражений (${teamRecord.winningPercentage} PCT)`
-                    : 'MLB Сезон 2026'}
+                    ? `Сезон ${season}: ${teamRecord.wins} побед — ${teamRecord.losses} поражений (${teamRecord.winningPercentage} PCT)`
+                    : `MLB Сезон ${season}`}
                 </p>
               </div>
             </div>
@@ -534,7 +536,7 @@ export const MyTeamTracker: React.FC<MyTeamTrackerProps> = ({
               <span className="text-xs font-bold text-white uppercase tracking-wider">
                 Последние сыгранные матчи
               </span>
-              <span className="text-[10px] text-slate-500 font-mono">Сезон 2026</span>
+              <span className="text-[10px] text-slate-500 font-mono">Сезон {season}</span>
             </div>
 
             <div className="space-y-1.5 max-h-[380px] overflow-y-auto pr-1">

@@ -1,4 +1,5 @@
 // MLB Stats API service
+import { getCurrentSeasonSync } from '../utils/seasonUtils';
 
 export interface PitcherStats {
   era?: string;
@@ -405,7 +406,7 @@ export async function getSchedule(dateStr: string): Promise<MLBGame[]> {
  * Fetch all past games of the 2026 season (from season start up to yesterday), newest first.
  * Uses pagination — returns up to 500 most recent games.
  */
-export async function getSeasonPastGames(season = 2026, limit = 500): Promise<MLBGame[]> {
+export async function getSeasonPastGames(season = getCurrentSeasonSync(), limit = 500): Promise<MLBGame[]> {
   try {
     const today = new Date();
     const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
@@ -437,7 +438,7 @@ export async function getUpcoming48HoursGames(): Promise<MLBGame[]> {
     const isoStart = now.toISOString().slice(0, 10);
     const isoEnd = in2days.toISOString().slice(0, 10);
 
-    const url = `${BASE_URL}/v1/schedule?sportId=1&season=2026&gameType=R,F,D,L,W&startDate=${isoStart}&endDate=${isoEnd}&hydrate=team,linescore,probablePitcher,seriesStatus(useOverride=true)`;
+    const url = `${BASE_URL}/v1/schedule?sportId=1&season=${getCurrentSeasonSync()}&gameType=R,F,D,L,W&startDate=${isoStart}&endDate=${isoEnd}&hydrate=team,linescore,probablePitcher,seriesStatus(useOverride=true)`;
     const res = await fetch(url);
     if (!res.ok) return [];
     const data = await res.json();
@@ -462,7 +463,7 @@ export async function getUpcoming24HoursGames(): Promise<{ liveGame: MLBGame | n
     const isoStart = yesterday.toISOString().slice(0, 10);
     const isoEnd = in48h.toISOString().slice(0, 10);
 
-    const url = `${BASE_URL}/v1/schedule?sportId=1&season=2026&gameType=R,F,D,L,W&startDate=${isoStart}&endDate=${isoEnd}&hydrate=team,linescore,probablePitcher,broadcasts,seriesStatus(useOverride=true)`;
+    const url = `${BASE_URL}/v1/schedule?sportId=1&season=${getCurrentSeasonSync()}&gameType=R,F,D,L,W&startDate=${isoStart}&endDate=${isoEnd}&hydrate=team,linescore,probablePitcher,broadcasts,seriesStatus(useOverride=true)`;
     const res = await fetch(url);
     if (!res.ok) return { liveGame: null, next24HoursGames: [] };
     const data = await res.json();
@@ -518,7 +519,7 @@ export async function getGameWinProbability(gamePk: number | string): Promise<Wi
 }
 
 // Fetch divisional standings (defaults to 2026)
-export async function getStandings(season = 2026): Promise<DivisionStandings[]> {
+export async function getStandings(season = getCurrentSeasonSync()): Promise<DivisionStandings[]> {
   try {
     const url = `${BASE_URL}/v1/standings?leagueId=103,104&season=${season}&standingsTypes=regularSeason&hydrate=division,team(venue)`;
     const res = await fetch(url);
@@ -540,7 +541,7 @@ export async function getStandings(season = 2026): Promise<DivisionStandings[]> 
 }
 
 // Fetch Wild Card Race standings (defaults to 2026)
-export async function getWildCardStandings(season = 2026): Promise<WildCardStandings[]> {
+export async function getWildCardStandings(season = getCurrentSeasonSync()): Promise<WildCardStandings[]> {
   try {
     const url = `${BASE_URL}/v1/standings?leagueId=103,104&season=${season}&standingsTypes=wildCard`;
     const res = await fetch(url);
@@ -557,7 +558,7 @@ export async function getWildCardStandings(season = 2026): Promise<WildCardStand
 }
 
 // Fetch postseason series (defaults to 2026)
-export async function getPostseasonSeries(season = 2026): Promise<PostseasonSeries[]> {
+export async function getPostseasonSeries(season = getCurrentSeasonSync()): Promise<PostseasonSeries[]> {
   try {
     const url = `${BASE_URL}/v1/schedule/postseason/series?season=${season}&sportId=1&hydrate=team,linescore`;
     const res = await fetch(url);
@@ -580,7 +581,7 @@ export async function getPostseasonSeries(season = 2026): Promise<PostseasonSeri
 }
 
 // Fetch Head to Head matches (defaults to 2026)
-export async function getHeadToHead(team1Id: number, team2Id: number, season = 2026): Promise<MLBGame[]> {
+export async function getHeadToHead(team1Id: number, team2Id: number, season = getCurrentSeasonSync()): Promise<MLBGame[]> {
   try {
     const url = `${BASE_URL}/v1/schedule?sportId=1&season=${season}&teamId=${team1Id}&opponentId=${team2Id}&hydrate=team,linescore`;
     const res = await fetch(url);
@@ -874,7 +875,7 @@ export interface PlayerDetails {
   awards: Array<{ name: string; season?: string; date?: string }>;
 }
 
-export async function getPlayerDetails(personId: number, season = 2026): Promise<PlayerDetails | null> {
+export async function getPlayerDetails(personId: number, season = getCurrentSeasonSync()): Promise<PlayerDetails | null> {
   try {
     const pRes = await fetch(`${BASE_URL}/v1/people/${personId}?hydrate=currentTeam,team,awards`);
     if (!pRes.ok) return null;
@@ -1137,7 +1138,7 @@ export async function getTeamCoaches(teamId: number): Promise<TeamCoachItem[]> {
 /**
  * Fetch team statistical leaders
  */
-export async function getTeamLeaders(teamId: number, season: number = 2026): Promise<Record<string, any[]>> {
+export async function getTeamLeaders(teamId: number, season: number = getCurrentSeasonSync()): Promise<Record<string, any[]>> {
   const cats = ['homeRuns', 'runsBattedIn', 'battingAverage', 'hits', 'stolenBases', 'wins', 'earnedRunAverage', 'strikeouts', 'saves'];
   try {
     const res = await fetch(`${BASE_URL}/v1/teams/${teamId}/leaders?leaderCategories=${cats.join(',')}&season=${season}&limit=3&leaderGameTypes=R`);
@@ -1159,7 +1160,7 @@ export async function getTeamLeaders(teamId: number, season: number = 2026): Pro
 /**
  * Fetch team season hitting & pitching summary
  */
-export async function getTeamSeasonStats(teamId: number, season: number = 2026): Promise<TeamSeasonStatsSummary> {
+export async function getTeamSeasonStats(teamId: number, season: number = getCurrentSeasonSync()): Promise<TeamSeasonStatsSummary> {
   try {
     const [hitRes, pitRes] = await Promise.all([
       fetch(`${BASE_URL}/v1/teams/${teamId}/stats?stats=season&season=${season}&group=hitting`),
@@ -1180,7 +1181,7 @@ export async function getTeamSeasonStats(teamId: number, season: number = 2026):
 /**
  * Fetch team games schedule for a season
  */
-export async function getTeamSeasonSchedule(teamId: number, season: number = 2026): Promise<MLBGame[]> {
+export async function getTeamSeasonSchedule(teamId: number, season: number = getCurrentSeasonSync()): Promise<MLBGame[]> {
   try {
     const res = await fetch(`${BASE_URL}/v1/schedule?sportId=1&teamId=${teamId}&season=${season}&gameType=R,F,D,L,W&hydrate=team,linescore`);
     if (!res.ok) return [];

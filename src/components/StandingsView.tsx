@@ -8,16 +8,33 @@ import {
 } from '../services/mlbApi';
 import { BarChart2, ShieldCheck, Zap, Info, CheckCircle2, Star } from 'lucide-react';
 import { PlayerDetailModal } from './PlayerDetailModal';
+import { getCurrentSeasonSync, getAvailableSeasons } from '../utils/seasonUtils';
 
 interface StandingsViewProps {
   favoriteTeamId: number | null;
   onSelectTeam?: (teamId: number, teamName: string) => void;
   onToggleFavorite?: (teamId: number, teamName: string) => void;
+  season?: number;
+  setSeason?: (s: number) => void;
 }
 
-export const StandingsView: React.FC<StandingsViewProps> = ({ favoriteTeamId, onSelectTeam, onToggleFavorite }) => {
+export const StandingsView: React.FC<StandingsViewProps> = ({
+  favoriteTeamId,
+  onSelectTeam,
+  onToggleFavorite,
+  season: propSeason,
+  setSeason: propSetSeason,
+}) => {
   const [activeTab, setActiveTab] = useState<'divisions' | 'wildcard'>('divisions');
-  const [season, setSeason] = useState<number>(2026);
+  const [localSeason, setLocalSeason] = useState<number>(() => propSeason ?? getCurrentSeasonSync());
+  const season = propSeason ?? localSeason;
+  const setSeason = (s: number) => {
+    if (propSetSeason) {
+      propSetSeason(s);
+    } else {
+      setLocalSeason(s);
+    }
+  };
   const [divisions, setDivisions] = useState<DivisionStandings[]>([]);
   const [wildCardRecords, setWildCardRecords] = useState<WildCardStandings[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -76,7 +93,7 @@ export const StandingsView: React.FC<StandingsViewProps> = ({ favoriteTeamId, on
                   }}
                 >
                   <BarChart2 className="w-3 h-3 text-blue-400" />
-                  {season === 2026 ? 'MLB 2026 • Регулярка' : `Сезон ${season}`}
+                  {season === getCurrentSeasonSync() ? `MLB ${season} • Регулярка` : `Сезон ${season}`}
                 </span>
               </div>
               <h2
@@ -135,9 +152,11 @@ export const StandingsView: React.FC<StandingsViewProps> = ({ favoriteTeamId, on
                 onChange={(e) => setSeason(Number(e.target.value))}
                 className="bg-white/[0.04] border border-white/[0.08] text-[11px] font-bold text-slate-300 px-3 py-1.5 rounded-full outline-none cursor-pointer"
               >
-                <option value={2026} className="bg-slate-900 text-slate-200">2026 (Текущий)</option>
-                <option value={2025} className="bg-slate-900 text-slate-200">2025</option>
-                <option value={2024} className="bg-slate-900 text-slate-200">2024</option>
+                {getAvailableSeasons(getCurrentSeasonSync()).map((yr) => (
+                  <option key={yr} value={yr} className="bg-slate-900 text-slate-200">
+                    {yr} {yr === getCurrentSeasonSync() ? '(Текущий)' : ''}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

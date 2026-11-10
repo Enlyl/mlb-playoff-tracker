@@ -51,6 +51,7 @@ import {
 } from '../services/teamData';
 import { downloadTeamScheduleIcs } from '../utils/calendarExport';
 import { formatKyivGameTime, getCountdownText } from '../utils/dateUtils';
+import { getCurrentSeasonSync, getAvailableSeasons } from '../utils/seasonUtils';
 
 interface TeamProfileModalProps {
   teamId: number;
@@ -61,6 +62,7 @@ interface TeamProfileModalProps {
   onSelectTeam?: (teamId: number, teamName: string) => void;
   isFavorite?: boolean;
   onToggleFavorite?: (teamId: number, teamName: string) => void;
+  season?: number;
 }
 
 type TabType = 'season' | 'leaders' | 'roster' | 'coaches' | 'legends' | 'games' | 'stadium' | 'trans' | 'about';
@@ -74,10 +76,11 @@ export const TeamProfileModal: React.FC<TeamProfileModalProps> = ({
   onSelectTeam,
   isFavorite = false,
   onToggleFavorite,
+  season = getCurrentSeasonSync(),
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('season');
-  const [leadersSeason, setLeadersSeason] = useState<number>(2026);
-  const [gamesSeason, setGamesSeason] = useState<number>(2026);
+  const [leadersSeason, setLeadersSeason] = useState<number>(season);
+  const [gamesSeason, setGamesSeason] = useState<number>(season);
 
   // Loaded states
   const [roster, setRoster] = useState<RosterPlayerItem[]>([]);
@@ -118,11 +121,11 @@ export const TeamProfileModal: React.FC<TeamProfileModalProps> = ({
         ] = await Promise.all([
           getTeamRoster(teamId),
           getTeamCoaches(teamId),
-          getTeamSeasonStats(teamId, 2026),
+          getTeamSeasonStats(teamId, season),
           getTeamLeaders(teamId, leadersSeason),
           getTeamSeasonSchedule(teamId, gamesSeason),
           getTeamWikiExtract(wikiTitle),
-          getStandings(2026),
+          getStandings(season),
           getTeamTransactions(teamId, 25),
           fetch(`https://statsapi.mlb.com/api/v1/teams/${teamId}?hydrate=venue(location,fieldInfo)`)
             .then((r) => (r.ok ? r.json() : null))
@@ -328,7 +331,7 @@ export const TeamProfileModal: React.FC<TeamProfileModalProps> = ({
             {/* Navigation Tabs */}
             <div className="flex items-center gap-1.5 mt-5 overflow-x-auto no-scrollbar border-t border-white/[0.08] pt-3">
               {[
-                { id: 'season', label: 'Сезон 2026', icon: Trophy },
+                { id: 'season', label: `Сезон ${season}`, icon: Trophy },
                 { id: 'leaders', label: 'Лидеры', icon: Award },
                 { id: 'roster', label: `Ростер (${roster.length})`, icon: Users },
                 { id: 'coaches', label: `Тренеры (${coaches.length})`, icon: Shield },
@@ -525,7 +528,7 @@ export const TeamProfileModal: React.FC<TeamProfileModalProps> = ({
                     {/* Team Hitting & Pitching Season Stats */}
                     <div className="space-y-3">
                       <h3 className="text-xs font-black tracking-wider uppercase text-slate-400">
-                        Командные показатели сезона 2026
+                        Командные показатели сезона {season}
                       </h3>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         <div className="bg-slate-900/60 border border-slate-800 p-3.5 rounded-2xl">
@@ -637,7 +640,7 @@ export const TeamProfileModal: React.FC<TeamProfileModalProps> = ({
                         Лидеры команды по категориям
                       </h3>
                       <div className="flex items-center gap-1.5">
-                        {[2026, 2025, 2024].map((s) => (
+                        {getAvailableSeasons(getCurrentSeasonSync()).map((s) => (
                           <button
                             key={s}
                             onClick={() => setLeadersSeason(s)}
@@ -843,7 +846,7 @@ export const TeamProfileModal: React.FC<TeamProfileModalProps> = ({
                         Матчи сезона {gamesSeason}
                       </h3>
                       <div className="flex items-center gap-1.5">
-                        {[2026, 2025].map((s) => (
+                        {getAvailableSeasons(getCurrentSeasonSync()).map((s) => (
                           <button
                             key={s}
                             onClick={() => setGamesSeason(s)}

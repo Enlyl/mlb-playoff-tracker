@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getCurrentSeasonSync } from '../utils/seasonUtils';
 import {
   X,
   Award,
@@ -37,7 +38,7 @@ export const PlayerDetailModal: React.FC<PlayerDetailModalProps> = ({
   playerId,
   playerName,
   onClose,
-  season = 2026,
+  season = getCurrentSeasonSync(),
   onSelectTeam,
   onSelectGame,
 }) => {

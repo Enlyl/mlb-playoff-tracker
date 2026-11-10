@@ -1,4 +1,5 @@
 import { MLBGame } from '../services/mlbApi';
+import { getCurrentSeasonSync } from './seasonUtils';
 
 // Helper to format date for .ics (YYYYMMDDTHHmmssZ)
 function formatIcsDate(date: Date): string {
@@ -107,13 +108,13 @@ export function generateTeamScheduleIcs(teamId: number, teamName: string, games:
   ].join('\r\n');
 }
 
-export async function downloadTeamScheduleIcs(teamId: number, teamName: string, games?: MLBGame[]): Promise<boolean> {
+export async function downloadTeamScheduleIcs(teamId: number, teamName: string, games?: MLBGame[], season: number = getCurrentSeasonSync()): Promise<boolean> {
   let list = Array.isArray(games) ? games : [];
 
   // If no games provided or empty, attempt to fetch schedule on the fly
   if (!list.length) {
     try {
-      const res = await fetch(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&season=2026&teamId=${teamId}&hydrate=team,linescore`);
+      const res = await fetch(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&season=${season}&teamId=${teamId}&hydrate=team,linescore`);
       if (res.ok) {
         const data = await res.json();
         const fetched: MLBGame[] = [];
@@ -132,22 +133,22 @@ export async function downloadTeamScheduleIcs(teamId: number, teamName: string, 
   // If still empty (e.g. no schedule available), create a season calendar entry
   if (!ics) {
     const nowStr = formatIcsDate(new Date());
-    const seasonStart = formatIcsDate(new Date('2026-03-26T17:00:00Z'));
-    const seasonEnd = formatIcsDate(new Date('2026-03-26T20:00:00Z'));
+    const seasonStart = formatIcsDate(new Date(`${season}-03-26T17:00:00Z`));
+    const seasonEnd = formatIcsDate(new Date(`${season}-03-26T20:00:00Z`));
     ics = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
       'PRODID:-//MLB Playoff Tracker//RU',
       'CALSCALE:GREGORIAN',
       'METHOD:PUBLISH',
-      `X-WR-CALNAME:MLB 2026 - ${teamName}`,
+      `X-WR-CALNAME:MLB ${season} - ${teamName}`,
       'BEGIN:VEVENT',
-      `UID:mlb-season-2026-${teamId}@mlbtracker.app`,
+      `UID:mlb-season-${season}-${teamId}@mlbtracker.app`,
       `DTSTAMP:${nowStr}`,
       `DTSTART:${seasonStart}`,
       `DTEND:${seasonEnd}`,
-      `SUMMARY:⚾ Открытие сезона MLB 2026: ${teamName}`,
-      `DESCRIPTION:Старт регулярного сезона MLB 2026 для команды ${teamName}`,
+      `SUMMARY:⚾ Открытие сезона MLB ${season}: ${teamName}`,
+      `DESCRIPTION:Старт регулярного сезона MLB ${season} для команды ${teamName}`,
       'STATUS:CONFIRMED',
       'END:VEVENT',
       'END:VCALENDAR',
@@ -159,7 +160,7 @@ export async function downloadTeamScheduleIcs(teamId: number, teamName: string, 
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `${teamName.replace(/\s+/g, '_')}_schedule_2026.ics`);
+    link.setAttribute('download', `${teamName.replace(/\s+/g, '_')}_schedule_${season}.ics`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

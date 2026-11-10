@@ -22,11 +22,14 @@ import {
   getPostseasonSeries,
   getTeamLogoUrl,
 } from '../services/mlbApi';
+import { getCurrentSeasonSync, getAvailableSeasons } from '../utils/seasonUtils';
 
 interface PlayoffBracketViewProps {
   onSelectTeam?: (teamId: number, teamName: string) => void;
   onSelectGame: (game: MLBGame) => void;
   favoriteTeamId?: number;
+  season?: number;
+  setSeason?: (s: number) => void;
 }
 
 export interface ParsedSeries {
@@ -51,8 +54,18 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
   onSelectTeam,
   onSelectGame,
   favoriteTeamId,
+  season: propSeason,
+  setSeason: propSetSeason,
 }) => {
-  const [season, setSeason] = useState<number>(2026);
+  const [localSeason, setLocalSeason] = useState<number>(() => propSeason ?? getCurrentSeasonSync());
+  const season = propSeason ?? localSeason;
+  const setSeason = (s: number) => {
+    if (propSetSeason) {
+      propSetSeason(s);
+    } else {
+      setLocalSeason(s);
+    }
+  };
   const [rawSeriesList, setRawSeriesList] = useState<PostseasonSeries[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [viewMode, setViewMode] = useState<'bracket' | 'list'>('bracket');
@@ -479,7 +492,7 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
             <div className="flex items-center gap-2 mb-1">
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black tracking-wide uppercase bg-amber-400/20 text-amber-600 dark:text-amber-400 border border-amber-400/30">
                 <Trophy className="w-3 h-3 text-amber-500" />
-                {season === 2026 ? 'MLB 2026 • Postseason' : `Сезон ${season}`}
+                {season === getCurrentSeasonSync() ? `MLB ${season} • Postseason` : `Сезон ${season}`}
               </span>
               <span className="text-xs text-slate-500 font-mono">• 11 серий</span>
             </div>
@@ -495,7 +508,7 @@ export const PlayoffBracketView: React.FC<PlayoffBracketViewProps> = ({
           <div className="flex flex-wrap items-center gap-2">
             {/* Season Pills */}
             <div className="flex items-center gap-1 p-0.5 rounded-full bg-slate-200/80 dark:bg-white/[0.04] border border-slate-300 dark:border-white/[0.08]">
-              {[2026, 2025, 2024].map((yr) => (
+              {getAvailableSeasons(getCurrentSeasonSync()).map((yr) => (
                 <button
                   key={yr}
                   onClick={() => setSeason(yr)}

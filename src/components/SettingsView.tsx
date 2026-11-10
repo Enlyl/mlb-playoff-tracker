@@ -25,6 +25,7 @@ interface SettingsViewProps {
   setNotificationsEnabled: (enabled: boolean) => void;
   theme: 'dark' | 'light';
   setTheme: (theme: 'dark' | 'light') => void;
+  season?: number;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -36,6 +37,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   setNotificationsEnabled,
   theme,
   setTheme,
+  season = 2026,
 }) => {
   const favoriteTeam = MLB_TEAMS.find((t) => t.id === favoriteTeamId);
 
@@ -316,7 +318,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
           <p>
             MLB Live Hub — трекер матчей, плей-офф и интерактивный справочник правил бейсбола.
-            Данные: <span className="text-slate-400 font-mono">statsapi.mlb.com</span>. Сезон 2026.
+            Данные: <span className="text-slate-400 font-mono">statsapi.mlb.com</span>. Сезон {season}.
           </p>
           <p className="text-[11px] text-slate-600 flex items-center gap-1 pt-1">
             Сделано с <Heart className="w-3 h-3 text-red-500 inline" /> для любителей бейсбола
