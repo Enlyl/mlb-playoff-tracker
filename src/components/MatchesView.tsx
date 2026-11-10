@@ -30,6 +30,7 @@ import { formatKyivGameTime, getCountdownText } from '../utils/dateUtils';
 import { calculateGameExcitement } from '../utils/gameExcitement';
 import { CelebrationOverlay, CelebrationData } from './CelebrationOverlay';
 import { GamePicksWidget } from './GamePicksWidget';
+import { ClassicsAndFinalsShowcase } from './ClassicsAndFinalsShowcase';
 import { sounds } from '../services/soundEffects';
 import { notifications } from '../services/notifications';
 
@@ -716,15 +717,27 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
           5a. PAST SEASON GAMES (when showPastGames is active)
          ══════════════════════════════════════════════════════════════════════ */}
       {showPastGames && (
-        <>
+        <div className="space-y-6">
+          {/* Curated Finals & Golden Thrillers Showcase */}
+          <ClassicsAndFinalsShowcase
+            onSelectGame={onSelectGame}
+            favoriteTeamId={favoriteTeamId}
+            season={season}
+          />
+
           {pastLoading ? (
-            <div className="text-center py-20 text-slate-500 font-medium text-sm flex items-center justify-center gap-2">
+            <div className="text-center py-16 text-slate-500 font-medium text-sm flex items-center justify-center gap-2">
               <RefreshCw className="w-4 h-4 animate-spin text-slate-400" />
-              <span>Загрузка прошедших матчей сезона {season}...</span>
+              <span>Загрузка матчей регулярки сезона {season}...</span>
             </div>
           ) : pastGames.length === 0 ? (
             <div className="glass-shell p-[1px]">
-              <div className="glass-core p-10 text-center text-slate-400">Нет данных о прошедших матчах</div>
+              <div className="glass-core p-8 text-center text-slate-400 space-y-1.5 rounded-2xl">
+                <p className="font-bold text-white">Регулярный сезон {season} ещё не начался</p>
+                <p className="text-xs text-slate-500">
+                  Матчи регулярки 2027 стартуют 25 марта. Выше представлена полная подборка финалов и триллеров прошлых сезонов!
+                </p>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
@@ -971,7 +984,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({ onSelectGame, favorite
             </div>
             </div>
           )}
-        </>
+        </div>
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════
