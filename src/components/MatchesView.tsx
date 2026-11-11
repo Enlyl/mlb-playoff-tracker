@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   MLBGame,
+  MLB_TEAMS,
   getSchedule,
   getUpcoming24HoursGames,
   getUpcoming48HoursGames,
@@ -301,6 +302,49 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 space-y-6">
       {/* Celebration overlay */}
       <CelebrationOverlay celebration={celebration} onClose={() => setCelebration(null)} />
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          0. FAVORITE TEAM QUICK-LINK BANNER
+         ══════════════════════════════════════════════════════════════════════ */}
+      {favoriteTeamId && (() => {
+        const favTeam = MLB_TEAMS.find(t => t.id === favoriteTeamId);
+        if (!favTeam) return null;
+        return (
+          <button
+            onClick={() => onSelectTeam?.(favTeam.id, favTeam.name)}
+            className="w-full group glass-shell glass-card cursor-pointer hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.99]"
+            style={{
+              padding: '2px',
+              borderColor: `${favTeam.accentColor || favTeam.color}55`,
+            }}
+          >
+            <div
+              className="glass-core px-4 py-3 rounded-[calc(1.5rem-2px)] flex items-center gap-3"
+              style={{
+                background: `linear-gradient(135deg, ${favTeam.color}18 0%, transparent 60%)`,
+              }}
+            >
+              <img
+                src={getTeamLogoUrl(favTeam.id)}
+                alt=""
+                className="w-8 h-8 object-contain shrink-0 group-hover:scale-110 transition-transform"
+              />
+              <div className="flex flex-col items-start min-w-0">
+                <span className="text-xs font-black text-slate-900 dark:text-white truncate">
+                  {favTeam.name}
+                </span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                  Все игры сезона {season} →
+                </span>
+              </div>
+              <div className="ml-auto flex items-center gap-1.5 shrink-0">
+                <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-amber-500 transition-colors" />
+              </div>
+            </div>
+          </button>
+        );
+      })()}
 
       {/* ══════════════════════════════════════════════════════════════════════
           1. HERO LIVE / FEATURED MATCH SHOWCASE (CENTERED & BIGGEST ELEMENT)
