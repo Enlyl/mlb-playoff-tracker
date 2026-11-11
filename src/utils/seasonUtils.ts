@@ -116,6 +116,36 @@ export function getSelectedSeason(): number {
 }
 
 /**
+ * Known Opening Day dates for modern MLB seasons.
+ */
+export const SEASON_OPENING_DAYS: Record<number, string> = {
+  2027: '2027-03-25',
+  2026: '2026-03-26',
+  2025: '2025-03-27',
+  2024: '2024-03-28',
+  2023: '2023-03-30',
+};
+
+/**
+ * Get the earliest game date (Opening Day or first scheduled date) for a given season.
+ * Queries the MLB Stats API and falls back to known calendar dates.
+ */
+export async function getSeasonFirstGameDate(season: number): Promise<string> {
+  try {
+    const res = await fetch(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&season=${season}&gameType=R`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.dates && data.dates.length > 0 && data.dates[0].date) {
+        return data.dates[0].date;
+      }
+    }
+  } catch {
+    /* fallback to known date */
+  }
+  return SEASON_OPENING_DAYS[season] || `${season}-03-25`;
+}
+
+/**
  * Persist user-selected season to localStorage.
  * If isManual is true, flags that the choice was deliberately made by the user
  * and should never be automatically overwritten on page reload.

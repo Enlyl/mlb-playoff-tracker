@@ -34,7 +34,7 @@ import { ClassicsAndFinalsShowcase } from './ClassicsAndFinalsShowcase';
 import { sounds } from '../services/soundEffects';
 import { notifications } from '../services/notifications';
 import { getSeasonTheme } from '../utils/seasonThemes';
-import { getCurrentSeasonSync } from '../utils/seasonUtils';
+import { getCurrentSeasonSync, getSeasonFirstGameDate, SEASON_OPENING_DAYS } from '../utils/seasonUtils';
 
 interface MatchesViewProps {
   onSelectTeam?: (teamId: number, teamName: string) => void;
@@ -66,7 +66,13 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
   const dayAfterISO = formatISO(addDays(2));
   const yesterdayISO = formatISO(addDays(-1));
 
-  const [selectedDate, setSelectedDate] = useState<string>(todayISO);
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    const currentYear = todayObj.getFullYear();
+    if (season > currentYear) {
+      return SEASON_OPENING_DAYS[season] || `${season}-03-25`;
+    }
+    return todayISO;
+  });
   const [games, setGames] = useState<MLBGame[]>([]);
   const [upcoming24h, setUpcoming24h] = useState<MLBGame[]>([]);
   const [upcoming48h, setUpcoming48h] = useState<MLBGame[]>([]);
@@ -217,11 +223,22 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
     }
   };
 
-  // When season changes: if viewing a past season, auto-open past games view
+  // When season changes: if viewing a future season, switch to Opening Day / earliest match date
   useEffect(() => {
-    const currentYear = getCurrentSeasonSync();
-    if (season < currentYear) {
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    if (season > currentYear) {
+      setShowPastGames(false);
+      const openingDate = SEASON_OPENING_DAYS[season] || `${season}-03-25`;
+      setSelectedDate(openingDate);
+      getSeasonFirstGameDate(season).then((firstDate) => {
+        if (firstDate) setSelectedDate(firstDate);
+      });
+    } else if (season < currentYear) {
       setShowPastGames(true);
+    } else {
+      setShowPastGames(false);
+      setSelectedDate(todayISO);
     }
   }, [season]);
 
@@ -616,7 +633,13 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
                       day: 'numeric',
                       month: 'long',
                       year: 'numeric',
-                    })}`}
+                    })}${
+                      selectedDate === '2027-03-25'
+                        ? ' • Opening Day 2027 (День открытия сезона)'
+                        : selectedDate === '2027-02-19'
+                        ? ' • Весенние сборы (Spring Training)'
+                        : ''
+                    }`}
               </p>
             </div>
 
@@ -642,11 +665,19 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
                 <Flame className="w-3.5 h-3.5 text-amber-400" />
                 <span>Финалы & Триллеры</span>
               </button>
-              {[
-                { date: todayISO, label: 'Сегодня', short: 'Сегодня' },
-                { date: tomorrowISO, label: 'Завтра', short: 'Завтра' },
-                { date: dayAfterISO, label: 'Послезавтра', short: 'Послезавтра' },
-              ].map(({ date, label }) => {
+              {(season > todayObj.getFullYear()
+                ? [
+                    { date: '2027-03-25', label: 'Opening Day (25 мар)', short: 'Старт' },
+                    { date: '2027-03-26', label: '26 мар', short: '26 мар' },
+                    { date: '2027-03-27', label: '27 мар', short: '27 мар' },
+                    { date: '2027-02-19', label: 'Сборы (19 фев)', short: 'Сборы' },
+                  ]
+                : [
+                    { date: todayISO, label: 'Сегодня', short: 'Сегодня' },
+                    { date: tomorrowISO, label: 'Завтра', short: 'Завтра' },
+                    { date: dayAfterISO, label: 'Послезавтра', short: 'Послезавтра' },
+                  ]
+              ).map(({ date, label }) => {
                 const isSelected = !showPastGames && selectedDate === date;
                 return (
                   <button
