@@ -447,6 +447,39 @@ export async function getSeasonPastGames(season = getCurrentSeasonSync(), limit 
 }
 
 /**
+ * Fetch upcoming (scheduled / not-yet-played) games for the given season
+ * from today forward through end of postseason.
+ */
+export async function getSeasonUpcomingGames(season = getCurrentSeasonSync(), limit = 500): Promise<MLBGame[]> {
+  try {
+    const today = new Date();
+    const isoStart = today.toISOString().slice(0, 10);
+    const isoEnd = `${season}-11-30`;
+
+    if (isoStart > isoEnd) return []; // season already over
+
+    const url = `${BASE_URL}/v1/schedule?sportId=1&season=${season}&gameType=R,F,D,L,W&startDate=${isoStart}&endDate=${isoEnd}&hydrate=team,linescore,seriesStatus(useOverride=true)`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+
+    const allGames: MLBGame[] = (data.dates || [])
+      .flatMap((d: any) => d.games || [])
+      .filter((g: MLBGame) => {
+        if (!g.gameDate) return false;
+        const st = g.status?.abstractGameState;
+        return st !== 'Final';
+      });
+
+    allGames.sort((a, b) => new Date(a.gameDate).getTime() - new Date(b.gameDate).getTime());
+    return allGames.slice(0, limit);
+  } catch (err) {
+    console.error('Failed to fetch upcoming season games:', err);
+    return [];
+  }
+}
+
+/**
  * Fetch upcoming games within next 48 hours (2 days) — for homepage widget
  */
 export async function getUpcoming48HoursGames(): Promise<MLBGame[]> {

@@ -6,6 +6,7 @@ import {
   getUpcoming24HoursGames,
   getUpcoming48HoursGames,
   getSeasonPastGames,
+  getSeasonUpcomingGames,
   getLiveGameFeed,
   getTeamLogoUrl,
   LiveGameFeed,
@@ -74,12 +75,16 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
     }
     return todayISO;
   });
+  type ViewMode = 'past' | 'today' | 'upcoming' | 'calendar' | 'classics';
   const [games, setGames] = useState<MLBGame[]>([]);
   const [upcoming24h, setUpcoming24h] = useState<MLBGame[]>([]);
   const [upcoming48h, setUpcoming48h] = useState<MLBGame[]>([]);
   const [pastGames, setPastGames] = useState<MLBGame[]>([]);
+  const [upcomingGames, setUpcomingGames] = useState<MLBGame[]>([]);
   const [pastLoading, setPastLoading] = useState(false);
+  const [upcomingLoading, setUpcomingLoading] = useState(false);
   const [showPastGames, setShowPastGames] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('past');
   const [liveHeroGame, setLiveHeroGame] = useState<MLBGame | null>(null);
   const [liveHeroFeed, setLiveHeroFeed] = useState<LiveGameFeed | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -90,7 +95,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
   const prevScoreRef = useRef<{ away?: number; home?: number }>({});
   const dateInputRef = useRef<HTMLInputElement>(null);
   const [showDateFallback, setShowDateFallback] = useState(false);
-  const isCustomDate = ![todayISO, tomorrowISO, dayAfterISO].includes(selectedDate) && !showPastGames;
+  const isCustomDate = viewMode === 'calendar' && ![todayISO, tomorrowISO, dayAfterISO].includes(selectedDate);
 
   const handleOpenCalendar = () => {
     if (dateInputRef.current) {
@@ -224,13 +229,26 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
     }
   };
 
-  // When season changes: if viewing a future season, switch to Opening Day / earliest match date
-  // Use getCurrentSeasonSync() instead of calendar year — after World Series ends,
-  // detected season jumps to next year, so finished seasons correctly show past games
+  // Load upcoming season games
+  const loadUpcomingGames = async (forceSeason?: number) => {
+    const s = forceSeason ?? season;
+    setUpcomingLoading(true);
+    try {
+      const data = await getSeasonUpcomingGames(s, 600);
+      setUpcomingGames(data);
+    } catch (e) {
+      console.error('Error loading upcoming games:', e);
+    } finally {
+      setUpcomingLoading(false);
+    }
+  };
+
+  // When season changes: determine default viewMode
   useEffect(() => {
     const detectedSeason = getCurrentSeasonSync();
     if (season > detectedSeason) {
-      // Future season (e.g. 2027 when detected=2027 won't hit here; only truly future)
+      // Future season → show upcoming (scheduled games)
+      setViewMode('upcoming');
       setShowPastGames(false);
       const openingDate = SEASON_OPENING_DAYS[season] || `${season}-03-25`;
       setSelectedDate(openingDate);
@@ -238,21 +256,34 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
         if (firstDate) setSelectedDate(firstDate);
       });
     } else if (season < detectedSeason) {
-      // Past season — show past games tab
+      // Past season → show past games
+      setViewMode('past');
       setShowPastGames(true);
     } else {
-      // Current detected season — check if we're in active play or off-season
+      // Current detected season
       const today = new Date();
-      const monthDay = (today.getMonth() + 1) * 100 + today.getDate(); // e.g. 1111 for Nov 11
+      const monthDay = (today.getMonth() + 1) * 100 + today.getDate();
       if (monthDay > 1031) {
-        // After Oct 31 = season over, show past games
+        setViewMode('past');
         setShowPastGames(true);
       } else {
+        setViewMode('today');
         setShowPastGames(false);
         setSelectedDate(todayISO);
       }
     }
   }, [season]);
+
+  // Sync showPastGames with viewMode
+  useEffect(() => {
+    setShowPastGames(viewMode === 'past');
+    if (viewMode === 'today') {
+      setSelectedDate(todayISO);
+    }
+    if (viewMode === 'upcoming') {
+      loadUpcomingGames(season);
+    }
+  }, [viewMode]);
 
   // Reload past games if season changes while viewing past tab
   useEffect(() => {
@@ -656,11 +687,11 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════
-          3. TOP CONTROLS BAR: DYNAMIC DATES (NO HARDCODED 29 SEPT) + FILTER
+          3. TOP CONTROLS BAR: VIEW MODE TABS + FILTER
          ══════════════════════════════════════════════════════════════════════ */}
       <div className="glass-shell glass-card" style={{ padding: '1px' }}>
         <div className="glass-core p-4 sm:p-5 rounded-[calc(1.5rem-1px)]">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span
@@ -675,130 +706,77 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
                     className="w-1.5 h-1.5 rounded-full shrink-0"
                     style={{ backgroundColor: seasonTheme.primaryColor }}
                   />
-                  Календарь матчей • {seasonTheme.badgeLabel}
+                  Матчи • {seasonTheme.badgeLabel}
                 </span>
               </div>
-              <h2 className="text-display text-white" style={{ fontSize: 'clamp(1.1rem, 3vw, 1.5rem)' }}>
-                {showPastGames ? 'Прошедшие матчи сезона' : 'Расписание и результаты'}
+              <h2 className="text-display text-slate-950 dark:text-white" style={{ fontSize: 'clamp(1.1rem, 3vw, 1.5rem)' }}>
+                Матчи сезона
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                {showPastGames
-                  ? `Все завершённые матчи MLB ${season} — от новых к старым`
-                  : `Выбранная дата: ${new Date(selectedDate).toLocaleDateString('ru-RU', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                    })}${
-                      selectedDate === '2027-03-25'
-                        ? ' • Opening Day 2027 (День открытия сезона)'
-                        : selectedDate === '2027-02-19'
-                        ? ' • Весенние сборы (Spring Training)'
-                        : ''
-                    }`}
+                {viewMode === 'past' && `Все завершённые матчи MLB ${season} — от новых к старым`}
+                {viewMode === 'today' && `Игры на ${new Date(todayISO).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}`}
+                {viewMode === 'upcoming' && `Предстоящие матчи MLB ${season}`}
+                {viewMode === 'calendar' && `Выбранная дата: ${new Date(selectedDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}`}
+                {viewMode === 'classics' && `Лучшие матчи и финалы сезона ${season}`}
               </p>
             </div>
 
-            {/* Dynamic Date Pills + Calendar Picker */}
+            {/* ── View Mode Tabs ── */}
             <div className="flex flex-wrap items-center gap-2">
-              {/* Прошедшие & Золотая коллекция button */}
-              <button
-                onClick={() => {
-                  if (onNavigateToClassics) {
-                    onNavigateToClassics();
-                  } else {
-                    setShowPastGames(true);
-                    loadPastGames();
-                  }
-                }}
-                className={`px-3 py-1.5 rounded-full text-[11px] font-black transition-all cursor-pointer active:scale-95 flex items-center gap-1.5 shadow-xs ${
-                  showPastGames
-                    ? 'bg-amber-500/25 text-amber-300 border border-amber-500/50'
-                    : 'bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-purple-500/15 text-amber-400 dark:text-amber-300 border border-amber-500/35 hover:border-amber-500/60 hover:bg-amber-500/25'
-                }`}
-                title="Все финалы World Series и легендарные триллеры"
-              >
-                <Flame className="w-3.5 h-3.5 text-amber-400" />
-                <span>Финалы & Триллеры</span>
-              </button>
-              {(season > todayObj.getFullYear()
-                ? [
-                    { date: '2027-03-25', label: 'Opening Day (25 мар)', short: 'Старт' },
-                    { date: '2027-03-26', label: '26 мар', short: '26 мар' },
-                    { date: '2027-03-27', label: '27 мар', short: '27 мар' },
-                    { date: '2027-02-19', label: 'Сборы (19 фев)', short: 'Сборы' },
-                  ]
-                : [
-                    { date: todayISO, label: 'Сегодня', short: 'Сегодня' },
-                    { date: tomorrowISO, label: 'Завтра', short: 'Завтра' },
-                    { date: dayAfterISO, label: 'Послезавтра', short: 'Послезавтра' },
-                  ]
-              ).map(({ date, label }) => {
-                const isSelected = !showPastGames && selectedDate === date;
+              {([
+                { mode: 'past' as ViewMode, label: 'Прошедшие', icon: <Eye className="w-3.5 h-3.5" /> },
+                { mode: 'today' as ViewMode, label: 'Сегодня', icon: <Radio className="w-3.5 h-3.5" /> },
+                { mode: 'upcoming' as ViewMode, label: 'Предстоящие', icon: <Play className="w-3.5 h-3.5" /> },
+                { mode: 'calendar' as ViewMode, label: 'Календарь', icon: <Calendar className="w-3.5 h-3.5" /> },
+                { mode: 'classics' as ViewMode, label: 'Финал & Триллеры', icon: <Flame className="w-3.5 h-3.5" /> },
+              ]).map(({ mode, label, icon }) => {
+                const isActive = viewMode === mode;
                 return (
                   <button
-                    key={date}
-                    onClick={() => { setSelectedDate(date); setShowPastGames(false); }}
-                    className={`px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer active:scale-95 ${
-                      isSelected
-                        ? 'bg-red-500/20 text-red-700 dark:text-red-300 border border-red-500/40 shadow-xs'
+                    key={mode}
+                    onClick={() => {
+                      setViewMode(mode);
+                      if (mode === 'calendar') {
+                        handleOpenCalendar();
+                      }
+                    }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer active:scale-95 ${
+                      isActive
+                        ? mode === 'classics'
+                          ? 'bg-amber-500/25 text-amber-300 border border-amber-500/50 shadow-xs'
+                          : 'bg-red-500/20 text-red-700 dark:text-red-300 border border-red-500/40 shadow-xs'
                         : 'bg-slate-100 dark:bg-white/[0.04] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/[0.07] hover:bg-slate-200 dark:hover:bg-white/10'
                     }`}
                   >
-                    {label}
+                    {icon}
+                    <span>{label}</span>
                   </button>
                 );
               })}
 
-              {/* Custom Date Input Button */}
-              <div className="relative inline-flex items-center">
-                <input
-                  ref={dateInputRef}
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      setSelectedDate(e.target.value);
-                      setShowPastGames(false);
-                      setShowDateFallback(false);
-                    }
-                  }}
-                  className={
-                    showDateFallback
-                      ? 'px-2.5 py-1 rounded-full bg-slate-900 text-amber-300 text-[11px] font-bold border border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400 cursor-pointer shadow-lg'
-                      : 'absolute inset-0 opacity-0 pointer-events-none w-full h-full'
+              {/* Hidden date input for Calendar mode */}
+              <input
+                ref={dateInputRef}
+                type="date"
+                value={selectedDate}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    setSelectedDate(e.target.value);
+                    setViewMode('calendar');
+                    setShowDateFallback(false);
                   }
-                  tabIndex={showDateFallback ? 0 : -1}
-                  aria-hidden={!showDateFallback}
-                />
-                {!showDateFallback && (
-                  <button
-                    type="button"
-                    onClick={handleOpenCalendar}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition cursor-pointer active:scale-95 shadow-sm ${
-                      isCustomDate
-                        ? 'bg-amber-400/20 text-amber-800 dark:text-amber-300 border border-amber-500/40 shadow-sm'
-                        : 'bg-slate-100 dark:bg-white/[0.05] text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10'
-                    }`}
-                    title="Выбрать любую дату в календаре"
-                  >
-                    <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                    <span>{isCustomDate ? selectedDate : 'Календарь'}</span>
-                  </button>
-                )}
-              </div>
+                }}
+                className={
+                  showDateFallback
+                    ? 'px-2.5 py-1 rounded-full bg-slate-900 text-amber-300 text-[11px] font-bold border border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400 cursor-pointer shadow-lg'
+                    : 'absolute opacity-0 pointer-events-none w-0 h-0'
+                }
+                tabIndex={showDateFallback ? 0 : -1}
+                aria-hidden={!showDateFallback}
+              />
 
-              {/* Fav team filter */}
-              <button
-                onClick={() => setOnlyMyTeam(!onlyMyTeam)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer active:scale-95 ${
-                  onlyMyTeam
-                    ? 'bg-amber-400/20 text-amber-800 dark:text-amber-300 border border-amber-500/40 shadow-xs'
-                    : 'bg-slate-100 dark:bg-white/[0.04] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/[0.07] hover:bg-slate-200 dark:hover:bg-white/10'
-                }`}
-              >
-                <Star className={`w-3 h-3 ${onlyMyTeam ? 'fill-amber-500 text-amber-500' : 'text-slate-400'}`} />
-                <span>Моя команда</span>
-              </button>
+              {/* Separator */}
+              <div className="w-px h-5 bg-slate-300 dark:bg-white/10 mx-1 hidden sm:block" />
 
               {/* Team Search Input */}
               <div className="relative flex items-center min-w-[170px]">
@@ -826,22 +804,94 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════
-          4. WHAT TO WATCH WIDGET (SPECTACLE ALGORITHM PICKS)
+          4. CONTENT BASED ON VIEW MODE
          ══════════════════════════════════════════════════════════════════════ */}
-      {!showPastGames && <GamePicksWidget games={games} onSelectGame={onSelectGame} season={season} />}
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          5a. PAST SEASON GAMES (when showPastGames is active)
-         ══════════════════════════════════════════════════════════════════════ */}
-      {showPastGames && (
+      {/* TODAY — games for today's date */}
+      {viewMode === 'today' && <GamePicksWidget games={games} onSelectGame={onSelectGame} season={season} />}
+
+      {/* UPCOMING — all scheduled future games of the season */}
+      {viewMode === 'upcoming' && (
+        <div className="space-y-4">
+          {upcomingLoading ? (
+            <div className="text-center py-16 text-slate-500 font-medium text-sm flex items-center justify-center gap-2">
+              <RefreshCw className="w-4 h-4 animate-spin text-slate-400" />
+              <span>Загрузка предстоящих матчей сезона {season}...</span>
+            </div>
+          ) : upcomingGames.length === 0 ? (
+            <div className="glass-shell p-[1px]">
+              <div className="glass-core p-8 text-center text-slate-400 space-y-1.5 rounded-2xl">
+                <p className="font-bold text-slate-900 dark:text-white">Предстоящих матчей нет</p>
+                <p className="text-xs text-slate-500">
+                  Сезон {season} завершён или ещё не появилось расписание.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {upcomingGames
+                .filter((g) => {
+                  if (searchQuery) {
+                    const q = searchQuery.toLowerCase();
+                    return g.teams.away.team.name.toLowerCase().includes(q) || g.teams.home.team.name.toLowerCase().includes(q);
+                  }
+                  return true;
+                })
+                .map((game) => {
+                const gameDate = new Date(game.gameDate);
+                const dateStr = gameDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+                const timeStr = gameDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+                return (
+                  <div
+                    key={game.gamePk}
+                    onClick={() => onSelectGame(game)}
+                    className="glass-shell glass-card cursor-pointer hover:-translate-y-0.5 transition-all active:scale-[0.99]"
+                    style={{ padding: '1px' }}
+                  >
+                    <div className="glass-core p-3 sm:p-4 rounded-[calc(1.5rem-1px)] flex items-center gap-3">
+                      <div className="text-center shrink-0 w-14">
+                        <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">{dateStr}</div>
+                        <div className="text-xs font-black text-slate-900 dark:text-white">{timeStr}</div>
+                      </div>
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <img src={getTeamLogoUrl(game.teams.away.team.id)} alt="" className="w-5 h-5 object-contain" />
+                          <span className={`text-xs font-bold truncate ${favoriteTeamId === game.teams.away.team.id ? '!text-amber-600 dark:!text-amber-400 font-black' : 'text-slate-900 dark:text-slate-100'}`}>
+                            {game.teams.away.team.name}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <img src={getTeamLogoUrl(game.teams.home.team.id)} alt="" className="w-5 h-5 object-contain" />
+                          <span className={`text-xs font-bold truncate ${favoriteTeamId === game.teams.home.team.id ? '!text-amber-600 dark:!text-amber-400 font-black' : 'text-slate-900 dark:text-slate-100'}`}>
+                            {game.teams.home.team.name}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-[10px] text-slate-500">{game.seriesDescription || 'Regular Season'}</div>
+                      <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* CLASSICS — finals & thrillers showcase */}
+      {viewMode === 'classics' && (
         <div className="space-y-6">
-          {/* Curated Finals & Golden Thrillers Showcase */}
           <ClassicsAndFinalsShowcase
             onSelectGame={onSelectGame}
             favoriteTeamId={favoriteTeamId}
             season={season}
           />
+        </div>
+      )}
 
+      {/* PAST — all past season games */}
+      {viewMode === 'past' && (
+        <div className="space-y-6">
           {pastLoading ? (
             <div className="text-center py-16 text-slate-500 font-medium text-sm flex items-center justify-center gap-2">
               <RefreshCw className="w-4 h-4 animate-spin text-slate-400" />
@@ -1107,7 +1157,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
       {/* ══════════════════════════════════════════════════════════════════════
           5b. MAIN MATCHES LIST FOR SELECTED DATE
          ══════════════════════════════════════════════════════════════════════ */}
-      {!showPastGames && (loading ? (
+      {(viewMode === 'today' || viewMode === 'calendar') && (loading ? (
         <div className="text-center py-20 text-slate-500 font-medium text-sm flex items-center justify-center gap-2">
           <RefreshCw className="w-4 h-4 animate-spin text-slate-400" />
           <span>Загрузка матчей на {selectedDate}...</span>
@@ -1173,12 +1223,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  if (onNavigateToClassics) {
-                    onNavigateToClassics();
-                  } else {
-                    setShowPastGames(true);
-                    loadPastGames();
-                  }
+                  setViewMode('classics');
                 }}
                 className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs shrink-0 shadow-lg shadow-amber-500/20 cursor-pointer active:scale-95 transition"
               >
