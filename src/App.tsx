@@ -7,7 +7,6 @@ import { StandingsView } from './components/StandingsView';
 import { RulesExplainer } from './components/RulesExplainer';
 import { MyTeamTracker } from './components/MyTeamTracker';
 import { GameDetailModal } from './components/GameDetailModal';
-import { WinsToFinalBanner } from './components/WinsToFinalBanner';
 import { SettingsView } from './components/SettingsView';
 import { RankingsView } from './components/RankingsView';
 import { TeamProfilePage } from './components/TeamProfilePage';
@@ -306,22 +305,13 @@ export function App() {
             <>
           {activeTab === 'matches' && (
             <motion.div key="matches" {...PAGE_VARIANTS}>
-              <div className="space-y-0">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-2">
-                  <WinsToFinalBanner
-                    favoriteTeamId={favoriteTeamId}
-                    onOpenBracket={() => setActiveTab('bracket')}
-                    season={season}
-                  />
-                </div>
-                <MatchesView
-                  onSelectGame={(g) => setSelectedGame(g)}
-                  favoriteTeamId={favoriteTeamId}
-                  onSelectTeam={(id, name) => navigateToTeam(id, name)}
-                  season={season}
-                  onNavigateToClassics={() => setActiveTab('classics')}
-                />
-              </div>
+              <MatchesView
+                onSelectGame={(g) => setSelectedGame(g)}
+                favoriteTeamId={favoriteTeamId}
+                onSelectTeam={(id, name) => navigateToTeam(id, name)}
+                season={season}
+                onNavigateToClassics={() => setActiveTab('classics')}
+              />
             </motion.div>
           )}
 
