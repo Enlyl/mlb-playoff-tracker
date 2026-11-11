@@ -94,20 +94,20 @@ const CURATED_THRILLERS: CuratedThriller[] = [
 
   // ── 2025 ──
   {
-    id: 'ws-2025-g6',
-    gamePk: 810101,
+    id: 'ws-2025-g7',
+    gamePk: 813024,
     season: 2025,
-    title: 'Мировая Серия 2025 • Игра 6',
-    subtitle: 'Финальная чемпионская схватка',
-    headline: 'Драматичная дуэль булпенов и спасение в концовке!',
-    story: 'Шестой матч напряженнейшего финала с перестрелкой на последних иннингах и решающим аутом при полных базах.',
-    scoreSummary: '5 : 4',
-    excitementScore: '9.7',
-    tags: ['Финал 2025', 'Экстра-иннинги', 'Клатч-питчинг'],
-    gameDate: '2025-10-30T00:00:00Z',
+    title: 'Мировая Серия 2025 • Игра 7',
+    subtitle: 'Dodgers @ Blue Jays (Решающий 7-й матч)',
+    headline: 'Доджерс выигрывают Мировую Серию в драматичном 7-м матче 5:4!',
+    story: 'Решающая седьмая игра финала года в Торонто. Доджерс завоевывают второй титул подряд в упорнейшей серии из 7 матчей, отразив финальный штурм на 9-м иннинге!',
+    scoreSummary: 'LAD 5 : 4 TOR',
+    excitementScore: '9.9',
+    tags: ['Game 7', 'Чемпионский матч', 'Серия 4-3', 'Back-to-back'],
+    gameDate: '2025-11-02T00:00:00Z',
     teams: {
       away: { id: 119, name: 'Los Angeles Dodgers', score: 5 },
-      home: { id: 147, name: 'New York Yankees', score: 4 },
+      home: { id: 141, name: 'Toronto Blue Jays', score: 4 },
     },
   },
 

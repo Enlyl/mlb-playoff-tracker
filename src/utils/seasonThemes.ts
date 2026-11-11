@@ -59,19 +59,19 @@ export const SEASON_THEMES: Record<number, SeasonTheme> = {
   2025: {
     year: 2025,
     label: 'Сезон 2025',
-    badgeLabel: '2025 • Сезон MLB',
-    champion: null,
-    statusText: 'Архив сезона MLB 2025',
-    primaryColor: '#3b82f6',       // Electric Sapphire
-    secondaryColor: '#8b5cf6',     // Violet
-    accentColor: '#60a5fa',
-    glowRgba: 'rgba(59, 130, 246, 0.18)',
-    borderRgba: 'rgba(59, 130, 246, 0.35)',
-    badgeBg: 'rgba(59, 130, 246, 0.15)',
-    badgeText: '#60a5fa',
-    gradient: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+    badgeLabel: '2025 • Dodgers Чемпионы',
+    champion: 'Los Angeles Dodgers',
+    statusText: 'Чемпионы Мировой Серии: Los Angeles Dodgers (4-3 против Blue Jays)',
+    primaryColor: '#0284c7',       // Sky / Sapphire Dodger Blue
+    secondaryColor: '#1d4ed8',     // Deep Royal
+    accentColor: '#38bdf8',
+    glowRgba: 'rgba(2, 132, 199, 0.2)',
+    borderRgba: 'rgba(2, 132, 199, 0.38)',
+    badgeBg: 'rgba(2, 132, 199, 0.16)',
+    badgeText: '#7dd3fc',
+    gradient: 'linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%)',
     themeClass: 'season-theme-2025',
-    headline: 'Сапфировая классика',
+    headline: 'Драматичный бэк-ту-бэк титул Доджерс в 7 матчах',
   },
   2024: {
     year: 2024,
