@@ -15,6 +15,7 @@ import { MLBGame, getTeamLogoUrl } from '../services/mlbApi';
 interface GamePicksWidgetProps {
   games: MLBGame[];
   onSelectGame: (game: MLBGame) => void;
+  season?: number;
 }
 
 interface SpectacleResult {
@@ -139,11 +140,15 @@ function calculateGameSpectacle(g: MLBGame): SpectacleResult | null {
   return { score, tags, margin, nInn, walkoff, comeback: maxDef, changes, total };
 }
 
-export const GamePicksWidget: React.FC<GamePicksWidgetProps> = ({ games, onSelectGame }) => {
+export const GamePicksWidget: React.FC<GamePicksWidgetProps> = ({ games, onSelectGame, season }) => {
   const [copiedPk, setCopiedPk] = useState<number | null>(null);
   const [showMore, setShowMore] = useState<boolean>(false);
 
-  const finalGames = games.filter((g) => g.status?.abstractGameState === 'Final');
+  const finalGames = games.filter((g) => {
+    if (g.status?.abstractGameState !== 'Final') return false;
+    if (season && g.gameDate && !g.gameDate.startsWith(String(season))) return false;
+    return true;
+  });
   if (finalGames.length === 0) return null;
 
   // Grade games
@@ -178,7 +183,7 @@ export const GamePicksWidget: React.FC<GamePicksWidgetProps> = ({ games, onSelec
             </span>
             <div>
               <h3 className="text-sm font-black text-white flex items-center gap-2">
-                <span>Что смотреть: самые зрелищные матчи</span>
+                <span>Что смотреть: зрелищные матчи {season ? `сезона ${season}` : ''}</span>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                   AI Анализ драмы
                 </span>

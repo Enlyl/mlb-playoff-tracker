@@ -34,6 +34,7 @@ import { ClassicsAndFinalsShowcase } from './ClassicsAndFinalsShowcase';
 import { sounds } from '../services/soundEffects';
 import { notifications } from '../services/notifications';
 import { getSeasonTheme } from '../utils/seasonThemes';
+import { getCurrentSeasonSync } from '../utils/seasonUtils';
 
 interface MatchesViewProps {
   onSelectTeam?: (teamId: number, teamName: string) => void;
@@ -216,6 +217,14 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
     }
   };
 
+  // When season changes: if viewing a past season, auto-open past games view
+  useEffect(() => {
+    const currentYear = getCurrentSeasonSync();
+    if (season < currentYear) {
+      setShowPastGames(true);
+    }
+  }, [season]);
+
   // Reload past games if season changes while viewing past tab
   useEffect(() => {
     if (showPastGames) {
@@ -225,17 +234,21 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
     }
   }, [season, showPastGames]);
 
-  // Top 3 Must-Watch thriller games based on sabermetric excitement index
+  // Top 3 Must-Watch thriller games based on sabermetric excitement index (strictly of the selected season)
   const topMustWatchGames = React.useMemo(() => {
     if (!pastGames.length) return [];
-    const scored = pastGames.map((g) => ({
+    const seasonGames = pastGames.filter((g) => {
+      if (!g.gameDate) return true;
+      return g.gameDate.startsWith(String(season));
+    });
+    const scored = seasonGames.map((g) => ({
       game: g,
       rating: calculateGameExcitement(g),
     }));
     // Sort descending by excitement rating score
     scored.sort((a, b) => b.rating.score - a.rating.score);
     return scored.slice(0, 3);
-  }, [pastGames]);
+  }, [pastGames, season]);
 
   const filteredGames = games.filter((g) => {
     if (onlyMyTeam && favoriteTeamId) {
@@ -729,7 +742,7 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
       {/* ══════════════════════════════════════════════════════════════════════
           4. WHAT TO WATCH WIDGET (SPECTACLE ALGORITHM PICKS)
          ══════════════════════════════════════════════════════════════════════ */}
-      {!showPastGames && <GamePicksWidget games={games} onSelectGame={onSelectGame} />}
+      {!showPastGames && <GamePicksWidget games={games} onSelectGame={onSelectGame} season={season} />}
 
       {/* ══════════════════════════════════════════════════════════════════════
           5a. PAST SEASON GAMES (when showPastGames is active)
@@ -769,13 +782,13 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
                       </div>
                       <div>
                         <h3 className="text-sm sm:text-base font-black text-slate-950 dark:text-white flex items-center gap-2">
-                          <span>Топ-3 матча, которые стоит посмотреть</span>
+                          <span>Топ-3 матча сезона {season}, которые стоит посмотреть</span>
                           <span className="text-[10px] font-mono font-black px-2 py-0.5 rounded-full bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/35 uppercase tracking-wider">
-                            Must-Watch
+                            Must-Watch {season}
                           </span>
                         </h3>
                         <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
-                          Саберометрический индекс зрелищности: минимальная разница, экстра-иннинги, перестрелки и драма концовок
+                          Саберометрический индекс зрелищности сезона {season}: минимальная разница, экстра-иннинги, перестрелки и драма концовок
                         </p>
                       </div>
                     </div>

@@ -403,14 +403,26 @@ export async function getSchedule(dateStr: string): Promise<MLBGame[]> {
 }
 
 /**
- * Fetch all past games of the 2026 season (from season start up to yesterday), newest first.
- * Uses pagination — returns up to 500 most recent games.
+ * Fetch all past games of the specified season (from season start up to end of season or yesterday), newest first.
+ * Uses pagination — returns up to limit most recent games strictly belonging to requested season.
  */
 export async function getSeasonPastGames(season = getCurrentSeasonSync(), limit = 500): Promise<MLBGame[]> {
   try {
     const today = new Date();
-    const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-    const isoEnd = yesterday.toISOString().slice(0, 10);
+    const currentYear = today.getFullYear();
+    let isoEnd: string;
+
+    if (season < currentYear) {
+      // Completed past season: entire year schedule up to postseason end
+      isoEnd = `${season}-11-30`;
+    } else if (season > currentYear) {
+      // Future season: regular season has not started yet
+      return [];
+    } else {
+      // Current calendar year: up to yesterday
+      const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+      isoEnd = yesterday.toISOString().slice(0, 10);
+    }
     const isoStart = `${season}-03-01`;
 
     const url = `${BASE_URL}/v1/schedule?sportId=1&season=${season}&gameType=R,F,D,L,W&startDate=${isoStart}&endDate=${isoEnd}&hydrate=team,linescore,seriesStatus(useOverride=true)`;
@@ -418,7 +430,13 @@ export async function getSeasonPastGames(season = getCurrentSeasonSync(), limit 
     if (!res.ok) return [];
     const data = await res.json();
 
-    const allGames: MLBGame[] = (data.dates || []).flatMap((d: any) => d.games || []);
+    const allGames: MLBGame[] = (data.dates || [])
+      .flatMap((d: any) => d.games || [])
+      .filter((g: MLBGame) => {
+        // Guarantee game belongs strictly to requested season
+        return g.gameDate && g.gameDate.startsWith(String(season));
+      });
+
     // Sort newest first
     allGames.sort((a, b) => new Date(b.gameDate).getTime() - new Date(a.gameDate).getTime());
     return allGames.slice(0, limit);
