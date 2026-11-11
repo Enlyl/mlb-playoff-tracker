@@ -224,21 +224,32 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
   };
 
   // When season changes: if viewing a future season, switch to Opening Day / earliest match date
+  // Use getCurrentSeasonSync() instead of calendar year — after World Series ends,
+  // detected season jumps to next year, so finished seasons correctly show past games
   useEffect(() => {
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    if (season > currentYear) {
+    const detectedSeason = getCurrentSeasonSync();
+    if (season > detectedSeason) {
+      // Future season (e.g. 2027 when detected=2027 won't hit here; only truly future)
       setShowPastGames(false);
       const openingDate = SEASON_OPENING_DAYS[season] || `${season}-03-25`;
       setSelectedDate(openingDate);
       getSeasonFirstGameDate(season).then((firstDate) => {
         if (firstDate) setSelectedDate(firstDate);
       });
-    } else if (season < currentYear) {
+    } else if (season < detectedSeason) {
+      // Past season — show past games tab
       setShowPastGames(true);
     } else {
-      setShowPastGames(false);
-      setSelectedDate(todayISO);
+      // Current detected season — check if we're in active play or off-season
+      const today = new Date();
+      const monthDay = (today.getMonth() + 1) * 100 + today.getDate(); // e.g. 1111 for Nov 11
+      if (monthDay > 1031) {
+        // After Oct 31 = season over, show past games
+        setShowPastGames(true);
+      } else {
+        setShowPastGames(false);
+        setSelectedDate(todayISO);
+      }
     }
   }, [season]);
 
