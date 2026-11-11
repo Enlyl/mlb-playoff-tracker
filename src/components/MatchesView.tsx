@@ -17,6 +17,7 @@ import {
   Radio,
   Star,
   ChevronRight,
+  ChevronLeft,
   RefreshCw,
   Sparkles,
   Download,
@@ -95,21 +96,31 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
 
   const prevScoreRef = useRef<{ away?: number; home?: number }>({});
   const dateInputRef = useRef<HTMLInputElement>(null);
-  const [showDateFallback, setShowDateFallback] = useState(false);
+  const calendarContainerRef = useRef<HTMLDivElement>(null);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calendarViewMonth, setCalendarViewMonth] = useState<Date>(() => {
+    return selectedDate ? new Date(selectedDate) : todayObj;
+  });
   const isCustomDate = viewMode === 'calendar' && ![todayISO, tomorrowISO, dayAfterISO].includes(selectedDate);
 
-  const handleOpenCalendar = () => {
-    if (dateInputRef.current) {
-      if (typeof dateInputRef.current.showPicker === 'function') {
-        try {
-          dateInputRef.current.showPicker();
-          return;
-        } catch (err) {
-          console.warn('showPicker error, showing fallback:', err);
-        }
+  // Close calendar popover on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (calendarContainerRef.current && !calendarContainerRef.current.contains(e.target as Node)) {
+        setCalendarOpen(false);
       }
+    };
+    if (calendarOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
     }
-    setShowDateFallback((prev) => !prev);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [calendarOpen]);
+
+  const handleOpenCalendar = () => {
+    setCalendarViewMonth(selectedDate ? new Date(selectedDate) : new Date());
+    setCalendarOpen((prev) => !prev);
   };
 
   // 1. Load games for selected date
@@ -767,7 +778,9 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
                 },
               ]).map(({ mode, label, icon, activeClass, inactiveClass, tagColor }) => {
                 const isActive = viewMode === mode;
-                return (
+                const isCalendarBtn = mode === 'calendar';
+
+                const buttonEl = (
                   <motion.button
                     key={mode}
                     whileHover={{ scale: 1.04, y: -1 }}
@@ -778,6 +791,8 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
                       setViewMode(mode);
                       if (mode === 'calendar') {
                         handleOpenCalendar();
+                      } else {
+                        setCalendarOpen(false);
                       }
                     }}
                     className={`relative overflow-hidden flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-black transition-colors cursor-pointer border ${
@@ -811,32 +826,151 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
                       ) : (
                         icon
                       )}
-                      <span>{label}</span>
+                      <span>
+                        {mode === 'calendar' && viewMode === 'calendar' && selectedDate
+                          ? new Date(selectedDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+                          : label}
+                      </span>
                     </span>
                   </motion.button>
                 );
-              })}
 
-              {/* Hidden date input for Calendar mode */}
-              <input
-                ref={dateInputRef}
-                type="date"
-                value={selectedDate}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    setSelectedDate(e.target.value);
-                    setViewMode('calendar');
-                    setShowDateFallback(false);
-                  }
-                }}
-                className={
-                  showDateFallback
-                    ? 'px-2.5 py-1 rounded-full bg-slate-900 text-amber-300 text-[11px] font-bold border border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400 cursor-pointer shadow-lg'
-                    : 'absolute opacity-0 pointer-events-none w-0 h-0'
-                }
-                tabIndex={showDateFallback ? 0 : -1}
-                aria-hidden={!showDateFallback}
-              />
+                if (!isCalendarBtn) return buttonEl;
+
+                // Calendar popover docked right against the button
+                const year = calendarViewMonth.getFullYear();
+                const month = calendarViewMonth.getMonth();
+                const monthName = calendarViewMonth.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+
+                // First day of month (0 = Sun, 1 = Mon...)
+                const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7; // Monday = 0
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+                const blanks = Array.from({ length: firstDayIndex }, (_, i) => i);
+
+                return (
+                  <div key={mode} ref={calendarContainerRef} className="relative inline-block">
+                    {buttonEl}
+
+                    <AnimatePresence>
+                      {calendarOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 6, scale: 0.96 }}
+                          animate={{ opacity: 1, y: 2, scale: 1 }}
+                          exit={{ opacity: 0, y: 6, scale: 0.96 }}
+                          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                          className="absolute left-0 sm:left-auto sm:right-0 top-full mt-1.5 z-50 w-72 rounded-2xl bg-slate-900/95 dark:bg-slate-950/95 backdrop-blur-xl border border-indigo-500/40 p-3.5 shadow-2xl shadow-indigo-950/60 ring-1 ring-white/10"
+                        >
+                          {/* Calendar Header with Navigation */}
+                          <div className="flex items-center justify-between mb-3 pb-2 border-b border-white/10">
+                            <button
+                              type="button"
+                              onClick={() => setCalendarViewMonth(new Date(year, month - 1, 1))}
+                              className="p-1 rounded-lg hover:bg-white/10 text-slate-300 hover:text-white transition cursor-pointer"
+                              title="Предыдущий месяц"
+                            >
+                              <ChevronLeft className="w-4 h-4" />
+                            </button>
+                            <span className="text-xs font-black text-white capitalize">{monthName}</span>
+                            <button
+                              type="button"
+                              onClick={() => setCalendarViewMonth(new Date(year, month + 1, 1))}
+                              className="p-1 rounded-lg hover:bg-white/10 text-slate-300 hover:text-white transition cursor-pointer"
+                              title="Следующий месяц"
+                            >
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          {/* Weekdays */}
+                          <div className="grid grid-cols-7 gap-1 text-center mb-1.5">
+                            {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((d) => (
+                              <div key={d} className="text-[10px] font-bold text-slate-400">
+                                {d}
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Month Day Grid */}
+                          <div className="grid grid-cols-7 gap-1 text-center">
+                            {blanks.map((b) => (
+                              <div key={`blank-${b}`} className="w-8 h-8" />
+                            ))}
+                            {daysArray.map((dayNum) => {
+                              const dayStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+                              const isDaySelected = selectedDate === dayStr;
+                              const isToday = dayStr === todayISO;
+
+                              return (
+                                <button
+                                  key={dayStr}
+                                  type="button"
+                                  onClick={() => {
+                                    sounds.playBatCrack();
+                                    setSelectedDate(dayStr);
+                                    setViewMode('calendar');
+                                    setCalendarOpen(false);
+                                  }}
+                                  className={`w-8 h-8 rounded-lg text-[11px] font-bold flex items-center justify-center transition-all cursor-pointer relative ${
+                                    isDaySelected
+                                      ? 'bg-indigo-600 text-white font-black shadow-md shadow-indigo-600/50 ring-2 ring-indigo-400'
+                                      : isToday
+                                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30'
+                                      : 'text-slate-300 hover:bg-white/10 hover:text-white'
+                                  }`}
+                                >
+                                  {dayNum}
+                                  {isToday && !isDaySelected && (
+                                    <span className="absolute bottom-1 w-1 h-1 rounded-full bg-rose-400" />
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {/* Quick Jump Shortcuts */}
+                          <div className="mt-3 pt-2 border-t border-white/10 flex items-center justify-between text-[10px]">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedDate(todayISO);
+                                setCalendarViewMonth(new Date());
+                                setViewMode('calendar');
+                                setCalendarOpen(false);
+                              }}
+                              className="px-2 py-1 rounded-md text-slate-300 hover:text-white hover:bg-white/10 font-bold transition cursor-pointer"
+                            >
+                              Сегодня
+                            </button>
+                            {season > todayObj.getFullYear() && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const op = SEASON_OPENING_DAYS[season] || `${season}-03-25`;
+                                  setSelectedDate(op);
+                                  setCalendarViewMonth(new Date(op));
+                                  setViewMode('calendar');
+                                  setCalendarOpen(false);
+                                }}
+                                className="px-2 py-1 rounded-md text-amber-300 hover:text-amber-200 hover:bg-amber-500/10 font-bold transition cursor-pointer"
+                              >
+                                Opening Day
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => setCalendarOpen(false)}
+                              className="px-2 py-1 rounded-md text-slate-400 hover:text-white transition cursor-pointer"
+                            >
+                              Закрыть
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
 
               {/* Separator */}
               <div className="w-px h-5 bg-slate-300 dark:bg-white/10 mx-1 hidden sm:block" />
