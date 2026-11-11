@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   MLBGame,
   MLB_TEAMS,
@@ -724,33 +725,95 @@ export const MatchesView: React.FC<MatchesViewProps> = ({
             {/* ── View Mode Tabs ── */}
             <div className="flex flex-wrap items-center gap-2">
               {([
-                { mode: 'past' as ViewMode, label: 'Прошедшие', icon: <Eye className="w-3.5 h-3.5" /> },
-                { mode: 'today' as ViewMode, label: 'Сегодня', icon: <Radio className="w-3.5 h-3.5" /> },
-                { mode: 'upcoming' as ViewMode, label: 'Предстоящие', icon: <Play className="w-3.5 h-3.5" /> },
-                { mode: 'calendar' as ViewMode, label: 'Календарь', icon: <Calendar className="w-3.5 h-3.5" /> },
-                { mode: 'classics' as ViewMode, label: 'Финал & Триллеры', icon: <Flame className="w-3.5 h-3.5" /> },
-              ]).map(({ mode, label, icon }) => {
+                {
+                  mode: 'past' as ViewMode,
+                  label: 'Прошедшие',
+                  icon: <Eye className="w-3.5 h-3.5" />,
+                  activeClass: 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)] ring-1 ring-emerald-400/40',
+                  inactiveClass: 'hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-500/30',
+                  tagColor: '#10b981',
+                },
+                {
+                  mode: 'today' as ViewMode,
+                  label: 'Сегодня',
+                  icon: <Radio className="w-3.5 h-3.5 animate-pulse" />,
+                  activeClass: 'bg-rose-500/20 text-rose-800 dark:text-rose-300 border-rose-500/50 shadow-[0_0_15px_rgba(244,63,94,0.35)] ring-1 ring-rose-400/40',
+                  inactiveClass: 'hover:text-rose-600 dark:hover:text-rose-400 hover:border-rose-500/30',
+                  tagColor: '#f43f5e',
+                },
+                {
+                  mode: 'upcoming' as ViewMode,
+                  label: 'Предстоящие',
+                  icon: <Play className="w-3.5 h-3.5" />,
+                  activeClass: 'bg-sky-500/20 text-sky-800 dark:text-sky-300 border-sky-500/50 shadow-[0_0_15px_rgba(14,165,233,0.3)] ring-1 ring-sky-400/40',
+                  inactiveClass: 'hover:text-sky-600 dark:hover:text-sky-400 hover:border-sky-500/30',
+                  tagColor: '#0ea5e9',
+                },
+                {
+                  mode: 'calendar' as ViewMode,
+                  label: 'Календарь',
+                  icon: <Calendar className="w-3.5 h-3.5" />,
+                  activeClass: 'bg-indigo-500/20 text-indigo-800 dark:text-indigo-300 border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.3)] ring-1 ring-indigo-400/40',
+                  inactiveClass: 'hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-500/30',
+                  tagColor: '#6366f1',
+                },
+                {
+                  mode: 'classics' as ViewMode,
+                  label: 'Финал & Триллеры',
+                  icon: <Flame className="w-3.5 h-3.5 text-amber-500" />,
+                  activeClass: 'bg-gradient-to-r from-amber-500/25 via-orange-500/20 to-amber-500/25 text-amber-800 dark:text-amber-300 border-amber-500/60 shadow-[0_0_18px_rgba(245,158,11,0.4)] ring-1 ring-amber-400/50',
+                  inactiveClass: 'hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-500/30',
+                  tagColor: '#f59e0b',
+                },
+              ]).map(({ mode, label, icon, activeClass, inactiveClass, tagColor }) => {
                 const isActive = viewMode === mode;
                 return (
-                  <button
+                  <motion.button
                     key={mode}
+                    whileHover={{ scale: 1.04, y: -1 }}
+                    whileTap={{ scale: 0.91, rotate: -2 }}
+                    transition={{ type: 'spring', stiffness: 450, damping: 18 }}
                     onClick={() => {
+                      sounds.playBatCrack();
                       setViewMode(mode);
                       if (mode === 'calendar') {
                         handleOpenCalendar();
                       }
                     }}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer active:scale-95 ${
+                    className={`relative overflow-hidden flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-black transition-colors cursor-pointer border ${
                       isActive
-                        ? mode === 'classics'
-                          ? 'bg-amber-500/25 text-amber-300 border border-amber-500/50 shadow-xs'
-                          : 'bg-red-500/20 text-red-700 dark:text-red-300 border border-red-500/40 shadow-xs'
-                        : 'bg-slate-100 dark:bg-white/[0.04] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/[0.07] hover:bg-slate-200 dark:hover:bg-white/10'
+                        ? `${activeClass} shadow-xs font-black`
+                        : `bg-slate-100 dark:bg-white/[0.04] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/[0.07] ${inactiveClass}`
                     }`}
                   >
-                    {icon}
-                    <span>{label}</span>
-                  </button>
+                    {/* Animated baseball seams accent on active */}
+                    {isActive && (
+                      <motion.span
+                        layoutId="activeTabGlow"
+                        className="absolute inset-0 pointer-events-none rounded-full"
+                        style={{
+                          background: `radial-gradient(ellipse at 50% 0%, ${tagColor}35 0%, transparent 80%)`,
+                        }}
+                        transition={{ type: 'spring', bounce: 0.25, duration: 0.4 }}
+                      />
+                    )}
+                    {/* Baseball icon badge when active */}
+                    <span className="relative z-10 flex items-center gap-1.5">
+                      {isActive ? (
+                        <motion.span
+                          initial={{ rotate: -90, scale: 0.6 }}
+                          animate={{ rotate: 0, scale: 1 }}
+                          transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                          className="inline-block text-[12px] leading-none"
+                        >
+                          ⚾
+                        </motion.span>
+                      ) : (
+                        icon
+                      )}
+                      <span>{label}</span>
+                    </span>
+                  </motion.button>
                 );
               })}
 
