@@ -108,13 +108,10 @@ export const Header: React.FC<HeaderProps> = ({
   const activeTabData = TABS.find((t) => t.id === activeTab);
 
   return (
-    <header
-      className="sticky top-0 z-40 transition-all duration-500"
-      style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}
-    >
+    <header className="sticky top-0 z-40">
       {/* Dynamic Seasonal Accent Line */}
       <div
-        className="h-[2px] w-full transition-all duration-700"
+        className="h-[2px] w-full"
         style={{
           background: activeSeasonTheme.gradient,
           boxShadow: `0 0 12px ${activeSeasonTheme.glowRgba}`,
@@ -122,12 +119,11 @@ export const Header: React.FC<HeaderProps> = ({
       />
       {/* Top bar: Logo + Season badge */}
       <div
-        className={`transition-all duration-500 ${
+        className={
           scrolled
             ? 'bg-[#050508]/95 backdrop-blur-2xl border-b border-white/[0.04] shadow-[0_1px_0_rgba(255,255,255,0.04)]'
             : 'bg-transparent'
-        }`}
-        style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}
+        }
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
           {/* Brand - Returns to Home from anywhere */}
@@ -360,12 +356,12 @@ export const Header: React.FC<HeaderProps> = ({
           <nav
             className="flex items-center gap-0.5 w-max min-w-full sm:w-auto sm:min-w-0"
             style={{
-              background: 'rgba(15,18,26,0.8)',
+              background: theme === 'light' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(15, 18, 26, 0.8)',
               backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255,255,255,0.06)',
+              border: theme === 'light' ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.06)',
               borderRadius: '14px',
               padding: '3px',
-              boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.04), 0 4px 24px rgba(0,0,0,0.4)',
+              boxShadow: theme === 'light' ? '0 4px 20px rgba(0, 0, 0, 0.06)' : 'inset 0 1px 1px rgba(255, 255, 255, 0.04), 0 4px 24px rgba(0, 0, 0, 0.4)',
             }}
           >
             {TABS.map((tab) => {

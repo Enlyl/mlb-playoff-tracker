@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Header, TabType } from './components/Header';
 import { MatchesView } from './components/MatchesView';
@@ -59,6 +59,20 @@ const MOBILE_NAV = [
   { id: 'settings'  as TabType, label: 'Настройки', icon: Settings,     color: '#64748b' },
 ];
 
+// Synchronously apply theme class to document root to avoid any frame lag
+function applyThemeToDOM(t: 'dark' | 'light') {
+  const root = document.documentElement;
+  if (t === 'light') {
+    root.classList.add('light');
+    root.classList.remove('dark');
+    root.setAttribute('data-theme', 'light');
+  } else {
+    root.classList.remove('light');
+    root.classList.add('dark');
+    root.setAttribute('data-theme', 'dark');
+  }
+}
+
 export function App() {
   const [activeTab, setActiveTab] = useState<TabType>('matches');
   const [favoriteTeamId, setFavoriteTeamIdState] = useState<number>(() => {
@@ -74,8 +88,14 @@ export function App() {
   const [selectedPlayer, setSelectedPlayer] = useState<{ id: number; name?: string } | null>(null);
   const [theme, setThemeState] = useState<'dark' | 'light'>(() => {
     const saved = localStorage.getItem('mlb_theme');
-    if (saved === 'light' || saved === 'dark') return saved;
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    let initial: 'dark' | 'light' = 'dark';
+    if (saved === 'light' || saved === 'dark') {
+      initial = saved;
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      initial = 'light';
+    }
+    applyThemeToDOM(initial);
+    return initial;
   });
 
   /* ── SEASON STATE (global) ── */
@@ -104,6 +124,7 @@ export function App() {
   }, []);
 
   const setTheme = useCallback((t: 'dark' | 'light') => {
+    applyThemeToDOM(t);
     setThemeState(t);
     localStorage.setItem('mlb_theme', t);
   }, []);
@@ -111,21 +132,14 @@ export function App() {
   const toggleTheme = useCallback(() => {
     setThemeState((prev) => {
       const next = prev === 'dark' ? 'light' : 'dark';
+      applyThemeToDOM(next);
       localStorage.setItem('mlb_theme', next);
       return next;
     });
   }, []);
 
-  useEffect(() => {
-    if (theme === 'light') {
-      document.documentElement.classList.add('light');
-      document.documentElement.classList.remove('dark');
-      document.documentElement.setAttribute('data-theme', 'light');
-    } else {
-      document.documentElement.classList.remove('light');
-      document.documentElement.classList.add('dark');
-      document.documentElement.setAttribute('data-theme', 'dark');
-    }
+  useLayoutEffect(() => {
+    applyThemeToDOM(theme);
   }, [theme]);
 
   const setFavoriteTeamId = (id: number) => {
